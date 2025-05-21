@@ -5,8 +5,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 client_id = os.getenv("AZURE_CLIENT_ID")
-print("Client ID:", client_id)
-
 tenant_id = os.getenv("AZURE_TENANT_ID")
 
 app = msal.PublicClientApplication(
