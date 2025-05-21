@@ -38,5 +38,3 @@ def validate_token(token):
     if REQUIRED_SCOPE not in scopes:
         raise jwt.InvalidTokenError("Missing required scope")
     return payload
-
-d
