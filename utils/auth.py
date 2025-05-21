@@ -6,7 +6,7 @@ from jwt.algorithms import RSAAlgorithm
 from os import getenv
 
 TENANT_ID = getenv("AZURE_TENANT_ID")
-AUDIENCE = getenv("AZURE_API_AUDIENCE", "api://jgiquality.com/core-api")
+AUDIENCE = getenv("AZURE_CLIENT_ID")
 REQUIRED_SCOPE = getenv("AZURE_REQUIRED_SCOPE", "access_as_user")
 
 _openid_config = None
