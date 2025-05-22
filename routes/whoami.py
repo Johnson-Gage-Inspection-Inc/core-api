@@ -10,6 +10,7 @@ blp = Blueprint("whoami", __name__, url_prefix="/")
 @blp.route("/whoami")
 class Whoami(MethodView):
     @require_auth
+    @blp.doc(security=[{"BearerAuth": []}])
     @blp.response(200, WhoamiResponse)
     def get(self):
         return {

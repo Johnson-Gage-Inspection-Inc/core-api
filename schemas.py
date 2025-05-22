@@ -1,5 +1,8 @@
 from marshmallow import Schema, fields
 
+class WorkItemDetailsQuerySchema(Schema):
+    workItemNumber = fields.Str(required=True)
+
 class WorkItemDetailsSchema(Schema):
     clientCompanyId = fields.Int(required=True)
     serviceOrderId = fields.Int(required=True)

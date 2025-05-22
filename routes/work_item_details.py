@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from flask import request
-from schemas import WorkItemDetailsSchema
+from schemas import WorkItemDetailsSchema, WorkItemDetailsQuerySchema
 from utils.auth import require_auth
 import re
 from os import getenv
@@ -77,6 +77,8 @@ def get_work_item_details_for_tus(work_item_number):
 @blp.route("/work_item_details")
 class WorkItemDetails(MethodView):
     @require_auth
+    @blp.doc(security=[{"BearerAuth": []}])
+    @blp.arguments(WorkItemDetailsQuerySchema, location="query")
     @blp.response(200, WorkItemDetailsSchema)
     def get(self):
         work_item_number = request.args.get("workItemNumber")
