@@ -1,5 +1,5 @@
 import pytest
-from service_order_details import get_work_item_details_for_tus
+from routes.main import get_work_item_details_for_tus
 
 def test_get_work_item_details_for_tus():
     # Test with a valid work item number
@@ -10,3 +10,8 @@ def test_get_work_item_details_for_tus():
     assert result['clientCompanyId'] is not None
     assert result['serviceOrderId'] is not None
     assert result['assetId'] is not None
+
+def test_get_work_item_details_for_tus_invalid():
+    invalid_work_item_number = 'invalid-number'
+    with pytest.raises(ValueError):
+        get_work_item_details_for_tus(invalid_work_item_number)
