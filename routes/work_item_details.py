@@ -1,4 +1,5 @@
 # routes/work_item_details.py
+from concurrent.futures import ThreadPoolExecutor
 from flask import Blueprint, request, jsonify
 from utils.auth import require_auth
 from qualer_sdk import (
@@ -60,21 +61,26 @@ def work_item_details_route():
             if field is None:
                 raise ValueError(f"Missing required field: {field}")
 
-        # Fetch the client asset details
-        client_asset = ClientAssetsApi(client).client_assets_get_asset(
-            asset_id=asset_id
-        )
+        # Fetch the client asset, attributes, and service order in parallel
+        with ThreadPoolExecutor() as executor:
+            future_client_asset = executor.submit(
+                ClientAssetsApi(client).client_assets_get_asset,
+                asset_id=asset_id
+            )
+            future_attributes = executor.submit(
+                ClientAssetAttributesApi(client).client_asset_attributes_get_asset_attributes,
+                asset_id=asset_id
+            )
+            future_service_order = executor.submit(
+                ServiceOrdersApi(client).service_orders_get_work_order,
+                service_order_id=service_order_id
+            )
 
-        # Fetch the asset attributes
-        client_asset_attributes = ClientAssetAttributesApi(client).client_asset_attributes_get_asset_attributes(
-            asset_id=asset_id
-        )
+            client_asset = future_client_asset.result()
+            client_asset_attributes = future_attributes.result()
+            service_order = future_service_order.result()
 
-        # Fetch the service order details
-        service_order = ServiceOrdersApi(client).service_orders_get_work_order(
-            service_order_id=service_order_id
-        )
-
+        # Assemble the response
         return {
             "clientCompanyId": client_company_id,
             "serviceOrderId": service_order_id,
