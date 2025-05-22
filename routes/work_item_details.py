@@ -78,14 +78,13 @@ def get_work_item_details_for_tus(work_item_number):
 class WorkItemDetails(MethodView):
     @require_auth
     @blp.doc(security=[{"BearerAuth": []}])
-    @blp.arguments(WorkItemDetailsQuerySchema, location="query")
+    @blp.arguments(WorkItemDetailsQuerySchema, location="query", as_kwargs=True)
     @blp.response(200, WorkItemDetailsSchema)
-    def get(self):
-        work_item_number = request.args.get("workItemNumber")
-        if not work_item_number:
+    def get(self, workItemNumber):
+        if not workItemNumber:
             abort(400, message="Missing workItemNumber")
 
         try:
-            return get_work_item_details_for_tus(work_item_number)
+            return get_work_item_details_for_tus(workItemNumber)
         except Exception as e:
             abort(500, message=str(e))
