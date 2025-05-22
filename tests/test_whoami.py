@@ -1,13 +1,7 @@
-import pytest
-from get_token import get_access_token
-
-def test_whoami_with_auth(client):
-    token = get_access_token()
-    assert token, "Access token is missing — check .env and get_token.py config"
-
+def test_whoami_with_auth(client, auth_token):
     response = client.get(
         "/whoami",
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert response.status_code == 200
     data = response.get_json()

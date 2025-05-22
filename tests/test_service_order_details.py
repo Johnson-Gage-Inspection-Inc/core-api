@@ -1,13 +1,8 @@
-import pytest
-from get_token import get_access_token
-
-
-def test_work_item_details_route_with_auth(client):
+def test_work_item_details_route_with_auth(client, auth_token):
     """Test the work item details route with authentication."""
-    token = get_access_token()
     response = client.get(
         "/work_item_details?workItemNumber=56561-067667-01",
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert response.status_code == 200
     data = response.get_json()
