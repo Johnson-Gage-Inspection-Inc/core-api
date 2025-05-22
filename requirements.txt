@@ -1,6 +1,6 @@
 cryptography
 flask
-git+https://github.com/Johnson-Gage-Inspection-Inc/qualer-sdk-python.git@fc7be4603356c48a79bc97a51344351159d2263b#egg=qualer_sdk
+git+https://github.com/Johnson-Gage-Inspection-Inc/qualer-sdk-python.git@f50f852c5af20f4cc46a6dcf8c0ab459060e7504#egg=qualer_sdk
 msal
 pyjwt
 python-dotenv

@@ -43,7 +43,7 @@ def work_item_details_route():
         client.default_headers["Authorization"] = bearer_token
 
         soi_api = ServiceOrderItemsApi(client)
-        work_items = soi_api.service_order_items_get_work_items_0(
+        work_items = soi_api.get_work_items_0(
             work_item_number=work_item_number
         )
         if len(work_items) == 0:
@@ -64,15 +64,15 @@ def work_item_details_route():
         # Fetch the client asset, attributes, and service order in parallel
         with ThreadPoolExecutor() as executor:
             future_client_asset = executor.submit(
-                ClientAssetsApi(client).client_assets_get_asset,
+                ClientAssetsApi(client).get_asset,
                 asset_id=asset_id
             )
             future_attributes = executor.submit(
-                ClientAssetAttributesApi(client).client_asset_attributes_get_asset_attributes,
+                ClientAssetAttributesApi(client).get_asset_attributes,
                 asset_id=asset_id
             )
             future_service_order = executor.submit(
-                ServiceOrdersApi(client).service_orders_get_work_order,
+                ServiceOrdersApi(client).get_work_order,
                 service_order_id=service_order_id
             )
 
