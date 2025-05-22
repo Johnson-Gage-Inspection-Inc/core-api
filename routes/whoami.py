@@ -1,13 +1,18 @@
-# routes/whoami.py
-from flask import Blueprint, jsonify, request
+from flask_smorest import Blueprint
+from flask.views import MethodView
 from utils.auth import require_auth
+from flask import request
+from schemas import WhoamiResponse
 
-bp = Blueprint("whoami", __name__)
+blp = Blueprint("whoami", __name__, url_prefix="/")
 
-@bp.route("/whoami", methods=["GET"])
-@require_auth
-def whoami():
-    return jsonify({
-        "user": request.claims.get("preferred_username"),
-        "sub": request.claims.get("sub")
-    })
+
+@blp.route("/whoami")
+class Whoami(MethodView):
+    @require_auth
+    @blp.response(200, WhoamiResponse)
+    def get(self):
+        return {
+            "user": request.claims.get("preferred_username"),
+            "sub": request.claims.get("sub")
+        }
