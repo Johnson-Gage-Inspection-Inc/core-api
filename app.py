@@ -1,16 +1,30 @@
 # app.py
+from dotenv import load_dotenv
+from flask import Flask
 from flask import Flask, request, jsonify
+from flask_smorest import Api
+from os import getenv
+from routes.work_item_details import blp as main_blp
+from routes.whoami import blp as whoami_blp
+from utils.auth import require_auth
 import jwt
 import requests
-from dotenv import load_dotenv
-from os import getenv
-from routes.work_item_details import bp as main_bp
-from utils.auth import require_auth
-from flask import Flask
 
 load_dotenv()
 
 app = Flask(__name__)
+app.config["API_TITLE"] = "JGI Quality API"
+app.config["API_VERSION"] = "1.0"
+app.config["OPENAPI_VERSION"] = "3.0.3"
+app.config["OPENAPI_URL_PREFIX"] = "/"
+app.config["OPENAPI_SWAGGER_UI_PATH"] = "/docs"
+app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
+
+api = Api(app)
+
+# Register all your blueprints with this, not `app`
+api.register_blueprint(main_blp)
+api.register_blueprint(whoami_blp)
 
 TENANT_ID = getenv("AZURE_TENANT_ID")
 AUDIENCE = getenv("AZURE_CLIENT_ID")

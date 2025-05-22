@@ -1,7 +1,6 @@
-from app import app as flask_app
 from flask import Flask
-from routes.work_item_details import bp as work_item_details_bp
-from routes.whoami import bp as whoami_bp
+from routes.work_item_details import blp as work_item_details_blp
+from routes.whoami import blp as whoami_blp
 import pytest
 from get_token import get_access_token
 
@@ -16,8 +15,8 @@ def client():
     app = Flask(__name__)
     app.config["TESTING"] = True
 
-    app.register_blueprint(work_item_details_bp)
-    app.register_blueprint(whoami_bp)
+    app.register_blueprint(work_item_details_blp)
+    app.register_blueprint(whoami_blp)
 
     with app.test_client() as client:
         yield client
