@@ -25,3 +25,6 @@ def get_access_token():
     else:
         print("Access token:", result["access_token"])
     return result["access_token"]
+
+if __name__ == "__main__":
+    get_access_token()
