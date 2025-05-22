@@ -18,13 +18,18 @@ app.config["API_VERSION"] = "1.0"
 app.config["OPENAPI_VERSION"] = "3.0.3"
 app.config["OPENAPI_URL_PREFIX"] = "/"
 app.config["OPENAPI_SWAGGER_UI_PATH"] = "/docs"
-app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
-app.config["OPENAPI_SECURITY_SCHEMES"] = {
-    "BearerAuth": {
+app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.11.0/"
+app.config["API_SPEC_OPTIONS"] = {
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT"
+      }
     }
+  },
+  "security": [{"BearerAuth": []}]
 }
 
 api = Api(app)
@@ -74,12 +79,6 @@ def validate_token(token):
 
     return payload
 
-
-# Example protected route
-@app.route("/whoami")
-@require_auth
-def whoami():
-    return jsonify({"user": request.claims["preferred_username"]})
 
 if __name__ == "__main__":
     get_openid_config()
