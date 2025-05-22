@@ -22,7 +22,7 @@ You can run the API locally for testing:
 
 ```bash
 python app.py
-````
+```
 
 You must authenticate using the registered Entra app and pass a Bearer token to call endpoints like:
 
@@ -39,3 +39,19 @@ Authorization: Bearer <access_token>
 ## 📎 Next Steps
 
 Once deployed behind `https://api.jgiquality.com`, this API can be queried from Excel using the **Organizational Account** credential type with no extra token-pasting required.
+
+---
+
+## 🔎 API Documentation
+
+This API exposes an OpenAPI 3.0 schema and a live Swagger UI for interactive exploration.
+
+* **OpenAPI Spec (machine-readable)**
+  [`GET /openapi.json`](http://localhost:5000/openapi.json)
+
+* **Swagger UI (interactive docs)**
+  [`GET /docs`](http://localhost:5000/docs)
+
+These endpoints are available during local development and can be exposed in production for documentation consumers if desired.
+
+---
