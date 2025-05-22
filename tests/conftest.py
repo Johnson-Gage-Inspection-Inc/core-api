@@ -1,6 +1,6 @@
 from app import app as flask_app
 from flask import Flask
-from routes.main import bp as main_bp
+from routes.work_item_details import bp as main_bp
 import pytest
 
 @pytest.fixture

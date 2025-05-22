@@ -4,7 +4,7 @@ import jwt
 import requests
 from dotenv import load_dotenv
 from os import getenv
-from routes.main import bp as main_bp
+from routes.work_item_details import bp as main_bp
 from utils.auth import require_auth
 from flask import Flask
 
