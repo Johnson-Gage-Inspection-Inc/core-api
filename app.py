@@ -16,10 +16,12 @@ TENANT_ID = getenv("AZURE_TENANT_ID")
 AUDIENCE = getenv("AZURE_CLIENT_ID")
 REQUIRED_SCOPE = "access_as_user"
 
-# OpenID discovery to get signing keys
+
 def get_openid_config():
+    """Fetch OpenID configuration from Azure AD."""
     url = f"https://login.microsoftonline.com/{TENANT_ID}/v2.0/.well-known/openid-configuration"
     return requests.get(url).json()
+
 
 openid_config = get_openid_config()
 jwks_uri = openid_config["jwks_uri"]
@@ -47,13 +49,6 @@ def validate_token(token):
         raise jwt.InvalidTokenError("Required scope missing")
 
     return payload
-
-def get_openid_config():
-    url = f"https://login.microsoftonline.com/{TENANT_ID}/v2.0/.well-known/openid-configuration"
-    print(f"Fetching OpenID config from: {url}")
-    response = requests.get(url)
-    print("Response JSON:", response.json())
-    return response.json()
 
 
 # Example protected route
