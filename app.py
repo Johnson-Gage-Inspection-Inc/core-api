@@ -4,6 +4,10 @@ import jwt
 import requests
 from dotenv import load_dotenv
 from os import getenv
+from routes.main import bp as main_bp
+from utils.auth import require_auth
+from flask import Flask
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -43,26 +47,6 @@ def validate_token(token):
         raise jwt.InvalidTokenError("Required scope missing")
 
     return payload
-
-# Auth decorator
-from functools import wraps
-
-def require_auth(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        auth_header = request.headers.get("Authorization", "")
-        if not auth_header.startswith("Bearer "):
-            return jsonify({"error": "Missing or invalid Authorization header"}), 401
-        token = auth_header[len("Bearer "):]
-
-        try:
-            claims = validate_token(token)
-            request.claims = claims  # optionally store for use in route
-        except Exception as e:
-            return jsonify({"error": str(e)}), 401
-
-        return f(*args, **kwargs)
-    return wrapper
 
 def get_openid_config():
     url = f"https://login.microsoftonline.com/{TENANT_ID}/v2.0/.well-known/openid-configuration"
