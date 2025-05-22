@@ -37,15 +37,20 @@ class WorkItemDetails(MethodView):
             config.host = "https://jgiquality.qualer.com"
 
             client = ApiClient(configuration=config)
-            client.default_headers["Authorization"] = f'Api-Token {getenv("QUALER_API_KEY")}'
+            token = f'Api-Token {getenv("QUALER_API_KEY")}'
+            client.default_headers["Authorization"] = token
 
             soi_api = ServiceOrderItemsApi(client)
-            work_items = soi_api.get_work_items_0(work_item_number=work_item_number)
+            work_items = soi_api.get_work_items_0(work_item_number)
 
             if len(work_items) == 0:
-                raise ValueError("No work items found for the given work item number.")
+                raise ValueError(
+                    "No work items found for the given work item number."
+                    )
             if len(work_items) > 1:
-                raise ValueError("Multiple work items found for the given work item number.")
+                raise ValueError(
+                    "Multiple work items found for the given work item number."
+                    )
 
             item = work_items[0]
             service_order_id = item.service_order_id
@@ -57,9 +62,18 @@ class WorkItemDetails(MethodView):
                     raise ValueError(f"Missing required field: {field}")
 
             with ThreadPoolExecutor() as executor:
-                future_client_asset = executor.submit(ClientAssetsApi(client).get_asset, asset_id=asset_id)
-                future_attributes = executor.submit(ClientAssetAttributesApi(client).get_asset_attributes, asset_id=asset_id)
-                future_service_order = executor.submit(ServiceOrdersApi(client).get_work_order, service_order_id=service_order_id)
+                future_client_asset = executor.submit(
+                    ClientAssetsApi(client).get_asset,
+                    asset_id=asset_id
+                    )
+                future_attributes = executor.submit(
+                    ClientAssetAttributesApi(client).get_asset_attributes,
+                    asset_id=asset_id
+                    )
+                future_service_order = executor.submit(
+                    ServiceOrdersApi(client).get_work_order,
+                    service_order_id=service_order_id
+                    )
 
                 client_asset = future_client_asset.result()
                 client_asset_attributes = future_attributes.result()
