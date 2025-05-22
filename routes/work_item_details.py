@@ -47,9 +47,13 @@ def work_item_details_route():
             work_item_number=work_item_number
         )
         if len(work_items) == 0:
-            raise ValueError("No work items found for the given work item number.")
+            raise ValueError(
+                "No work items found for the given work item number."
+                )
         if len(work_items) > 1:
-            raise ValueError("Multiple work items found for the given work item number.")
+            raise ValueError(
+                "Multiple work items found for the given work item number."
+                )
         # Assuming we only need the first work item
         item = work_items[0]
 

@@ -20,7 +20,10 @@ def require_auth(f):
     def wrapper(*args, **kwargs):
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
-            return jsonify({"error": "Missing or invalid Authorization header"}), 401
+            error_response = {
+                "error": "Missing or invalid Authorization header"
+                }
+            return jsonify(error_response), 401
         token = auth_header[len("Bearer "):]
 
         try:
@@ -36,7 +39,10 @@ def require_auth(f):
 def load_openid_config():
     global _openid_config, _jwks
     if _openid_config is None:
-        url = f"https://login.microsoftonline.com/{TENANT_ID}/v2.0/.well-known/openid-configuration"
+        url = (
+            f"https://login.microsoftonline.com/"
+            f"{TENANT_ID}/v2.0/.well-known/openid-configuration"
+        )
         _openid_config = requests.get(url).json()
         _jwks = requests.get(_openid_config["jwks_uri"]).json()
     return _openid_config, _jwks

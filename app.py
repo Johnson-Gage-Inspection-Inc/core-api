@@ -19,7 +19,10 @@ REQUIRED_SCOPE = "access_as_user"
 
 def get_openid_config():
     """Fetch OpenID configuration from Azure AD."""
-    url = f"https://login.microsoftonline.com/{TENANT_ID}/v2.0/.well-known/openid-configuration"
+    url = (
+        f"https://login.microsoftonline.com/"
+        f"{TENANT_ID}/v2.0/.well-known/openid-configuration"
+    )
     return requests.get(url).json()
 
 
