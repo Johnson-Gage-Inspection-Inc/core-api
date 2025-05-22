@@ -1,17 +1,23 @@
 import pytest
-from routes.main import get_work_item_details_for_tus
+from get_token import get_access_token
 
-def test_get_work_item_details_for_tus():
-    # Test with a valid work item number
-    valid_work_item_number = '56561-067667-01'
-    result = get_work_item_details_for_tus(valid_work_item_number)
-    assert isinstance(result, dict)
-    assert result['certificateNumber'] == valid_work_item_number
-    assert result['clientCompanyId'] is not None
-    assert result['serviceOrderId'] is not None
-    assert result['assetId'] is not None
 
-def test_get_work_item_details_for_tus_invalid():
-    invalid_work_item_number = 'invalid-number'
-    with pytest.raises(ValueError):
-        get_work_item_details_for_tus(invalid_work_item_number)
+def test_work_item_details_route_with_auth(client):
+    """Test the work item details route with authentication."""
+    token = get_access_token()
+    response = client.get(
+        "/work_item_details?workItemNumber=56561-067667-01",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["certificateNumber"] == "56561-067667-01"
+    assert data['clientCompanyId'] == 57283
+    assert data['serviceOrderId'] == 1171585
+    assert data['assetId'] == 1270490
+
+def test_work_item_details_route_without_auth(client):
+    response = client.get("/work_item_details?workItemNumber=56561-067667-01")
+    assert response.status_code == 401
+    assert "error" in response.get_json()
+
