@@ -1,5 +1,5 @@
 import pytest
-from difflib import unified_diff
+from deepdiff import DeepDiff
 
 SUCCESS_CASES = [
     (
@@ -58,15 +58,8 @@ def test_work_item_details_route_with_auth(client, auth_token, work_item_number,
     )
     assert resp.status_code == 200
     data = resp.get_json()
-    if data != expected:
-        diff = "\n".join(unified_diff(
-            str(expected).splitlines(),
-            str(data).splitlines(),
-            fromfile="expected",
-            tofile="actual",
-            lineterm=""
-        ))
-        pytest.fail(diff)
+    diff = DeepDiff(expected, data, ignore_order=True, report_repetition=True)
+    assert diff == {}, f"Differences found:\n{diff}"
 
 
 def test_work_item_details_route_without_auth(client):

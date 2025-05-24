@@ -1,4 +1,5 @@
 cryptography
+deepdiff
 flask
 flask-cors
 flask-smorest
