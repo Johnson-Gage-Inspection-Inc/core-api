@@ -16,9 +16,13 @@ def get_access_token():
         client_capabilities=["CP1"]
     )
 
-    scopes = ["api://jgiquality.com/core-api/access_as_user"]
+    scopes = ["https://api.jgiquality.com/access_as_user"]
 
-    result = app.acquire_token_interactive(scopes=scopes)
+    result = app.acquire_token_interactive(
+        scopes=scopes,
+        prompt="select_account",
+        claims_challenge=None
+    )
 
     if result.get("error"):
         print("Error acquiring token:", result.get("error_description"))

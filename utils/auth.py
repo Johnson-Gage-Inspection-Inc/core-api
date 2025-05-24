@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request, jsonify, g, Response
 from functools import wraps
 from functools import wraps
 from jwt.algorithms import RSAAlgorithm
@@ -20,15 +20,19 @@ def require_auth(f):
     def wrapper(*args, **kwargs):
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
-            error_response = {
-                "error": "Missing or invalid Authorization header"
+            return Response(
+                "Unauthorized",
+                401,
+                {
+                    "WWW-Authenticate": (
+                        f'Bearer authorization_uri="https://login.microsoftonline.com/{TENANT_ID}"'
+                    )
                 }
-            return jsonify(error_response), 401
+            )
         token = auth_header[len("Bearer "):]
 
         try:
-            claims = validate_token(token)
-            request.claims = claims  # optionally store for use in route
+            g.claims = validate_token(token)
         except Exception as e:
             return jsonify({"error": str(e)}), 401
 

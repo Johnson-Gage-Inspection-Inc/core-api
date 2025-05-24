@@ -2,11 +2,10 @@
 from concurrent.futures import ThreadPoolExecutor
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from flask import request
+from os import getenv
 from schemas import WorkItemDetailsSchema, WorkItemDetailsQuerySchema
 from utils.auth import require_auth
 import re
-from os import getenv
 from qualer_sdk import (
     ServiceOrdersApi,
     ServiceOrderItemsApi,
@@ -28,9 +27,9 @@ class WorkItemDetails(MethodView):
         if not workItemNumber:
             abort(400, message="Missing workItemNumber")
         
-        def get_work_item_details_for_tus(work_item_number):
+        def get_work_item_details_for_tus(item_no):
             pattern = r"^(56561-)?\d{6}(\.\d{2})?(-\d{2})(R\d{1,2})?$"
-            if not re.match(pattern, work_item_number):
+            if not re.match(pattern, item_no):
                 raise ValueError("Invalid work item number format.")
 
             config = Configuration()
@@ -41,7 +40,7 @@ class WorkItemDetails(MethodView):
             client.default_headers["Authorization"] = token
 
             soi_api = ServiceOrderItemsApi(client)
-            work_items = soi_api.get_work_items_0(work_item_number)
+            work_items = soi_api.get_work_items_0(work_item_number=item_no)
 
             if len(work_items) == 0:
                 raise ValueError(

@@ -14,5 +14,5 @@ def test_work_item_details_route_with_auth(client, auth_token):
 def test_work_item_details_route_without_auth(client):
     response = client.get("/work_item_details?workItemNumber=56561-067667-01")
     assert response.status_code == 401
-    assert "error" in response.get_json()
+    assert response.text == 'Unauthorized'
 

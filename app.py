@@ -1,18 +1,18 @@
 # app.py
 from dotenv import load_dotenv
 from flask import Flask
-from flask import Flask, request, jsonify
+from flask_cors import CORS
 from flask_smorest import Api
 from os import getenv
-from routes.work_item_details import blp as main_blp
 from routes.whoami import blp as whoami_blp
-from utils.auth import require_auth
+from routes.work_item_details import blp as main_blp
 import jwt
 import requests
 
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
 app.config["API_TITLE"] = "JGI Quality API"
 app.config["API_VERSION"] = "1.0"
 app.config["OPENAPI_VERSION"] = "3.0.3"
@@ -80,6 +80,12 @@ def validate_token(token):
     return payload
 
 
+@app.route("/", methods=["GET", "OPTIONS"])
+def index():
+    """Root endpoint to check if the server is running."""
+    return ("", 204)
+
+
 if __name__ == "__main__":
     get_openid_config()
-    app.run(debug=False)
+    app.run(debug=True)
