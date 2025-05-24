@@ -8,5 +8,6 @@ marshmallow
 msal
 pyjwt
 pytest
+pytest-cov
 python-dotenv
 requests

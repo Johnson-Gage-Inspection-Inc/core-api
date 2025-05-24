@@ -1,6 +1,4 @@
-from flask import Flask
-from routes.work_item_details import blp as work_item_details_blp
-from routes.whoami import blp as whoami_blp
+from app import app as flask_app
 import pytest
 from get_token import get_access_token
 
@@ -12,11 +10,6 @@ def auth_token():
 
 @pytest.fixture
 def client():
-    app = Flask(__name__)
-    app.config["TESTING"] = True
-
-    app.register_blueprint(work_item_details_blp)
-    app.register_blueprint(whoami_blp)
-
-    with app.test_client() as client:
+    flask_app.config["TESTING"] = True
+    with flask_app.test_client() as client:
         yield client
