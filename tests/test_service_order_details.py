@@ -1,18 +1,55 @@
-def test_work_item_details_route_with_auth(client, auth_token):
-    """Test the work item details route with authentication."""
-    response = client.get(
-        "/work_item_details?workItemNumber=56561-067667-01",
+import pytest
+from difflib import unified_diff
+
+SUCCESS_CASES = [
+    (
+        "56561-067667-01",
+        {
+            "assetAttributes": {},
+            "assetId": 1270490,
+            "assetMaker": "COL-MET",
+            "assetName": "Chrome Plus, Oven No. 13, W-CPI-4143, TUS",
+            "assetTag": "W-CPI-4143, TUS",
+            "categoryName": "Thermometer",
+            "certificateNumber": "56561-067667-01",
+            "clientCompanyId": 57283,
+            "manufacturerPartNumber": "GENERIC 2354",
+            "productManufacturer": "Unidentified",
+            "productName": "Thermometers",
+            "purchaseOrderNumber": "CHR001150",
+            "rootCategoryName": "Thermometers",
+            "serialNumber": "OVEN NO. 13",
+            "serviceOrderId": 1171585,
+        },
+    ),
+]
+
+IDS = [number for number, _ in SUCCESS_CASES]
+
+@pytest.mark.parametrize(
+    "work_item_number,expected",
+    SUCCESS_CASES,
+    ids=IDS
+)
+def test_work_item_details_route_with_auth(client, auth_token, work_item_number, expected):
+    resp = client.get(
+        f"/work_item_details?workItemNumber={work_item_number}",
         headers={"Authorization": f"Bearer {auth_token}"}
     )
-    assert response.status_code == 200
-    data = response.get_json()
-    assert data["certificateNumber"] == "56561-067667-01"
-    assert data['clientCompanyId'] == 57283
-    assert data['serviceOrderId'] == 1171585
-    assert data['assetId'] == 1270490
+    assert resp.status_code == 200
+    data = resp.get_json()
+    if data != expected:
+        diff = "\n".join(unified_diff(
+            str(expected).splitlines(),
+            str(data).splitlines(),
+            fromfile="expected",
+            tofile="actual",
+            lineterm=""
+        ))
+        pytest.fail(diff)
+
 
 def test_work_item_details_route_without_auth(client):
-    response = client.get("/work_item_details?workItemNumber=56561-067667-01")
-    assert response.status_code == 401
-    assert response.text == 'Unauthorized'
-
+    resp = client.get("/work_item_details?workItemNumber=56561-067667-01")
+    assert resp.status_code == 401
+    assert resp.text == "Unauthorized"
