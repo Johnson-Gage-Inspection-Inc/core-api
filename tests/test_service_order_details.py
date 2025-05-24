@@ -22,6 +22,26 @@ SUCCESS_CASES = [
             "serviceOrderId": 1171585,
         },
     ),
+    (
+        "56561-074481-01",
+        {
+            "assetAttributes": {},
+            "assetId": 1270335,
+            "assetMaker": "GEHNRICH",
+            "assetName": "Capps, Age Oven No. 3, TUS",
+            "assetTag": "AGE OVEN NO. 3",
+            "categoryName": "Thermometer",
+            "certificateNumber": "56561-074481-01",
+            "clientCompanyId": 57206,
+            "manufacturerPartNumber": "GENERIC 2354",
+            "productManufacturer": "Unidentified",
+            "productName": "Thermometers",
+            "purchaseOrderNumber": "53865",
+            "rootCategoryName": "Thermometers",
+            "serialNumber": "11108",
+            "serviceOrderId": 1259027,
+        },
+    ),
 ]
 
 IDS = [number for number, _ in SUCCESS_CASES]
