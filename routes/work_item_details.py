@@ -2,7 +2,6 @@
 from concurrent.futures import ThreadPoolExecutor
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from os import getenv
 from schemas import WorkItemDetailsSchema, WorkItemDetailsQuerySchema
 from utils.auth import require_auth
 import re
