@@ -31,6 +31,9 @@ jobs:
         run: |
           pytest --cov=app --cov=routes --cov=utils --cov-report=html:htmlcov
 
+      - name: Verify coverage report exists
+        run: ls htmlcov || echo "Coverage report not generated"
+
       - name: Upload coverage report
         uses: actions/upload-artifact@v3
         with:
