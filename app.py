@@ -65,8 +65,15 @@ def get_openid_config():
 
 
 openid_config = get_openid_config()
+
+# Guard against missing keys
+if "jwks_uri" not in openid_config:
+    import logging
+    logging.error("Missing 'jwks_uri' in OpenID config: %s", openid_config)
+    raise KeyError("'jwks_uri' not found in OpenID configuration.")
+
 jwks_uri = openid_config["jwks_uri"]
-issuer = openid_config["issuer"]
+issuer = openid_config.get("issuer", "unknown")
 jwks = requests.get(jwks_uri).json()
 
 # Token validator
