@@ -27,5 +27,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run tests
-        run: pytest -s
+      - name: Generate HTML coverage report
+        run: |
+          pytest --cov=app --cov=routes --cov=utils --cov-report=html:htmlcov
+
+      - name: Verify coverage report exists
+        run: ls htmlcov || echo "Coverage report not generated"
+
+      - name: Debug coverage report directory
+        run: ls -al htmlcov/
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-coverage-report
+          path: htmlcov/
