@@ -6,11 +6,10 @@ from os import getenv
 from schemas import WorkItemDetailsSchema, WorkItemDetailsQuerySchema
 from utils.auth import require_auth
 import re
+from utils.qualer_client import make_qualer_client
 from qualer_sdk import (
     ServiceOrdersApi,
     ServiceOrderItemsApi,
-    ApiClient,
-    Configuration,
     ClientAssetsApi,
     ClientAssetAttributesApi)
 
@@ -32,12 +31,7 @@ class WorkItemDetails(MethodView):
             if not re.match(pattern, item_no):
                 raise ValueError("Invalid work item number format.")
 
-            config = Configuration()
-            config.host = "https://jgiquality.qualer.com"
-
-            client = ApiClient(configuration=config)
-            token = f'Api-Token {getenv("QUALER_API_KEY")}'
-            client.default_headers["Authorization"] = token
+            client = make_qualer_client()
 
             soi_api = ServiceOrderItemsApi(client)
             work_items = soi_api.get_work_items_0(work_item_number=item_no)
