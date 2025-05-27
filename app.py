@@ -1,18 +1,28 @@
 # app.py
 from dotenv import load_dotenv
-from flask import Flask
+from flask import Flask, request
 from flask_cors import CORS
 from flask_smorest import Api
 from os import getenv
+from routes.pyro_assets import blp as pyro_assets_blp
 from routes.whoami import blp as whoami_blp
 from routes.work_item_details import blp as main_blp
-from routes.pyro_assets import blp as pyro_assets_blp
+from werkzeug.middleware.proxy_fix import ProxyFix
 import jwt
 import requests
 
 load_dotenv()
 
 app = Flask(__name__)
+
+app.wsgi_app = ProxyFix(
+    app.wsgi_app,
+    x_for=1,
+    x_proto=1,
+    x_host=1,
+    x_port=1,
+    x_prefix=1,
+)
 CORS(app)
 app.config["API_TITLE"] = "JGI Quality API"
 app.config["API_VERSION"] = "1.0"
@@ -81,6 +91,9 @@ def validate_token(token):
 
     return payload
 
+@app.before_request
+def log_client_ip():
+    app.logger.debug(f"Incoming request from {request.remote_addr} → {request.method} {request.path}")
 
 @app.route("/", methods=["GET", "OPTIONS"])
 def index():
