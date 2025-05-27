@@ -6,6 +6,7 @@ from flask_smorest import Api
 from os import getenv
 from routes.whoami import blp as whoami_blp
 from routes.work_item_details import blp as main_blp
+from routes.pyro_assets import blp as pyro_assets_blp
 import jwt
 import requests
 
@@ -37,6 +38,7 @@ api = Api(app)
 # Register all your blueprints with this, not `app`
 api.register_blueprint(main_blp)
 api.register_blueprint(whoami_blp)
+api.register_blueprint(pyro_assets_blp)
 
 TENANT_ID = getenv("AZURE_TENANT_ID")
 AUDIENCE = getenv("AZURE_CLIENT_ID")
