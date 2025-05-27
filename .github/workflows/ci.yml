@@ -34,6 +34,9 @@ jobs:
       - name: Verify coverage report exists
         run: ls htmlcov || echo "Coverage report not generated"
 
+      - name: Debug coverage report directory
+        run: ls -al htmlcov/
+
       - name: Upload coverage report
         uses: actions/upload-artifact@v3
         with:
