@@ -1,7 +1,6 @@
 # routes/pyro_assets.py
 from flask.views import MethodView
-from flask_smorest import Blueprint, abort
-from os import getenv
+from flask_smorest import Blueprint
 from qualer_sdk import AssetsApi
 from schemas import AssetToAssetSchema
 from utils.auth import require_auth
@@ -11,7 +10,7 @@ from utils.qualer_client import make_qualer_client
 blp = Blueprint("pyro-assets", __name__, url_prefix="/")
 
 @blp.route("/pyro-assets")
-class WorkItemDetails(MethodView):
+class PyroAssets(MethodView):
     @require_auth
     @blp.doc(security=[{"BearerAuth": []}])
     @blp.response(200, AssetToAssetSchema(many=True))

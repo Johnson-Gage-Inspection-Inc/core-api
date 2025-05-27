@@ -6,6 +6,10 @@ def get_access_token():
     from dotenv import load_dotenv
     load_dotenv()
 
+    if os.getenv("SKIP_AUTH", "false").lower() == "true":
+        print(">>> Skipping get_access_token() because SKIP_AUTH is true")
+        return "fake-token"
+
     client_id = os.getenv("AZURE_CLIENT_ID")
     tenant_id = os.getenv("AZURE_TENANT_ID")
 

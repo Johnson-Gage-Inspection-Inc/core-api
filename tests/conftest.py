@@ -1,3 +1,4 @@
+import tests.mock_view_bindings
 from app import app as flask_app
 import pytest
 from get_token import get_access_token
