@@ -10,6 +10,7 @@ from routes.work_item_details import blp as main_blp
 from werkzeug.middleware.proxy_fix import ProxyFix
 import jwt
 import requests
+import logging
 
 load_dotenv()
 
@@ -65,7 +66,16 @@ def get_openid_config():
 
 
 openid_config = get_openid_config()
+
+# Guard against missing keys
+if "jwks_uri" not in openid_config:
+    logging.error("Missing 'jwks_uri' in OpenID config: %s", openid_config)
+    raise KeyError("'jwks_uri' not found in OpenID configuration.")
+
 jwks_uri = openid_config["jwks_uri"]
+if "issuer" not in openid_config:
+    logging.error("Missing 'issuer' in OpenID config: %s", openid_config)
+    raise KeyError("'issuer' not found in OpenID configuration.")
 issuer = openid_config["issuer"]
 jwks = requests.get(jwks_uri).json()
 
