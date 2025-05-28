@@ -4,6 +4,7 @@ from flask import Flask, request
 from flask_cors import CORS
 from flask_smorest import Api
 from os import getenv
+from routes import git_ops
 from routes import pyro_assets
 from routes import whoami
 from routes import work_item_details
@@ -31,6 +32,8 @@ app.config["OPENAPI_VERSION"] = "3.0.3"
 app.config["OPENAPI_URL_PREFIX"] = "/"
 app.config["OPENAPI_SWAGGER_UI_PATH"] = "/docs"
 app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.11.0/"
+app.config["PROPAGATE_EXCEPTIONS"] = True
+app.config["ERROR_404_HELP"] = False
 app.config["API_SPEC_OPTIONS"] = {
   "components": {
     "securitySchemes": {
@@ -47,6 +50,7 @@ app.config["API_SPEC_OPTIONS"] = {
 api = Api(app)
 
 # Register all your blueprints with this, not `app`
+api.register_blueprint(git_ops.blp)
 api.register_blueprint(work_item_details.blp)
 api.register_blueprint(whoami.blp)
 api.register_blueprint(pyro_assets.blp)
@@ -112,5 +116,4 @@ def index():
 
 
 if __name__ == "__main__":
-    get_openid_config()
     app.run(debug=True)

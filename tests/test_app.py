@@ -1,7 +1,7 @@
 import pytest
 import jwt
-from unittest.mock import patch, MagicMock
-from app import validate_token, REQUIRED_SCOPE
+from unittest.mock import patch
+from app import validate_token, REQUIRED_SCOPE, app
 
 @pytest.fixture
 def fake_jwks():
@@ -77,3 +77,15 @@ def test_validate_token_kid_not_found(mock_decode, mock_from_jwk, mock_get_unver
 
     with pytest.raises(StopIteration):
         validate_token(fake_token)
+
+def test_index_route_returns_204():
+    with app.test_client() as client:
+        response = client.get("/")
+        assert response.status_code == 204
+        assert response.data == b""
+
+def test_index_route_options_returns_204():
+    with app.test_client() as client:
+        response = client.options("/")
+        assert response.status_code == 204
+        assert response.data == b""
