@@ -53,7 +53,7 @@ def get_access_token():
 
     if result.get("error"):
         print("Error acquiring token:", result.get("error_description"))
-        raise Exception(f"Failed to acquire token: {result.get('error_description')}")
+        raise TokenAcquisitionError(f"Failed to acquire token: {result.get('error_description')}")
     else:
         print("Access token acquired successfully")
     return result["access_token"]
