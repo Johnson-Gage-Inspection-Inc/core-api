@@ -86,6 +86,45 @@ class WorkItemDetails(MethodView):
     @blp.arguments(WorkItemDetailsQuerySchema, location="query", as_kwargs=True)
     @blp.response(200, WorkItemDetailsSchema)
     def get(self, workItemNumber):
+        """
+        Get detailed TUS (Testing, Upgrading, Servicing) information for a work item.
+        
+        This endpoint retrieves comprehensive details about a work item by its number,
+        including asset information, service order details, and attributes. The work
+        item number must follow a specific format pattern for validation.
+          Args:
+            workItemNumber (str): The work item number to look up. Must match pattern:
+                r"^(56561-)?\d{6}(\.\d{2})?(-\d{2})(R\d{1,2})?$"
+                Examples: "123456-01", "56561-123456.01-02", "123456.01-02R1"
+        
+        **Returns**:
+        - **dict**: Comprehensive work item details containing:
+          - clientCompanyId: ID of the client company
+          - serviceOrderId: ID of the associated service order
+          - assetId: ID of the asset being serviced
+          - certificateNumber: Certificate number for the work item
+          - assetName: Name of the asset
+          - assetMaker: Manufacturer of the asset
+          - assetTag: Asset tag identifier
+          - serialNumber: Serial number of the asset
+          - manufacturerPartNumber: Manufacturer's part number
+          - categoryName: Asset category name
+          - rootCategoryName: Root category name
+          - productManufacturer: Product manufacturer
+          - productName: Product name
+          - purchaseOrderNumber: Associated purchase order number
+          - assetAttributes: List of asset attributes and their values
+        
+        **Raises**:
+        - **400**: If workItemNumber parameter is missing
+        - **401**: If authentication token is invalid or missing
+        - **422**: If workItemNumber format is invalid
+        - **500**: If work item not found, multiple work items found, missing required fields, or API communication error
+        
+        **Example**: GET /work-item-details?workItemNumber=123456-01 with Authorization: Bearer <token>
+        
+        **Response**: Object with clientCompanyId, serviceOrderId, assetId, certificateNumber, assetName, assetMaker, assetTag, serialNumber, manufacturerPartNumber, categoryName, rootCategoryName, productManufacturer, productName, purchaseOrderNumber, and assetAttributes
+        """
         if not workItemNumber:
             abort(400, message="Missing workItemNumber")
 
