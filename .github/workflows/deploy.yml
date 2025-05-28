@@ -4,6 +4,8 @@ name: Deploy API
 on:
   push:
     branches: [main]
+permissions:
+  contents: none
 
 jobs:
   deploy:
