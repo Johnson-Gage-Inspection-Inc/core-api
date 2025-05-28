@@ -1,5 +1,6 @@
 from marshmallow import Schema, fields
 from qualer_sdk.models.qualer_api_models_asset_to_asset_response_model import QualerApiModelsAssetToAssetResponseModel
+from qualer_sdk.models.qualer_api_models_employees_from_employee_department_model import QualerApiModelsEmployeesFromEmployeeDepartmentModel
 
 # Basic mapping from swagger type string to Marshmallow field
 type_mapping = {
@@ -21,6 +22,7 @@ def generate_schema_from_swagger(model_cls):
     return type(f"{model_cls.__name__}Schema", (Schema,), schema_fields)
 
 AssetToAssetSchema = generate_schema_from_swagger(QualerApiModelsAssetToAssetResponseModel)
+EmployeesModel = generate_schema_from_swagger(QualerApiModelsEmployeesFromEmployeeDepartmentModel)
 
 class WorkItemDetailsQuerySchema(Schema):
     workItemNumber = fields.Str(required=True)
