@@ -2,6 +2,7 @@
 import msal
 import os
 import tempfile
+import logging
 
 class TokenAcquisitionError(Exception):
     """Exception raised when token acquisition fails."""
@@ -33,8 +34,6 @@ def get_access_token():
     )
 
     scopes = [f"{os.getenv('AZURE_API_AUDIENCE')}/{os.getenv('AZURE_REQUIRED_SCOPE', 'access_as_user')}"]
-
-    # Try to get token silently first
     accounts = app.get_accounts()
     result = None
     if accounts:
@@ -56,10 +55,10 @@ def get_access_token():
             f.write(cache.serialize())
 
     if result.get("error"):
-        print("Error acquiring token:", result.get("error_description"))
+        logging.error("Error acquiring token: %s", result.get("error_description"))
         raise TokenAcquisitionError(f"Failed to acquire token: {result.get('error_description')}")
     else:
-        print("Access token acquired successfully")
+        logging.info("Access token acquired successfully")
     return result["access_token"]
 
 if __name__ == "__main__":
