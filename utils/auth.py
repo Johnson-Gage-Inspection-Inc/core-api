@@ -65,7 +65,7 @@ def load_openid_config():
             _openid_config = requests.get(url).json()
             _jwks = requests.get(_openid_config["jwks_uri"]).json()
         except Exception as e:
-            print(f"DEBUG: Failed to load OpenID config: {e}")
+            logging.error(f"Failed to load OpenID config: {e}")
             raise
     return _openid_config, _jwks
 
