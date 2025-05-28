@@ -16,7 +16,26 @@ class Employees(MethodView):
     @blp.response(200, EmployeesModel(many=True))
     def get(self):
         """
-        Get a list of all employees from Qualer who are not marked as deleted.
+        Retrieve all active employees from Qualer.
+        
+        This endpoint fetches all employees from the Qualer system and filters out
+        any employees that are marked as deleted. The response includes employee
+        details such as ID, name, and other relevant information.
+        
+        **Returns**:
+        - **list**: A list of employee objects containing:
+          - employee_id: Unique identifier for the employee
+          - name: Employee's full name  
+          - is_deleted: Boolean indicating if employee is active
+          - Additional employee attributes as defined by Qualer API
+        
+        **Raises**:
+        - **401**: If authentication token is invalid or missing
+        - **500**: If there's an error communicating with the Qualer API
+        
+        **Example**: GET /employees with Authorization: Bearer <token>
+        
+        **Response**: Array of employee objects with employee_id, name, is_deleted fields
         """
         client = make_qualer_client()
 

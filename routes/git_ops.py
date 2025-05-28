@@ -14,6 +14,44 @@ blp = Blueprint("git-ops", __name__, url_prefix="/")
 @blp.route("/git-pull")
 class GitPull(MethodView):
     def post(self):
+        """
+        Update the server by pulling the latest changes from the main branch.
+        
+        This endpoint performs a git pull operation to update the server with the
+        latest code changes from the main branch. It requires a special deployment
+        token for authorization rather than the standard JWT authentication.
+        
+        ### Authentication:
+          - Requires a deployment token passed as Bearer token in Authorization header. This token should match the DEPLOY_TOKEN environment variable.
+
+        ### Returns:
+        - **dict**: Success response with git pull output, or error details
+          - status: "success" if git pull succeeded, error message if failed  
+          - output: Git command output (on success)
+          - error: Error message from git command (on failure)
+        
+        ###  Raises:
+        - **401**: If deployment token is invalid or missing
+        - **500**: If git pull command fails or times out
+        
+        **Example**: POST /git-pull with Authorization: Bearer <deploy-token>
+        
+        ### Success Response:
+        ```
+        {
+            "status": "success",
+            "output": "Already up to date."
+        }
+        ```
+        
+        ### Error Response:
+        ```
+        {
+            "status": "git pull failed",
+            "error": "fatal: not a git repository"
+        }
+        ```
+        """
         if not is_authorized():
             abort(401, message="Unauthorized")
 
