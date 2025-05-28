@@ -136,3 +136,29 @@ def test_validate_token_missing_scope(mock_load_config, mock_decode, mock_from_j
 
     with pytest.raises(jwt.InvalidTokenError):
         auth.validate_token("token")
+
+@pytest.mark.skipif(getenv("SKIP_AUTH", "false").lower() == "true", reason="Auth error handling not tested when SKIP_AUTH=true")
+def test_load_openid_config_request_error(monkeypatch):
+    """Test error handling when requests fail in load_openid_config"""
+    # Reset cache
+    auth._openid_config = None
+    auth._jwks = None
+    
+    def mock_requests_get_error(url):
+        raise Exception("Network error")
+    
+    monkeypatch.setattr("utils.auth.requests.get", mock_requests_get_error)
+    
+    with pytest.raises(Exception, match="Network error"):
+        auth.load_openid_config()
+
+
+@pytest.mark.skipif(getenv("SKIP_AUTH", "false").lower() == "true", reason="Auth error handling not tested when SKIP_AUTH=true")  
+@patch("utils.auth.validate_token")
+def test_require_auth_exception_handling(mock_validate_token, client):
+    """Test that exceptions in validate_token are properly handled"""
+    mock_validate_token.side_effect = jwt.DecodeError("Token decode failed")
+    
+    resp = client.get("/protected", headers={"Authorization": "Bearer invalidtoken"})
+    assert resp.status_code == 401
+    assert "Token decode failed" in resp.get_data(as_text=True)

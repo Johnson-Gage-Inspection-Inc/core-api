@@ -89,3 +89,17 @@ def test_index_route_options_returns_204():
         response = client.options("/")
         assert response.status_code == 204
         assert response.data == b""
+
+def test_app_startup():
+    """Test that the app starts up correctly"""
+    assert app is not None
+    assert app.config is not None
+
+
+def test_app_routes_exist():
+    """Test that expected routes are registered"""
+    rule_paths = [rule.rule for rule in app.url_map.iter_rules()]
+    expected_routes = ['/whoami', '/pyro-assets', '/work-item-details', '/employees']
+    
+    for route in expected_routes:
+        assert route in rule_paths

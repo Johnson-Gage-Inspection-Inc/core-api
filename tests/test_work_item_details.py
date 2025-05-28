@@ -91,3 +91,50 @@ def test_invalid_work_item_number_format(client, auth_token):
     )
     assert response.status_code == 500
     assert "Invalid work item number format" in response.get_data(as_text=True)
+
+def test_work_item_no_items_found(client, auth_token, mock_sdk_calls):
+    """Test when no work items are found for the given work item number"""
+    assert mock_sdk_calls == "mocked"
+    
+    with patch("routes.work_item_details.get_work_item_details_for_tus") as mock_get_details:
+        mock_get_details.side_effect = ValueError("No work items found for the given work item number.")
+        
+        response = client.get(
+            "/work-item-details?workItemNumber=99999-999999-99",
+            headers={"Authorization": f"Bearer {auth_token}"}
+        )
+        
+        assert response.status_code == 500
+        assert "No work items found" in response.get_data(as_text=True)
+
+
+def test_work_item_multiple_items_found(client, auth_token, mock_sdk_calls):
+    """Test when multiple work items are found for the given work item number"""
+    assert mock_sdk_calls == "mocked"
+    
+    with patch("routes.work_item_details.get_work_item_details_for_tus") as mock_get_details:
+        mock_get_details.side_effect = ValueError("Multiple work items found for the given work item number.")
+        
+        response = client.get(
+            "/work-item-details?workItemNumber=12345-123456-01",
+            headers={"Authorization": f"Bearer {auth_token}"}
+        )
+        
+        assert response.status_code == 500
+        assert "Multiple work items found" in response.get_data(as_text=True)
+
+
+def test_work_item_missing_required_field(client, auth_token, mock_sdk_calls):
+    """Test when required fields are missing from work item"""
+    assert mock_sdk_calls == "mocked"
+    
+    with patch("routes.work_item_details.get_work_item_details_for_tus") as mock_get_details:
+        mock_get_details.side_effect = ValueError("Missing required field: service_order_id")
+        
+        response = client.get(
+            "/work-item-details?workItemNumber=12345-123456-01",
+            headers={"Authorization": f"Bearer {auth_token}"}
+        )
+        
+        assert response.status_code == 500
+        assert "Missing required field" in response.get_data(as_text=True)
