@@ -38,4 +38,4 @@ class GitPull(MethodView):
             return {"status": "success", "output": result.stdout}
 
         except Exception as e:
-            abort(500, message={"error": str(e)})
+            abort(500, message=str(e))
