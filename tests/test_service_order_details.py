@@ -53,7 +53,7 @@ IDS = [number for number, _ in SUCCESS_CASES]
 )
 def test_work_item_details_route_with_auth(client, auth_token, work_item_number, expected):
     resp = client.get(
-        f"/work_item_details?workItemNumber={work_item_number}",
+        f"/work-item-details?workItemNumber={work_item_number}",
         headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert resp.status_code == 200
@@ -63,6 +63,6 @@ def test_work_item_details_route_with_auth(client, auth_token, work_item_number,
 
 
 def test_work_item_details_route_without_auth(client):
-    resp = client.get("/work_item_details?workItemNumber=56561-067667-01")
+    resp = client.get("/work-item-details?workItemNumber=56561-067667-01")
     assert resp.status_code == 401
     assert resp.text == "Unauthorized"

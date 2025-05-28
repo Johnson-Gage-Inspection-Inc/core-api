@@ -50,7 +50,7 @@ def test_work_item_details_success(client, auth_token, mock_sdk_calls):
     assert mock_sdk_calls == "mocked"
 
     response = client.get(
-        "/work_item_details?workItemNumber=56561-067667-01",
+        "/work-item-details?workItemNumber=56561-067667-01",
         headers={"Authorization": f"Bearer {auth_token}"}
     )
 
@@ -75,3 +75,19 @@ def test_work_item_details_success(client, auth_token, mock_sdk_calls):
     }
     diff = DeepDiff(data, expected, ignore_order=True)
     assert not diff, f"Response data does not match expected: {diff}"
+
+def test_missing_work_item_number(client, auth_token):
+    response = client.get(
+        "/work-item-details",  # no query param
+        headers={"Authorization": f"Bearer {auth_token}"}
+    )
+    assert response.status_code == 400
+    assert "Missing workItemNumber" in response.get_data(as_text=True)
+
+def test_invalid_work_item_number_format(client, auth_token):
+    response = client.get(
+        "/work-item-details?workItemNumber=INVALID",
+        headers={"Authorization": f"Bearer {auth_token}"}
+    )
+    assert response.status_code == 500
+    assert "Invalid work item number format" in response.get_data(as_text=True)

@@ -23,12 +23,22 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
             "user": "testuser@example.com",
             "sub": "fake-subject"
         }
-
-    # /work_item_details
+    
+    # /work-item-details
     def fake_work_item_details():
         if resp := fake_auth_check():
             return resp
         wid = request.args.get("workItemNumber")
+
+        # Handle missing workItemNumber parameter
+        if not wid:
+            return Response("Missing workItemNumber", 400)
+
+        # Handle invalid workItemNumber format
+        import re
+        pattern = r"^(56561-)?\d{6}(\.\d{2})?(-\d{2})(R\d{1,2})?$"
+        if not re.match(pattern, wid):
+            return Response("Invalid work item number format.", 500)
 
         if wid == "56561-067667-01":
             return {
@@ -85,5 +95,5 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
         ]
 
     app.view_functions["whoami.Whoami"] = fake_whoami
-    app.view_functions["work_item_details.WorkItemDetails"] = fake_work_item_details
+    app.view_functions["work-item-details.WorkItemDetails"] = fake_work_item_details
     app.view_functions["pyro-assets.PyroAssets"] = fake_pyro_assets

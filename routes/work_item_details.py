@@ -12,7 +12,7 @@ from qualer_sdk import (
     ClientAssetsApi,
     ClientAssetAttributesApi)
 
-blp = Blueprint("work_item_details", __name__, url_prefix="/")
+blp = Blueprint("work-item-details", __name__, url_prefix="/")
 
 
 def get_work_item_details_for_tus(item_no):
@@ -79,7 +79,7 @@ def get_work_item_details_for_tus(item_no):
         "assetAttributes": client_asset_attributes
     }
 
-@blp.route("/work_item_details")
+@blp.route("/work-item-details")
 class WorkItemDetails(MethodView):
     @require_auth
     @blp.doc(security=[{"BearerAuth": []}])
