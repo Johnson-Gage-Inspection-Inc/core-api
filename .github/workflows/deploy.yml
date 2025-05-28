@@ -1,0 +1,21 @@
+# .github/workflows/deploy.yml
+name: Deploy API
+
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: none
+
+jobs:
+  deploy:
+    name: Git Pull on Server
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://api.jgiquality.com
+    steps:
+      - name: Trigger /git-pull
+        run: |
+          curl -fSL --retry 3 -X POST https://api.jgiquality.com/git-pull \
+            -H "Authorization: Bearer ${{ secrets.DEPLOY_TOKEN }}"
