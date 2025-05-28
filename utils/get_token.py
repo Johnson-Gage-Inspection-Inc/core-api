@@ -18,7 +18,8 @@ def get_access_token():
     cache_file = os.path.join(tempfile.gettempdir(), "msal_token_cache.bin")
     cache = msal.SerializableTokenCache()
     if os.path.exists(cache_file):
-        cache.deserialize(open(cache_file, "r").read())
+        with open(cache_file, "r") as f:
+            cache.deserialize(f.read())
 
     app = msal.PublicClientApplication(
         client_id=client_id,
