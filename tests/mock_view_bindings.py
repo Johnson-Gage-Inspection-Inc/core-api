@@ -1,14 +1,15 @@
 import os
 from flask import request, Response
 from app import app
+import logging
 
 if os.getenv("SKIP_AUTH", "false").lower() == "true":
 
-    print(">>> Registered view function keys:")
+    logging.info("Registered view function keys:")
     for k in sorted(app.view_functions):
         print("   ", k)
 
-    print(">>> Patching app.view_functions for all protected endpoints")
+    logging.info("Patching app.view_functions for all protected endpoints")
 
     def fake_auth_check():
         auth_header = request.headers.get("Authorization", "")

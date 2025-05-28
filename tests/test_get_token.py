@@ -1,15 +1,17 @@
 import os
 import pytest
+import logging
 from unittest import mock
 
 import utils.get_token as get_token_mod
 
 @mock.patch.dict(os.environ, {"SKIP_AUTH": "true"})
-def test_get_access_token_skip_auth(monkeypatch, capsys):
+def test_get_access_token_skip_auth(monkeypatch, caplog):
+    # Set logging level to capture INFO messages
+    caplog.set_level(logging.INFO)
     token = get_token_mod.get_access_token()
     assert token == "fake-token"
-    captured = capsys.readouterr()
-    assert "Skipping get_access_token()" in captured.out
+    assert "Skipping get_access_token() because SKIP_AUTH is true" in caplog.text
 
 @mock.patch("builtins.open", new_callable=mock.mock_open)
 @mock.patch("msal.SerializableTokenCache")
