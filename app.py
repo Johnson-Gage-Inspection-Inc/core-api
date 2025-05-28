@@ -4,10 +4,12 @@ from flask import Flask, request
 from flask_cors import CORS
 from flask_smorest import Api
 from os import getenv
-from routes import git_ops
-from routes import pyro_assets
-from routes import whoami
-from routes import work_item_details
+from routes import (
+    git_ops,
+    pyro_assets,
+    whoami,
+    work_item_details,
+)
 from werkzeug.middleware.proxy_fix import ProxyFix
 import jwt
 import logging
@@ -51,9 +53,9 @@ api = Api(app)
 
 # Register all your blueprints with this, not `app`
 api.register_blueprint(git_ops.blp)
-api.register_blueprint(work_item_details.blp)
-api.register_blueprint(whoami.blp)
 api.register_blueprint(pyro_assets.blp)
+api.register_blueprint(whoami.blp)
+api.register_blueprint(work_item_details.blp)
 
 TENANT_ID = getenv("AZURE_TENANT_ID")
 AUDIENCE = getenv("AZURE_CLIENT_ID")
