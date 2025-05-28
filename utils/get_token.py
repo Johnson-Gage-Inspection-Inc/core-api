@@ -38,12 +38,12 @@ def get_access_token():
     accounts = app.get_accounts()
     result = None
     if accounts:
-        print(">>> Attempting to acquire token silently...")
+        logging.info("Attempting to acquire token silently...")
         result = app.acquire_token_silent(scopes, account=accounts[0])
 
     # Fall back to interactive if silent acquisition failed
     if not result:
-        print(">>> No cached token found, acquiring token interactively...")
+        logging.info("No cached token found, acquiring token interactively...")
         result = app.acquire_token_interactive(
             scopes=scopes,
             prompt="select_account",
