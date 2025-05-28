@@ -15,11 +15,6 @@ class PyroAssets(MethodView):
     @blp.doc(security=[{"BearerAuth": []}])
     @blp.response(200, AssetToAssetSchema(many=True))
     def get(self):
-
         client = make_qualer_client()
-
         assets_api = AssetsApi(client)
-        asset_pool = assets_api.get_asset_by_asset_pool(asset_pool_id=620646)
-        print(type(asset_pool))
-        print(type(asset_pool[0]))
-        return asset_pool
+        return assets_api.get_asset_by_asset_pool(asset_pool_id=620646)
