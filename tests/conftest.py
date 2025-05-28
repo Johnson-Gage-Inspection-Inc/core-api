@@ -1,7 +1,7 @@
 import tests.mock_view_bindings
 from app import app as flask_app
 import pytest
-from get_token import get_access_token
+from utils.get_token import get_access_token
 
 
 @pytest.fixture(scope="session")

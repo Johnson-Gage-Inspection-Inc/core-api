@@ -4,13 +4,13 @@ from flask import Flask, request
 from flask_cors import CORS
 from flask_smorest import Api
 from os import getenv
-from routes.pyro_assets import blp as pyro_assets_blp
-from routes.whoami import blp as whoami_blp
-from routes.work_item_details import blp as main_blp
+from routes import pyro_assets
+from routes import whoami
+from routes import work_item_details
 from werkzeug.middleware.proxy_fix import ProxyFix
 import jwt
-import requests
 import logging
+import requests
 
 load_dotenv()
 
@@ -47,9 +47,9 @@ app.config["API_SPEC_OPTIONS"] = {
 api = Api(app)
 
 # Register all your blueprints with this, not `app`
-api.register_blueprint(main_blp)
-api.register_blueprint(whoami_blp)
-api.register_blueprint(pyro_assets_blp)
+api.register_blueprint(work_item_details.blp)
+api.register_blueprint(whoami.blp)
+api.register_blueprint(pyro_assets.blp)
 
 TENANT_ID = getenv("AZURE_TENANT_ID")
 AUDIENCE = getenv("AZURE_CLIENT_ID")

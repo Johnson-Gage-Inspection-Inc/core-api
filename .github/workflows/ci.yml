@@ -29,7 +29,7 @@ jobs:
 
       - name: Generate HTML coverage report
         run: |
-          pytest --cov=app --cov=routes --cov=utils --cov-report=html:htmlcov
+          pytest --cov=app --cov=routes --cov=utils --cov-report=html:htmlcov --cov-fail-under=80
 
       - name: Verify coverage report exists
         run: ls htmlcov || echo "Coverage report not generated"
