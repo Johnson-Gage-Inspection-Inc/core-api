@@ -4,6 +4,7 @@ from jwt.algorithms import RSAAlgorithm
 from os import getenv
 import jwt
 import requests
+import logging
 
 TENANT_ID = getenv("AZURE_TENANT_ID")
 AUDIENCE = getenv("AZURE_CLIENT_ID")  # Use client ID as audience for Azure AD tokens
@@ -43,10 +44,10 @@ def require_auth(f):
         try:
             g.claims = validate_token(token)
         except Exception as e:
-            print(f"DEBUG: Token validation failed: {e}")
-            print(f"DEBUG: Exception type: {type(e)}")
-            print(f"DEBUG: Token length: {len(token)}")
-            print(f"DEBUG: Token starts with: {token[:50]}...")
+            logging.error(f"Token validation failed: {e}")
+            logging.debug(f"Exception type: {type(e)}")
+            logging.debug(f"Token length: {len(token)}")
+            logging.debug(f"DEBUG: Token starts with: {token[:10]}...")
             return jsonify({"error": str(e)}), 401
 
         return f(*args, **kwargs)
