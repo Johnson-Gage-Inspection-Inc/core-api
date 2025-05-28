@@ -1,4 +1,4 @@
-# get_token.py
+# utils/get_token.py
 import msal
 import os
 
