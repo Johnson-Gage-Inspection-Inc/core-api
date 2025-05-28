@@ -15,5 +15,5 @@ jobs:
     steps:
       - name: Trigger /git-pull
         run: |
-          curl -X POST https://api.jgiquality.com/git-pull \
+          curl -fSL --retry 3 -X POST https://api.jgiquality.com/git-pull \
             -H "Authorization: Bearer ${{ secrets.DEPLOY_TOKEN }}"
