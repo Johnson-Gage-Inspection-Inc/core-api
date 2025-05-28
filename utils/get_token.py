@@ -3,6 +3,10 @@ import msal
 import os
 import tempfile
 
+class TokenAcquisitionError(Exception):
+    """Exception raised when token acquisition fails."""
+    pass
+
 def get_access_token():
     from dotenv import load_dotenv
     load_dotenv()

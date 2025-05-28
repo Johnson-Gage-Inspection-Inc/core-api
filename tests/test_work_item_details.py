@@ -92,49 +92,127 @@ def test_invalid_work_item_number_format(client, auth_token):
     assert response.status_code == 500
     assert "Invalid work item number format" in response.get_data(as_text=True)
 
-def test_work_item_no_items_found(client, auth_token, mock_sdk_calls):
+def test_work_item_no_items_found(client, auth_token):
     """Test when no work items are found for the given work item number"""
-    assert mock_sdk_calls == "mocked"
+    import os
+    from app import app
     
-    with patch("routes.work_item_details.get_work_item_details_for_tus") as mock_get_details:
-        mock_get_details.side_effect = ValueError("No work items found for the given work item number.")
-        
-        response = client.get(
-            "/work-item-details?workItemNumber=99999-999999-99",
-            headers={"Authorization": f"Bearer {auth_token}"}
-        )
-        
-        assert response.status_code == 500
-        assert "No work items found" in response.get_data(as_text=True)
+    # If SKIP_AUTH=true, we need to temporarily restore the real view function
+    # to test error conditions, since mock_view_bindings.py overrides them
+    skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
+    original_view_func = None
+    
+    if skip_auth:
+        # Temporarily restore the real view function to test error paths
+        from routes.work_item_details import WorkItemDetails
+        original_view_func = app.view_functions.get("work-item-details.WorkItemDetails")
+        app.view_functions["work-item-details.WorkItemDetails"] = WorkItemDetails().get
+    
+    try:
+        # Patch at the SDK level to return empty list, which should trigger the "no items found" error
+        with patch("routes.work_item_details.make_qualer_client") as mock_make_client, \
+             patch("routes.work_item_details.ServiceOrderItemsApi") as mock_soi_api:
+            
+            mock_client = MagicMock()
+            mock_make_client.return_value = mock_client
+            
+            # Return empty list to trigger "No work items found" error
+            mock_soi_api.return_value.get_work_items_0.return_value = []
+            
+            response = client.get(
+                "/work-item-details?workItemNumber=56561-067667-01",
+                headers={"Authorization": f"Bearer {auth_token}"}
+            )
+            
+            assert response.status_code == 500
+            assert "No work items found" in response.get_data(as_text=True)
+    finally:
+        # Restore the original view function if we changed it
+        if skip_auth and original_view_func:
+            app.view_functions["work-item-details.WorkItemDetails"] = original_view_func
 
 
-def test_work_item_multiple_items_found(client, auth_token, mock_sdk_calls):
+def test_work_item_multiple_items_found(client, auth_token):
     """Test when multiple work items are found for the given work item number"""
-    assert mock_sdk_calls == "mocked"
+    import os
+    from app import app
     
-    with patch("routes.work_item_details.get_work_item_details_for_tus") as mock_get_details:
-        mock_get_details.side_effect = ValueError("Multiple work items found for the given work item number.")
-        
-        response = client.get(
-            "/work-item-details?workItemNumber=12345-123456-01",
-            headers={"Authorization": f"Bearer {auth_token}"}
-        )
-        
-        assert response.status_code == 500
-        assert "Multiple work items found" in response.get_data(as_text=True)
+    # If SKIP_AUTH=true, we need to temporarily restore the real view function
+    # to test error conditions, since mock_view_bindings.py overrides them
+    skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
+    original_view_func = None
+    
+    if skip_auth:
+        # Temporarily restore the real view function to test error paths
+        from routes.work_item_details import WorkItemDetails
+        original_view_func = app.view_functions.get("work-item-details.WorkItemDetails")
+        app.view_functions["work-item-details.WorkItemDetails"] = WorkItemDetails().get
+    
+    try:
+        # Patch at the SDK level to return multiple items, which should trigger the "multiple items found" error
+        with patch("routes.work_item_details.make_qualer_client") as mock_make_client, \
+             patch("routes.work_item_details.ServiceOrderItemsApi") as mock_soi_api:
+            
+            mock_client = MagicMock()
+            mock_make_client.return_value = mock_client
+            
+            # Return multiple items to trigger "Multiple work items found" error
+            mock_item1 = MagicMock()
+            mock_item2 = MagicMock()
+            mock_soi_api.return_value.get_work_items_0.return_value = [mock_item1, mock_item2]
+            
+            response = client.get(
+                "/work-item-details?workItemNumber=56561-067667-01",
+                headers={"Authorization": f"Bearer {auth_token}"}
+            )
+            
+            assert response.status_code == 500
+            assert "Multiple work items found" in response.get_data(as_text=True)
+    finally:
+        # Restore the original view function if we changed it
+        if skip_auth and original_view_func:
+            app.view_functions["work-item-details.WorkItemDetails"] = original_view_func
 
 
-def test_work_item_missing_required_field(client, auth_token, mock_sdk_calls):
+def test_work_item_missing_required_field(client, auth_token):
     """Test when required fields are missing from work item"""
-    assert mock_sdk_calls == "mocked"
+    import os
+    from app import app
     
-    with patch("routes.work_item_details.get_work_item_details_for_tus") as mock_get_details:
-        mock_get_details.side_effect = ValueError("Missing required field: service_order_id")
-        
-        response = client.get(
-            "/work-item-details?workItemNumber=12345-123456-01",
-            headers={"Authorization": f"Bearer {auth_token}"}
-        )
-        
-        assert response.status_code == 500
-        assert "Missing required field" in response.get_data(as_text=True)
+    # If SKIP_AUTH=true, we need to temporarily restore the real view function
+    # to test error conditions, since mock_view_bindings.py overrides them
+    skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
+    original_view_func = None
+    
+    if skip_auth:
+        # Temporarily restore the real view function to test error paths
+        from routes.work_item_details import WorkItemDetails
+        original_view_func = app.view_functions.get("work-item-details.WorkItemDetails")
+        app.view_functions["work-item-details.WorkItemDetails"] = WorkItemDetails().get
+    
+    try:
+        # Patch at the SDK level to return a work item with None values, which should trigger the "missing required field" error
+        with patch("routes.work_item_details.make_qualer_client") as mock_make_client, \
+             patch("routes.work_item_details.ServiceOrderItemsApi") as mock_soi_api:
+            
+            mock_client = MagicMock()
+            mock_make_client.return_value = mock_client
+            
+            # Return a work item with None for required fields to trigger error
+            mock_item = MagicMock()
+            mock_item.service_order_id = None  # This will trigger the missing required field error
+            mock_item.asset_id = 12345
+            mock_item.client_company_id = 67890
+            mock_soi_api.return_value.get_work_items_0.return_value = [mock_item]
+            
+            response = client.get(
+                "/work-item-details?workItemNumber=56561-067667-01",
+                headers={"Authorization": f"Bearer {auth_token}"}
+            )
+            
+            assert response.status_code == 500
+            assert "Missing required field" in response.get_data(as_text=True)
+    finally:
+        # Restore the original view function if we changed it
+        if skip_auth and original_view_func:
+            app.view_functions["work-item-details.WorkItemDetails"] = original_view_func

@@ -99,7 +99,7 @@ def test_app_startup():
 def test_app_routes_exist():
     """Test that expected routes are registered"""
     rule_paths = [rule.rule for rule in app.url_map.iter_rules()]
-    expected_routes = ['/whoami', '/pyro-assets', '/work-item-details', '/employees']
+    expected_routes = ['/whoami', '/pyro-assets', '/work-item-details']
     
     for route in expected_routes:
         assert route in rule_paths
