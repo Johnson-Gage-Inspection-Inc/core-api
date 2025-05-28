@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from flask import Flask, g, jsonify
+from os import getenv
 import jwt
 
 import utils.auth as auth
@@ -22,28 +23,49 @@ def client(app):
 
 def test_require_auth_no_auth_header(client):
     resp = client.get("/protected")
-    assert resp.status_code == 401
-    assert "WWW-Authenticate" in resp.headers
+    if getenv("SKIP_AUTH", "false").lower() == "true":
+        # When auth is skipped, no auth header should still work
+        assert resp.status_code == 200
+        assert resp.json["claims"]["sub"] == "fake-subject"
+    else:
+        assert resp.status_code == 401
+        assert "WWW-Authenticate" in resp.headers
 
 def test_require_auth_invalid_auth_header(client):
     resp = client.get("/protected", headers={"Authorization": "InvalidToken"})
-    assert resp.status_code == 401
-    assert "WWW-Authenticate" in resp.headers
+    if getenv("SKIP_AUTH", "false").lower() == "true":
+        # When auth is skipped, invalid auth header should still work
+        assert resp.status_code == 200
+        assert resp.json["claims"]["sub"] == "fake-subject"
+    else:
+        assert resp.status_code == 401
+        assert "WWW-Authenticate" in resp.headers
 
 @patch("utils.auth.validate_token")
 def test_require_auth_valid_token(mock_validate_token, client):
     mock_validate_token.return_value = {"sub": "user1", "scp": "access_as_user"}
     resp = client.get("/protected", headers={"Authorization": "Bearer validtoken"})
     assert resp.status_code == 200
-    assert resp.json["claims"]["sub"] == "user1"
+    if getenv("SKIP_AUTH", "false").lower() == "true":
+        # When auth is skipped, fake claims are used regardless of token
+        assert resp.json["claims"]["sub"] == "fake-subject"
+    else:
+        # When auth is enabled, mocked validate_token should be called
+        assert resp.json["claims"]["sub"] == "user1"
 
 @patch("utils.auth.validate_token")
 def test_require_auth_invalid_token(mock_validate_token, client):
     mock_validate_token.side_effect = Exception("Invalid token")
     resp = client.get("/protected", headers={"Authorization": "Bearer badtoken"})
-    assert resp.status_code == 401
-    assert resp.json["error"] == "Invalid token"
+    if getenv("SKIP_AUTH", "false").lower() == "true":
+        # When auth is skipped, even invalid tokens work
+        assert resp.status_code == 200
+        assert resp.json["claims"]["sub"] == "fake-subject"
+    else:
+        assert resp.status_code == 401
+        assert resp.json["error"] == "Invalid token"
 
+@pytest.mark.skipif(getenv("SKIP_AUTH", "false").lower() == "true", reason="OpenID config not used when SKIP_AUTH=true")
 @patch("utils.auth.requests.get")
 def test_load_openid_config_caches(mock_get, monkeypatch):
     # Reset cache
@@ -67,6 +89,7 @@ def test_load_openid_config_caches(mock_get, monkeypatch):
     assert jwks2 == mock_jwks
     mock_get.assert_not_called()
 
+@pytest.mark.skipif(getenv("SKIP_AUTH", "false").lower() == "true", reason="Token validation not used when SKIP_AUTH=true")
 @patch("utils.auth.jwt.get_unverified_header")
 @patch("utils.auth.RSAAlgorithm.from_jwk")
 @patch("utils.auth.jwt.decode")
@@ -85,6 +108,7 @@ def test_validate_token_success(mock_load_config, mock_decode, mock_from_jwk, mo
     assert result["sub"] == "user1"
     mock_decode.assert_called_once()
 
+@pytest.mark.skipif(getenv("SKIP_AUTH", "false").lower() == "true", reason="Token validation not used when SKIP_AUTH=true")
 @patch("utils.auth.jwt.get_unverified_header")
 @patch("utils.auth.load_openid_config")
 def test_validate_token_missing_kid(mock_load_config, mock_get_header):
@@ -93,9 +117,10 @@ def test_validate_token_missing_kid(mock_load_config, mock_get_header):
         {"keys": [{"kid": "other"}]}
     )
     mock_get_header.return_value = {"kid": "abc"}
-    with pytest.raises(StopIteration):
+    with pytest.raises(jwt.InvalidTokenError):
         auth.validate_token("token")
 
+@pytest.mark.skipif(getenv("SKIP_AUTH", "false").lower() == "true", reason="Token validation not used when SKIP_AUTH=true")
 @patch("utils.auth.jwt.get_unverified_header")
 @patch("utils.auth.RSAAlgorithm.from_jwk")
 @patch("utils.auth.jwt.decode")
