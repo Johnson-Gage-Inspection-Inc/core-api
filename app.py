@@ -5,6 +5,7 @@ from flask_cors import CORS
 from flask_smorest import Api
 from os import getenv
 from routes import (
+    clients,
     employees,
     git_ops,
     pyro_assets,
@@ -53,6 +54,7 @@ app.config["API_SPEC_OPTIONS"] = {
 api = Api(app)
 
 # Register all your blueprints with this, not `app`
+api.register_blueprint(clients.blp)
 api.register_blueprint(employees.blp)
 api.register_blueprint(git_ops.blp)
 api.register_blueprint(pyro_assets.blp)
