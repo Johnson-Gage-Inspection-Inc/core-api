@@ -85,7 +85,7 @@ def get_work_item_details_for_tus(item_no):
 @blp.route("/work-item-details")
 class WorkItemDetails(MethodView):
     @require_auth
-    @blp.doc(security=[{"BearerAuth": []}])
+    @blp.doc(security=[{"BearerAuth": []}], tags=["Pyro"])
     @blp.arguments(WorkItemDetailsQuerySchema, location="query", as_kwargs=True)
     @blp.response(200, WorkItemDetailsSchema)
     def get(self, workItemNumber):

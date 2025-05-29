@@ -12,7 +12,7 @@ blp = Blueprint("employees", __name__, url_prefix="/")
 @blp.route("/employees")
 class Employees(MethodView):
     @require_auth
-    @blp.doc(security=[{"BearerAuth": []}])
+    @blp.doc(security=[{"BearerAuth": []}], tags=["Qualer"])
     @blp.response(200, EmployeeResponseSchema(many=True))
     def get(self):
         """
