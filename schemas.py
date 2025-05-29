@@ -34,9 +34,10 @@ def generate_schema_from_swagger(model_cls: type) -> Schema:
         # Handle list types
         if swagger_type.startswith('list['):
             schema_fields[attr_name] = fields.List(fields.Raw(), allow_none=True)
-        # Handle all other types as Raw - let to_dict() handle the conversion
+        # Handle all other types using type_mapping or fallback to Raw
         else:
-            schema_fields[attr_name] = fields.Raw(allow_none=True)
+            marshmallow_field = type_mapping.get(swagger_type, fields.Raw)
+            schema_fields[attr_name] = marshmallow_field(allow_none=True)
 
     def dump_override(self, obj, *, many=None, **kwargs):
         """Override dump to handle SDK model objects"""
