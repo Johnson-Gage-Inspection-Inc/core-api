@@ -3,7 +3,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 from qualer_sdk import EmployeesApi
 from qualer_sdk.models import QualerApiModelsClientsToEmployeeResponseModel
-from schemas import EmployeesModel
+from schemas import EmployeeResponseSchema
 from utils.auth import require_auth
 from utils.qualer_client import make_qualer_client
 
@@ -13,7 +13,7 @@ blp = Blueprint("employees", __name__, url_prefix="/")
 class Employees(MethodView):
     @require_auth
     @blp.doc(security=[{"BearerAuth": []}])
-    @blp.response(200, EmployeesModel(many=True))
+    @blp.response(200, EmployeeResponseSchema(many=True))
     def get(self):
         """
         Retrieve all active employees from Qualer.
