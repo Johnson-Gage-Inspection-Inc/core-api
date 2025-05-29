@@ -1,7 +1,74 @@
 # tests/test_work_item_details.py
-import pytest
-from unittest.mock import patch, MagicMock
 from deepdiff import DeepDiff
+from routes.work_item_details import get_work_item_details_for_tus
+from unittest.mock import patch, MagicMock
+import pytest
+
+SUCCESS_CASES = [
+    (
+        "56561-067667-01",
+        {
+            "assetAttributes": {},
+            "assetId": 1270490,
+            "assetMaker": "COL-MET",
+            "assetName": "Chrome Plus, Oven No. 13, W-CPI-4143, TUS",
+            "assetTag": "W-CPI-4143, TUS",
+            "categoryName": "Thermometer",
+            "certificateNumber": "56561-067667-01",
+            "clientCompanyId": 57283,
+            "manufacturerPartNumber": "GENERIC 2354",
+            "productManufacturer": "Unidentified",
+            "productName": "Thermometers",
+            "purchaseOrderNumber": "CHR001150",
+            "rootCategoryName": "Thermometers",
+            "serialNumber": "OVEN NO. 13",
+            "serviceOrderId": 1171585,
+        },
+    ),
+    (
+        "56561-074481-01",
+        {
+            "assetAttributes": {},
+            "assetId": 1270335,
+            "assetMaker": "GEHNRICH",
+            "assetName": "Capps, Age Oven No. 3, TUS",
+            "assetTag": "AGE OVEN NO. 3",
+            "categoryName": "Thermometer",
+            "certificateNumber": "56561-074481-01",
+            "clientCompanyId": 57206,
+            "manufacturerPartNumber": "GENERIC 2354",
+            "productManufacturer": "Unidentified",
+            "productName": "Thermometers",
+            "purchaseOrderNumber": "53865",
+            "rootCategoryName": "Thermometers",
+            "serialNumber": "11108",
+            "serviceOrderId": 1259027,
+        },
+    ),
+]
+
+IDS = [number for number, _ in SUCCESS_CASES]
+
+@pytest.mark.parametrize(
+    "work_item_number,expected",
+    SUCCESS_CASES,
+    ids=IDS
+)
+def test_work_item_details_route_with_auth(client, auth_token, work_item_number, expected):
+    resp = client.get(
+        f"/work-item-details?workItemNumber={work_item_number}",
+        headers={"Authorization": f"Bearer {auth_token}"}
+    )
+    assert resp.status_code == 200
+    data = resp.get_json()
+    diff = DeepDiff(expected, data, ignore_order=True, report_repetition=True)
+    assert diff == {}, f"Differences found:\n{diff}"
+
+
+def test_work_item_details_route_without_auth(client):
+    resp = client.get("/work-item-details?workItemNumber=56561-067667-01")
+    assert resp.status_code == 401
+    assert resp.text == "Unauthorized"
 
 @pytest.fixture
 def mock_sdk_calls():
@@ -216,3 +283,47 @@ def test_work_item_missing_required_field(client, auth_token):
         # Restore the original view function if we changed it
         if skip_auth and original_view_func:
             app.view_functions["work-item-details.WorkItemDetails"] = original_view_func
+
+
+@patch("routes.work_item_details.make_qualer_client")
+@patch("routes.work_item_details.ServiceOrderItemsApi")
+@patch("routes.work_item_details.ClientAssetsApi")
+@patch("routes.work_item_details.ClientAssetAttributesApi")
+@patch("routes.work_item_details.ServiceOrdersApi")
+def test_get_work_item_details_for_tus_success(
+    mock_orders_api, mock_attr_api, mock_assets_api, mock_soi_api, mock_make_client
+):
+    mock_client = MagicMock()
+    mock_make_client.return_value = mock_client
+
+    work_item = MagicMock()
+    work_item.service_order_id = 123
+    work_item.asset_id = 456
+    work_item.client_company_id = 789
+    work_item.certificate_number = "CERT-XYZ"
+    mock_soi_api.return_value.get_work_items_0.return_value = [work_item]
+
+    asset = MagicMock()
+    asset.asset_name = "Test"
+    asset.asset_maker = "Maker"
+    asset.asset_tag = "Tag"
+    asset.serial_number = "SN"
+    asset.manufacturer_part_number = "MPN"
+    asset.category_name = "Cat"
+    asset.root_category_name = "RootCat"
+    asset.product_manufacturer = "ProdMfg"
+    asset.product_name = "Prod"
+    mock_assets_api.return_value.get_asset.return_value = asset
+
+    mock_attr_api.return_value.get_asset_attributes.return_value = {"calibration_date": "2023-01-01"}
+
+    order = MagicMock()
+    order.po_number = "PO123"
+    mock_orders_api.return_value.get_work_order.return_value = order
+
+    result = get_work_item_details_for_tus("56561-000001-01")
+
+    assert result["assetId"] == 456
+    assert result["certificateNumber"] == "CERT-XYZ"
+    assert result["purchaseOrderNumber"] == "PO123"
+    assert result["assetAttributes"] == {"calibration_date": "2023-01-01"}
