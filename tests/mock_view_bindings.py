@@ -79,9 +79,7 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
                 "serviceOrderId": 1259027,
             }
 
-        return Response("Not Found", 404)
-
-    # /pyro-assets
+        return Response("Not Found", 404)    # /pyro-assets
     def fake_pyro_assets():
         if resp := fake_auth_check():
             return resp
@@ -94,7 +92,62 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
                 "assetPoolId": 620646
             }
         ]
+        
+    # /asset-service-records/<assetId>
+    def fake_asset_service_record(assetId):
+        if resp := fake_auth_check():
+            return resp
+        
+        # Return different responses based on the asset ID for testing
+        if assetId == "12345":
+            return [
+                {
+                    "asset_service_record_id": 1001,
+                    "asset_id": 12345,
+                    "service_date": "2023-01-01T00:00:00Z",
+                    "result_status": "Pass",
+                    "serial_number": "SN123456",
+                    "asset_name": "Mock Test Asset",
+                    "service_type": "Calibration",
+                    "technician_name": "Mock Technician",
+                    "created_date_utc": "2023-01-01T00:00:00Z",
+                    "modified_date_utc": "2023-01-01T00:00:00Z",
+                    "notes": "Mock service record for testing purposes"
+                },
+                {
+                    "asset_service_record_id": 1002,
+                    "asset_id": 12345,
+                    "service_date": "2023-06-15T09:30:00Z",
+                    "result_status": "Pass",
+                    "serial_number": "SN123456",
+                    "asset_name": "Mock Test Asset",
+                    "service_type": "Inspection",
+                    "technician_name": "Mock Inspector",
+                    "created_date_utc": "2023-06-15T09:30:00Z",
+                    "modified_date_utc": "2023-06-15T09:30:00Z",
+                    "notes": "Annual inspection - passed"
+                }
+            ]
+        elif assetId == "67890":
+            return [
+                {
+                    "asset_service_record_id": 2001,
+                    "asset_id": 67890,
+                    "service_date": "2023-03-15T14:30:00Z",
+                    "result_status": "Fail",
+                    "serial_number": "SN789012",
+                    "asset_name": "Another Mock Asset",
+                    "service_type": "Calibration",
+                    "technician_name": "Mock Technician",
+                    "created_date_utc": "2023-03-15T14:30:00Z",
+                    "modified_date_utc": "2023-03-15T14:30:00Z",
+                    "notes": "Failed calibration - requires maintenance"
+                }
+            ]
+        else:
+            return Response("Asset service records not found", 404)
 
     app.view_functions["whoami.Whoami"] = fake_whoami
     app.view_functions["work-item-details.WorkItemDetails"] = fake_work_item_details
     app.view_functions["pyro-assets.PyroAssets"] = fake_pyro_assets
+    app.view_functions["asset-service-records.AssetServiceRecord"] = fake_asset_service_record
