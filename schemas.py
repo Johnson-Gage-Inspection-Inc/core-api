@@ -1,6 +1,7 @@
 from marshmallow import Schema, fields
 from qualer_sdk.models.qualer_api_models_asset_to_asset_response_model import QualerApiModelsAssetToAssetResponseModel
 from qualer_sdk.models.qualer_api_models_clients_to_employee_response_model import QualerApiModelsClientsToEmployeeResponseModel
+from qualer_sdk.models.qualer_api_models_clients_to_client_company_response_model import QualerApiModelsClientsToClientCompanyResponseModel
 
 # Cache for generated schemas to prevent infinite recursion
 _schema_cache = {}
@@ -70,6 +71,7 @@ def generate_schema_from_swagger(model_cls: type) -> Schema:
 
 AssetToAssetSchema = generate_schema_from_swagger(QualerApiModelsAssetToAssetResponseModel)
 EmployeeResponseSchema = generate_schema_from_swagger(QualerApiModelsClientsToEmployeeResponseModel)
+ClientCompanyResponseSchema = generate_schema_from_swagger(QualerApiModelsClientsToClientCompanyResponseModel)
 
 class WorkItemDetailsQuerySchema(Schema):
     workItemNumber = fields.Str(required=True)
