@@ -2,7 +2,7 @@
 from flask.views import MethodView
 from flask_smorest import Blueprint
 from qualer_sdk import AssetsApi
-from schemas import AssetToAssetSchema
+from utils.schemas import AssetToAssetSchema
 from utils.auth import require_auth
 from utils.qualer_client import make_qualer_client
 
