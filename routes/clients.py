@@ -2,7 +2,7 @@
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from qualer_sdk import ClientsApi
-from schemas import ClientCompanyResponseSchema
+from utils.schemas import ClientCompanyResponseSchema
 from utils.auth import require_auth
 from utils.qualer_client import make_qualer_client
 

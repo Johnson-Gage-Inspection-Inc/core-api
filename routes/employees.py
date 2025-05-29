@@ -3,7 +3,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 from qualer_sdk import EmployeesApi
 from qualer_sdk.models import QualerApiModelsClientsToEmployeeResponseModel
-from schemas import EmployeeResponseSchema
+from utils.schemas import EmployeeResponseSchema
 from utils.auth import require_auth
 from utils.qualer_client import make_qualer_client
 

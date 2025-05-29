@@ -2,7 +2,7 @@ from flask_smorest import Blueprint
 from flask.views import MethodView
 from utils.auth import require_auth
 from flask import g
-from schemas import WhoamiResponse
+from utils.schemas import WhoamiResponse
 
 blp = Blueprint("whoami", __name__, url_prefix="/")
 
