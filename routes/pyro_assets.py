@@ -12,7 +12,7 @@ blp = Blueprint("pyro-assets", __name__, url_prefix="/")
 @blp.route("/pyro-assets")
 class PyroAssets(MethodView):
     @require_auth
-    @blp.doc(security=[{"BearerAuth": []}])
+    @blp.doc(security=[{"BearerAuth": []}], tags=["Pyro"])
     @blp.response(200, AssetToAssetSchema(many=True))
     def get(self):
         """

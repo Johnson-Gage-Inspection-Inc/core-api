@@ -13,6 +13,7 @@ blp = Blueprint("git-ops", __name__, url_prefix="/")
 
 @blp.route("/git-pull")
 class GitPull(MethodView):
+    @blp.doc(tags=["System"])
     def post(self):
         """
         Update the server by pulling the latest changes from the main branch.

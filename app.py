@@ -48,7 +48,21 @@ app.config["API_SPEC_OPTIONS"] = {
       }
     }
   },
-  "security": [{"BearerAuth": []}]
+  "security": [{"BearerAuth": []}],
+  "tags": [
+    {
+      "name": "Qualer",
+      "description": "Simple wrapper endpoints for Qualer API endpoints."
+    },
+    {
+      "name": "Pyro",
+      "description": "Data retrieval endpoints for use in the Pyro TUS workbook."
+    },
+    {
+      "name": "System",
+      "description": "Administrative and system management endpoints for operational tasks such as git operations, deployment management, and system monitoring."
+    }
+  ]
 }
 
 api = Api(app)
