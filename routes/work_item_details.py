@@ -92,9 +92,10 @@ class WorkItemDetails(MethodView):
         This endpoint retrieves comprehensive details about a work item by its number,
         including asset information, service order details, and attributes. The work
         item number must follow a specific format pattern for validation.
-          Args:
-            workItemNumber (str): The work item number to look up. Must match pattern:
-                r"^(56561-)?\d{6}(\.\d{2})?(-\d{2})(R\d{1,2})?$"
+
+        **Args**:
+        - workItemNumber (str): The work item number to look up. Must match pattern:
+                r"^(56561-)?\\d{6}(\\.\\d{2})?(-\\d{2})(R\\d{1,2})?$"
                 Examples: "123456-01", "56561-123456.01-02", "123456.01-02R1"
         
         **Returns**:
