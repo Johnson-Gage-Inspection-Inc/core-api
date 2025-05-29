@@ -1,7 +1,8 @@
 # tests/test_employees.py
 import os
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
+from qualer_sdk.models import QualerApiModelsClientsToEmployeeResponseModel
 
 
 @pytest.mark.skipif(
@@ -27,9 +28,6 @@ def test_employees_endpoint_basic(client, auth_token):
 @patch('utils.qualer_client.make_qualer_client')
 def test_employees_endpoint_mocked(mock_qualer_client, client, auth_token):
     """Test employees endpoint with mocked Qualer client for CI environments."""
-    from unittest.mock import MagicMock
-    from qualer_sdk.models import QualerApiModelsClientsToEmployeeResponseModel
-    
     # Create a mock employee that behaves like an SDK object
     mock_employee = MagicMock(spec=QualerApiModelsClientsToEmployeeResponseModel)
     mock_employee.is_deleted = False
