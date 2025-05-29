@@ -1,6 +1,9 @@
 from marshmallow import Schema, fields
 from qualer_sdk.models.qualer_api_models_asset_to_asset_response_model import QualerApiModelsAssetToAssetResponseModel
-from qualer_sdk.models.qualer_api_models_employees_from_employee_department_model import QualerApiModelsEmployeesFromEmployeeDepartmentModel
+from qualer_sdk.models.qualer_api_models_clients_to_employee_response_model import QualerApiModelsClientsToEmployeeResponseModel
+
+# Cache for generated schemas to prevent infinite recursion
+_schema_cache = {}
 
 # Basic mapping from swagger type string to Marshmallow field
 type_mapping = {
@@ -8,21 +11,66 @@ type_mapping = {
     'int': fields.Integer,
     'float': fields.Float,
     'bool': fields.Boolean,
-    'datetime': fields.DateTime,
+    'datetime': fields.String,
     'date': fields.Date,
     # Fallback type
     'object': fields.Raw,
 }
 
-def generate_schema_from_swagger(model_cls):
+def generate_schema_from_swagger(model_cls: type) -> Schema:
+    """
+    Generate Marshmallow schemas from Qualer SDK model classes.
+    Creates schemas that can serialize SDK objects directly using their to_dict() method.
+    """
+    model_name = model_cls.__name__
+    
+    # Return cached schema if already generated
+    if model_name in _schema_cache:
+        return _schema_cache[model_name]
+    
     schema_fields = {}
+    
     for attr_name, swagger_type in model_cls.swagger_types.items():
-        field_class = type_mapping.get(swagger_type, fields.Raw)
-        schema_fields[attr_name] = field_class(allow_none=True)
-    return type(f"{model_cls.__name__}Schema", (Schema,), schema_fields)
+        # Handle list types
+        if swagger_type.startswith('list['):
+            schema_fields[attr_name] = fields.List(fields.Raw(), allow_none=True)
+        # Handle all other types as Raw - let to_dict() handle the conversion
+        else:
+            schema_fields[attr_name] = fields.Raw(allow_none=True)
+
+    def dump_override(self, obj, *, many=None, **kwargs):
+        """Override dump to handle SDK model objects"""
+
+        # Use schema's many setting if dump's many parameter is None
+        if many is None:
+            many = getattr(self, 'many', False)
+        
+        if many:
+            # Handle list of objects
+            converted_objects = []
+            for item in obj:
+                if hasattr(item, 'to_dict') and callable(getattr(item, 'to_dict')):
+                    converted_objects.append(item.to_dict())
+                else:
+                    converted_objects.append(item)
+            return super(schema_class, self).dump(converted_objects, many=True, **kwargs)
+        else:
+            # Handle single object
+            if hasattr(obj, 'to_dict') and callable(getattr(obj, 'to_dict')):
+                obj = obj.to_dict()
+            return super(schema_class, self).dump(obj, many=False, **kwargs)
+    
+    # Create schema class with fields and custom dump method
+    schema_attrs = schema_fields.copy()
+    schema_attrs['dump'] = dump_override
+    schema_class = type(f"{model_name}Schema", (Schema,), schema_attrs)
+      # Cache and return the schema class
+    _schema_cache[model_name] = schema_class
+    
+    return schema_class
 
 AssetToAssetSchema = generate_schema_from_swagger(QualerApiModelsAssetToAssetResponseModel)
-EmployeesModel = generate_schema_from_swagger(QualerApiModelsEmployeesFromEmployeeDepartmentModel)
+EmployeeResponseSchema = generate_schema_from_swagger(QualerApiModelsClientsToEmployeeResponseModel)
 
 class WorkItemDetailsQuerySchema(Schema):
     workItemNumber = fields.Str(required=True)
