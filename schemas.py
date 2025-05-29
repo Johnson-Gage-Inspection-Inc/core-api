@@ -29,7 +29,6 @@ def generate_schema_from_swagger(model_cls: type) -> Schema:
         return _schema_cache[model_name]
     
     schema_fields = {}
-    
     for attr_name, swagger_type in model_cls.swagger_types.items():
         # Handle list types
         if swagger_type.startswith('list['):
@@ -37,8 +36,9 @@ def generate_schema_from_swagger(model_cls: type) -> Schema:
         # Handle all other types using type_mapping or fallback to Raw
         else:
             marshmallow_field = type_mapping.get(swagger_type, fields.Raw)
-            schema_fields[attr_name] = marshmallow_field(allow_none=True)
-
+            schema_fields[attr_name] = marshmallow_field(allow_none=True)    # Create schema class with fields first
+    schema_class = type(f"{model_name}Schema", (Schema,), schema_fields)
+    
     def dump_override(self, obj, *, many=None, **kwargs):
         """Override dump to handle SDK model objects"""
 
@@ -61,10 +61,8 @@ def generate_schema_from_swagger(model_cls: type) -> Schema:
                 obj = obj.to_dict()
             return super(schema_class, self).dump(obj, many=False, **kwargs)
     
-    # Create schema class with fields and custom dump method
-    schema_attrs = schema_fields.copy()
-    schema_attrs['dump'] = dump_override
-    schema_class = type(f"{model_name}Schema", (Schema,), schema_attrs)
+    # Add the dump method after schema_class is defined
+    schema_class.dump = dump_override
       # Cache and return the schema class
     _schema_cache[model_name] = schema_class
     

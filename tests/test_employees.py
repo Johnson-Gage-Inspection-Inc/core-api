@@ -27,35 +27,36 @@ def test_employees_endpoint_basic(client, auth_token):
 @patch('utils.qualer_client.make_qualer_client')
 def test_employees_endpoint_mocked(mock_qualer_client, client, auth_token):
     """Test employees endpoint with mocked Qualer client for CI environments."""
-    # Import the required model class for proper mocking
+    from unittest.mock import MagicMock
     from qualer_sdk.models import QualerApiModelsClientsToEmployeeResponseModel
-      # Create a mock employee with proper initialization
-    mock_employee = QualerApiModelsClientsToEmployeeResponseModel()
     
-    # Set all required attributes - the SDK expects these as internal attributes
-    mock_employee._employee_id = 123
-    mock_employee._first_name = 'John'
-    mock_employee._last_name = 'Doe'
-    mock_employee._company_id = 1
-    mock_employee._login_email = 'john.doe@test.com'
-    mock_employee._departments = []
-    mock_employee._subscription_email = None
-    mock_employee._subscription_phone = None
-    mock_employee._office_phone = None
-    mock_employee._is_locked = False
-    mock_employee._image_url = None
-    mock_employee._alias = None
-    mock_employee._title = 'Developer'
-    mock_employee._is_deleted = False
-    mock_employee._last_seen_date_utc = None
-    mock_employee._culture_name = 'en-US'
-    mock_employee._culture_ui_name = 'en-US'
+    # Create a mock employee that behaves like an SDK object
+    mock_employee = MagicMock(spec=QualerApiModelsClientsToEmployeeResponseModel)
+    mock_employee.is_deleted = False
+    mock_employee.to_dict.return_value = {
+        'employee_id': 123,
+        'first_name': 'John',
+        'last_name': 'Doe',
+        'company_id': 1,
+        'login_email': 'john.doe@test.com',
+        'departments': [],
+        'subscription_email': None,
+        'subscription_phone': None,
+        'office_phone': None,
+        'is_locked': False,
+        'image_url': None,
+        'alias': None,
+        'title': 'Developer',
+        'is_deleted': False,
+        'last_seen_date_utc': None,
+        'culture_name': 'en-US',
+        'culture_ui_name': 'en-US'
+    }
     
-    mock_employees_api = type('MockEmployeesApi', (), {
-        'get_employees': lambda self: [mock_employee]
-    })()
+    mock_employees_api = MagicMock()
+    mock_employees_api.get_employees.return_value = [mock_employee]
     
-    mock_client = type('MockClient', (), {})()
+    mock_client = MagicMock()
     mock_qualer_client.return_value = mock_client
     
     # Patch the EmployeesApi class
@@ -69,3 +70,9 @@ def test_employees_endpoint_mocked(mock_qualer_client, client, auth_token):
     data = response.get_json()
     assert isinstance(data, list)
     assert len(data) == 1
+    
+    employee = data[0]
+    assert employee['employee_id'] == 123
+    assert employee['first_name'] == 'John'
+    assert employee['last_name'] == 'Doe'
+    assert employee['is_deleted'] is False
