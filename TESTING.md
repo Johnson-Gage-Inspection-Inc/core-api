@@ -118,6 +118,20 @@ def test_auth_specific_feature(client, auth_token):
 Use fixtures to prevent test pollution:
 
 ```python
+@pytest.fixture(scope="session")
+def auth_token():
+    """Shared valid auth token for use across tests."""
+    return get_access_token()
+
+@pytest.fixture
+def client():
+    """Flask test client with all blueprints registered."""
+    from app import create_app
+    app = create_app()
+    app.config["TESTING"] = True
+    with app.test_client() as client:
+        yield client
+
 @pytest.fixture(autouse=True)
 def reset_auth_cache():
     """Reset auth cache before each test to prevent test interference."""
@@ -245,8 +259,13 @@ Use the Testing panel in VS Code sidebar for:
 - **Solution**: Ensure all test files are in `/tests/` directory
 - **Solution**: Check that `/tests/__init__.py` exists
 
+#### "No tests discovered"
+- **Cause**: Improper filename or no test prefix
+- **Solution**: Ensure file is named `test_*.py` and contains functions prefixed with `test_`
+- **Solution**: Check that the `tests/__init__.py` file exists
+
 #### "Global state pollution between tests"
-- **Cause**: Cached values in modules (especially auth caches)
+- **Cause**: Module-level caches (e.g., Azure JWKS config)
 - **Solution**: Use `reset_auth_cache` fixture (see `conftest.py`)
 - **Solution**: Add `autouse=True` fixtures to clean up state
 
@@ -289,15 +308,35 @@ def test_response_debugging(client, auth_token):
 - Test client fixture in `conftest.py`
 
 ### Authentication Testing
-- Test both authenticated and unauthenticated scenarios
-- Verify token validation, scope checking, error handling
+- **Test both authenticated and unauthenticated scenarios**
+- **Verify token validation, scope checking, and error handling**
 - Use conditional logic for dual-mode compatibility
 - Skip auth-specific tests appropriately with decorators
 
 ### Error Handling
-- Test all error paths and edge cases
-- Verify proper HTTP status codes and error messages
+- **Test all error paths and edge cases**
+- **Verify proper HTTP status codes and error messages**
 - Test external service failures and timeouts
 - Validate input validation and schema errors
+
+### Coverage Configuration
+
+Optional: Use `.coveragerc` to customize coverage reporting:
+
+```ini
+[run]
+omit = 
+    tests/*
+    */__init__.py
+    */migrations/*
+    venv/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+```
 
 This comprehensive testing guide ensures robust, maintainable tests that work across all environments and authentication modes.
