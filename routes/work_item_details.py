@@ -20,6 +20,9 @@ def get_work_item_details_for_tus(item_no):
     if not re.match(pattern, item_no):
         raise ValueError("Invalid work item number format.")
 
+    if not item_no.startswith("56561-"):
+        item_no = f"56561-{item_no}"
+
     client = make_qualer_client()
 
     soi_api = ServiceOrderItemsApi(client)
