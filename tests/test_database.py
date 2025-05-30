@@ -2,10 +2,8 @@
 import pytest
 import os
 from unittest.mock import patch, MagicMock
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from db.models import Base, DaqbookOffset
-from utils.database import get_db, engine
+from utils.database import SessionLocal, engine
 
 class TestDatabaseModels:
     """Test database model functionality."""
@@ -53,14 +51,16 @@ class TestDatabaseConnection:
         except Exception as e:
             pytest.skip(f"Database not available: {e}")
 
+
     def test_get_db_session(self):
         """Test database session creation."""
         try:
-            db = get_db()
+            db = SessionLocal()
             assert db is not None
             # Test a simple query
             result = db.execute("SELECT 1 as test")
             assert result.fetchone()[0] == 1
+            db.close()
         except Exception as e:
             pytest.skip(f"Database not available: {e}")
 
@@ -68,12 +68,12 @@ class TestDatabaseUtils:
     """Test database utility functions."""
     
     @patch('utils.database.SessionLocal')
-    def test_get_db_session_mock(self, mock_session_local):
-        """Test get_db function with mocked session."""
+    def test_session_local_creation(self, mock_session_local):
+        """Test SessionLocal creation with mocked session."""
         mock_session = MagicMock()
         mock_session_local.return_value = mock_session
         
-        result = get_db()
+        result = SessionLocal()
         
         assert result == mock_session
         mock_session_local.assert_called_once()
