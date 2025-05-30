@@ -1,4 +1,5 @@
 alembic
+click
 cryptography
 deepdiff
 flask
