@@ -1,3 +1,5 @@
+alembic
+click
 cryptography
 deepdiff
 flask
@@ -6,8 +8,10 @@ flask-smorest
 git+https://github.com/Johnson-Gage-Inspection-Inc/qualer-sdk-python.git@f50f852c5af20f4cc46a6dcf8c0ab459060e7504#egg=qualer_sdk
 marshmallow
 msal
+psycopg2-binary
 pyjwt
 pytest
 pytest-cov
 python-dotenv
 requests
+sqlalchemy
