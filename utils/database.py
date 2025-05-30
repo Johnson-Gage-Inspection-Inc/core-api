@@ -33,9 +33,5 @@ def get_db_session():
         session.close()
 
 def get_db():
-    """Get a database session (for dependency injection)."""
-    db = SessionLocal()
-    try:
-        return db
-    finally:
-        db.close()
+    """Get a database session (caller responsible for closing)."""
+    return SessionLocal()

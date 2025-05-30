@@ -7,6 +7,7 @@ Provides commands for database setup, migrations, and data management.
 
 import os
 import sys
+import subprocess
 import click
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
@@ -79,12 +80,22 @@ def drop_tables():
 @click.option('--message', '-m', required=True, help='Migration message')
 def create_migration(message):
     """Create a new Alembic migration."""
-    os.system(f'alembic revision --autogenerate -m "{message}"')
+    try:
+        subprocess.run(['alembic', 'revision', '--autogenerate', '-m', message], check=True)
+        click.echo(f"✅ SUCCESS: Migration created with message: {message}")
+    except subprocess.CalledProcessError as e:
+        click.echo(f"❌ ERROR: Migration creation failed: {e}", err=True)
+        sys.exit(1)
 
 @cli.command()
 def upgrade_db():
     """Apply all pending migrations."""
-    os.system('alembic upgrade head')
+    try:
+        subprocess.run(['alembic', 'upgrade', 'head'], check=True)
+        click.echo("✅ SUCCESS: Database upgraded to latest migration")
+    except subprocess.CalledProcessError as e:
+        click.echo(f"❌ ERROR: Database upgrade failed: {e}", err=True)
+        sys.exit(1)
 
 @cli.command()
 def downgrade_db():
@@ -92,7 +103,12 @@ def downgrade_db():
     if not click.confirm("⚠️  WARNING: This will revert the last migration. Continue?"):
         click.echo("Cancelled.")
         return
-    os.system('alembic downgrade -1')
+    try:
+        subprocess.run(['alembic', 'downgrade', '-1'], check=True)
+        click.echo("✅ SUCCESS: Database downgraded by one migration")
+    except subprocess.CalledProcessError as e:
+        click.echo(f"❌ ERROR: Database downgrade failed: {e}", err=True)
+        sys.exit(1)
 
 if __name__ == "__main__":
     cli()
