@@ -73,7 +73,9 @@ class TestDatabaseUtils:
         mock_session = MagicMock()
         mock_session_local.return_value = mock_session
         
-        result = SessionLocal()
+        # Import the patched version from the module
+        from utils.database import SessionLocal as PatchedSessionLocal
+        result = PatchedSessionLocal()
         
         assert result == mock_session
         mock_session_local.assert_called_once()
