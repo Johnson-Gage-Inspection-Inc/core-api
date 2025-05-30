@@ -141,7 +141,7 @@ python -m pytest -v
 - **CI Mode** (`SKIP_AUTH=true`): Fast testing with mocked authentication and external APIs
 - **Integration Mode** (`SKIP_AUTH=false`): Full testing with real Azure AD tokens and Qualer API calls
 
-**📝 See [`TESTING.md`](TESTING.md) for comprehensive testing documentation**
+**📝 See [`TESTING.md`](docs/TESTING.md) for comprehensive testing documentation**
 
 ## 🏗️ Project Structure
 
@@ -211,7 +211,7 @@ python -m pytest -v
 
 ### Development Documentation
 
-- **Testing Guide**: [`TESTING.md`](TESTING.md) - Comprehensive testing strategies and patterns
+- **Testing Guide**: [`TESTING.md`](docs/TESTING.md) - Comprehensive testing strategies and patterns
 - **Copilot Instructions**: [`.github/.copilot-instructions.md`](.github/.copilot-instructions.md) - GitHub Copilot development guidance
 - **Qualer SDK**: [OpenAPI Specification](https://raw.githubusercontent.com/Johnson-Gage-Inspection-Inc/qualer-sdk-python/refs/heads/master/spec.json)
 
@@ -236,7 +236,7 @@ python -m pytest -v
 - **Authentication failures**: Check environment variables and Azure AD configuration
 - **Qualer API errors**: Verify `QUALER_API_KEY` permissions and format
 - **CORS issues**: Ensure requests include proper headers for cross-origin access
-- **Testing failures**: See [`TESTING.md`](TESTING.md) for debugging strategies
+- **Testing failures**: See [`TESTING.md`](docs/TESTING.md) for debugging strategies
 
 ### Development Help
 
