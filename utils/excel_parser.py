@@ -82,5 +82,6 @@ def parse_daqbook_offsets_from_excel(filepath: str, tn: Optional[str] = None) ->
         return all_offsets
         
     except Exception as e:
+        logging.error(f"Error parsing Excel file '{filepath}': {e}", exc_info=True)
         # Return empty list on error - this allows graceful handling
         return []
