@@ -5,15 +5,9 @@ Excel file parsing utilities for daqbook offset data.
 Handles parsing of calibration data from Excel (.xlsm) files.
 """
 
-import os
-import sys
 from typing import List, Dict, Any, Optional
 from openpyxl import load_workbook
 from pathlib import Path
-
-# Add parent directory to path for imports when run as script
-if __name__ == "__main__":
-    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def parse_daqbook_offsets_from_excel(filepath: str, tn: Optional[str] = None) -> List[Dict[str, Any]]:
     """
@@ -90,38 +84,3 @@ def parse_daqbook_offsets_from_excel(filepath: str, tn: Optional[str] = None) ->
     except Exception as e:
         # Return empty list on error - this allows graceful handling
         return []
-
-def main():
-    """Command-line interface for Excel parsing utilities."""
-    if len(sys.argv) < 2:
-        print("Usage:")
-        print("  python utils/excel_parser.py parse <file> [tn]  # Parse offset data")
-        sys.exit(1)
-    
-    command = sys.argv[1].lower()
-    
-    if command == "parse":
-        if len(sys.argv) < 3:
-            print("❌ ERROR: File path required")
-            sys.exit(1)
-        
-        filepath = sys.argv[2]
-        tn = sys.argv[3] if len(sys.argv) > 3 else None
-        
-        offsets = parse_daqbook_offsets_from_excel(filepath, tn)
-        
-        if not offsets:
-            print("❌ No offset data found in file")
-            sys.exit(1)
-        
-        print(f"✅ Found {len(offsets)} offset records:")
-        for offset in offsets:
-            print(f"  TN: {tn}, Temp: {offset['Temp']}, Point: {offset['Point']}, "
-                  f"Reading: {offset['Reading']:.6f}, Delta: {offset['Delta']:.2f}")
-    
-    else:
-        print(f"❌ ERROR: Unknown command: {command}")
-        sys.exit(1)
-
-if __name__ == "__main__":
-    main()
