@@ -31,7 +31,3 @@ def get_db_session():
         yield session
     finally:
         session.close()
-
-def get_db():
-    """Get a database session (caller responsible for closing)."""
-    return SessionLocal()
