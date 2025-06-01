@@ -192,4 +192,98 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
         ):
             print(f"  {key}: {app.view_functions[key]}")
 
+    # SharePoint mock functions
+    def mock_get_pyro_file_reference():
+        """Mock SharePoint Pyro file reference endpoint."""
+        if resp := fake_auth_check():
+            return resp
+
+        file_path = request.args.get("filePath")
+        if not file_path:
+            abort(400, message="Missing filePath parameter")
+
+        return {
+            "id": "mock-file-id-123",
+            "name": file_path.split("/")[-1] if "/" in file_path else file_path,
+            "webUrl": f"https://jgiquality.sharepoint.com/sites/mock/Shared%20Documents/{file_path}",
+            "downloadUrl": f"https://download.sharepoint.com/temp/{file_path}",
+            "size": 2048,
+            "lastModified": "2025-06-01T10:00:00Z",
+            "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "driveId": "mock-pyro-drive-id",
+            "path": file_path,
+        }
+
+    def mock_search_pyro_files():
+        """Mock SharePoint Pyro file search endpoint."""
+        if resp := fake_auth_check():
+            return resp
+
+        query = request.args.get("query")
+        if not query:
+            abort(400, message="Missing query parameter")
+
+        # Return mock search results
+        return [
+            {
+                "id": "search-result-1",
+                "name": f"{query}-document-1.xlsx",
+                "webUrl": f"https://jgiquality.sharepoint.com/sites/mock/Shared%20Documents/{query}-document-1.xlsx",
+                "size": 1024,
+                "lastModified": "2025-06-01T09:00:00Z",
+                "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            },
+            {
+                "id": "search-result-2",
+                "name": f"{query}-report-2.pdf",
+                "webUrl": f"https://jgiquality.sharepoint.com/sites/mock/Shared%20Documents/{query}-report-2.pdf",
+                "size": 3072,
+                "lastModified": "2025-05-31T15:30:00Z",
+                "mimeType": "application/pdf",
+            },
+        ]
+
+    def mock_list_pyro_folder_contents():
+        """Mock SharePoint Pyro folder contents endpoint."""
+        if resp := fake_auth_check():
+            return resp
+
+        folder_path = request.args.get("folderPath", "")
+
+        # Return mock folder contents
+        return [
+            {
+                "id": "folder-item-1",
+                "name": "calibration-data.xlsx",
+                "webUrl": f"https://jgiquality.sharepoint.com/sites/mock/Shared%20Documents/{folder_path}/calibration-data.xlsx",
+                "size": 4096,
+                "lastModified": "2025-06-01T08:00:00Z",
+                "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            },
+            {
+                "id": "folder-item-2",
+                "name": "test-results",
+                "webUrl": f"https://jgiquality.sharepoint.com/sites/mock/Shared%20Documents/{folder_path}/test-results",
+                "size": None,  # Folder has no size
+                "lastModified": "2025-05-30T12:00:00Z",
+                "mimeType": None,  # Folder has no MIME type
+            },
+        ]
+
+    # Register SharePoint mock endpoints (if they exist)
+    sharepoint_endpoints = [
+        "sharepoint.PyroFileReference",
+        "sharepoint.PyroFileSearch",
+        "sharepoint.PyroFolderContents",
+    ]
+
+    for endpoint in sharepoint_endpoints:
+        if endpoint in app.view_functions:
+            if "FileReference" in endpoint:
+                app.view_functions[endpoint] = mock_get_pyro_file_reference
+            elif "FileSearch" in endpoint:
+                app.view_functions[endpoint] = mock_search_pyro_files
+            elif "FolderContents" in endpoint:
+                app.view_functions[endpoint] = mock_list_pyro_folder_contents
+
     # Remove any duplicate or conflicting registration of asset-service-records.AssetServiceRecord
