@@ -1,14 +1,15 @@
 # utils/sharepoint_client.py
 """SharePoint client for Microsoft Graph API integration."""
 
-import os
-import requests
-from typing import Optional, Dict, List, Any
 import io
+import os
+from typing import Any, Dict, List, Optional
+
+import requests
 
 # For testing purposes, allow mocking of request extraction
 try:
-    from flask import request, has_request_context
+    from flask import has_request_context, request
 
     _flask_available = True
 except ImportError:

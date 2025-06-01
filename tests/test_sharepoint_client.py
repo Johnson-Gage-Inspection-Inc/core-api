@@ -2,17 +2,17 @@
 """Tests for SharePoint client integration."""
 
 import os
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 from utils.sharepoint_client import (
     SharePointClient,
     get_pyro_file_reference,
     get_pyro_standards_file_reference,
-    search_pyro_files,
     get_wiresetcerts_file_reference,
-    get_wiresetcerts_content,
     list_pyro_folder_contents,
+    search_pyro_files,
 )
 
 

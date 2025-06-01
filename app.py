@@ -4,12 +4,12 @@ from os import getenv
 
 import jwt
 import requests
-from dotenv import load_dotenv
 from flask import Flask, request
 from flask_cors import CORS
 from flask_smorest import Api
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+# Import config to load environment variables BEFORE importing routes
 from routes import (
     asset_service_records,
     clients,
@@ -20,8 +20,6 @@ from routes import (
     whoami,
     work_item_details,
 )
-
-load_dotenv()
 
 app = Flask(__name__)
 

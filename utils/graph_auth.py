@@ -1,8 +1,8 @@
 """Microsoft Graph authentication utilities using MSAL."""
 
-import msal
 import os
-from typing import Optional
+
+import msal
 
 
 def get_app_only_token() -> str:

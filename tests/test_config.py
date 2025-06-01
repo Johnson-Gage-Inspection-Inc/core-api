@@ -6,8 +6,10 @@ def test_load_dotenv_called(monkeypatch):
     # Create a mock for load_dotenv
     called = {}
 
-    def mock_load_dotenv():
+    def mock_load_dotenv(*args, **kwargs):
         called["was_called"] = True
+        called["args"] = args
+        called["kwargs"] = kwargs
 
     # Patch sys.modules to inject the mock before import
     mock_dotenv = types.ModuleType("dotenv")

@@ -22,7 +22,6 @@ load_dotenv()
 @click.group()
 def cli():
     """Database administration commands."""
-    pass
 
 
 @cli.command()

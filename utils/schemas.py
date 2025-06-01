@@ -30,8 +30,16 @@ type_mapping = {
 
 def generate_schema_from_swagger(model_cls: type) -> type[Schema]:
     """
-    Generate Marshmallow schemas from Qualer SDK model classes.
-    Creates schemas that can serialize SDK objects directly using their to_dict() method.
+    Generate a Marshmallow schema class from a Qualer SDK model class.
+    This function creates a schema class dynamically based on the model's
+    swagger_types mapping, allowing it to handle both single objects and lists
+    of objects.
+
+    Args:
+        model_cls (type): The Qualer SDK model class to generate the schema from.
+    Returns:
+        type[Schema]: A Marshmallow schema class that can serialize/deserialize
+                      instances of the given model class.
     """
     model_name = model_cls.__name__
 

@@ -106,15 +106,17 @@ def test_load_openid_config_caches(mock_get, monkeypatch):
     reason="Token validation not used when SKIP_AUTH=true",
 )
 @patch("utils.auth.jwt.get_unverified_header")
-@patch("utils.auth.RSAAlgorithm.from_jwk")
+@patch("utils.auth.jwt.PyJWK")
 @patch("utils.auth.jwt.decode")
 @patch("utils.auth.load_openid_config")
 def test_validate_token_success(
-    mock_load_config, mock_decode, mock_from_jwk, mock_get_header
+    mock_load_config, mock_decode, mock_pyjwk, mock_get_header
 ):
     mock_load_config.return_value = ({"issuer": "issuer"}, {"keys": [{"kid": "abc"}]})
     mock_get_header.return_value = {"kid": "abc"}
-    mock_from_jwk.return_value = "publickey"
+    mock_pyjwk_instance = MagicMock()
+    mock_pyjwk_instance.key = "publickey"
+    mock_pyjwk.return_value = mock_pyjwk_instance
     mock_decode.return_value = {"scp": "access_as_user", "sub": "user1"}
 
     token = "sometoken"
@@ -141,15 +143,17 @@ def test_validate_token_missing_kid(mock_load_config, mock_get_header):
     reason="Token validation not used when SKIP_AUTH=true",
 )
 @patch("utils.auth.jwt.get_unverified_header")
-@patch("utils.auth.RSAAlgorithm.from_jwk")
+@patch("utils.auth.jwt.PyJWK")
 @patch("utils.auth.jwt.decode")
 @patch("utils.auth.load_openid_config")
 def test_validate_token_missing_scope(
-    mock_load_config, mock_decode, mock_from_jwk, mock_get_header
+    mock_load_config, mock_decode, mock_pyjwk, mock_get_header
 ):
     mock_load_config.return_value = ({"issuer": "issuer"}, {"keys": [{"kid": "abc"}]})
     mock_get_header.return_value = {"kid": "abc"}
-    mock_from_jwk.return_value = "publickey"
+    mock_pyjwk_instance = MagicMock()
+    mock_pyjwk_instance.key = "publickey"
+    mock_pyjwk.return_value = mock_pyjwk_instance
     mock_decode.return_value = {"scp": "other_scope"}
 
     with pytest.raises(jwt.InvalidTokenError):
