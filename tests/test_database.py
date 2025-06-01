@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from db.models import Base, DaqbookOffset
+from db.models import DaqbookOffset
 from utils.database import SessionLocal, engine
 
 
@@ -105,8 +105,7 @@ class TestDatabaseUtils:
         assert os.getenv("DATABASE_ECHO") == "true"
 
         # Test the logic that would be used in database.py
-        echo_setting = os.getenv("DATABASE_ECHO", "false").lower() == "true"
-        assert echo_setting == True
+        assert os.getenv("DATABASE_ECHO", "false").lower() == "true"
 
     def test_get_db_session_generator(self):
         """Test get_db_session is a generator function."""

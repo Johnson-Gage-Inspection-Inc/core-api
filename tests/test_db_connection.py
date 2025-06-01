@@ -36,7 +36,7 @@ def test_connection():
         with engine.connect() as conn:
             result = conn.execute(text("SELECT version()"))
             version = result.fetchone()
-            print(f"✅ SUCCESS: Connected to PostgreSQL")
+            print("✅ SUCCESS: Connected to PostgreSQL")
             print(f"📊 Version: {version}")
 
             # Test table creation permissions
@@ -47,7 +47,7 @@ def test_connection():
             assert True
 
     except Exception as e:
-        print(f"❌ ERROR: Connection failed")
+        print("❌ ERROR: Connection failed")
         print(f"Details: {str(e)}")
         # Use assertion instead of return for pytest
         assert False, f"Database connection failed: {str(e)}"

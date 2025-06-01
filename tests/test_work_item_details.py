@@ -1,10 +1,6 @@
 # tests/test_work_item_details.py
-import os
 from unittest.mock import MagicMock, patch
-
 import pytest
-from deepdiff import DeepDiff
-
 from routes.work_item_details import get_work_item_details_for_tus
 
 

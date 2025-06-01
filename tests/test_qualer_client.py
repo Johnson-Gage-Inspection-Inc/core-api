@@ -1,8 +1,5 @@
 # tests/test_qualer_client.py
-import os
-
 import pytest
-
 from utils.qualer_client import make_qualer_client
 
 
