@@ -498,7 +498,7 @@ def get_pyro_standards_excel_file(
             pass
         else:
             raise ValueError("Direct path failed")
-    except:
+    except Exception:
         # If direct path fails, try listing the Pyro_Standards folder contents
         try:
             folder_contents = client.get_drive_items(

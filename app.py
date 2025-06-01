@@ -1,15 +1,13 @@
 # app.py
-import logging
-from os import getenv
+import logging  # noqa: F401
 
-import jwt
-import requests
 from flask import Flask, request
 from flask_cors import CORS
 from flask_smorest import Api
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Import config to load environment variables BEFORE importing routes
+import config  # noqa: F401
 from routes import (
     asset_service_records,
     clients,
@@ -76,53 +74,6 @@ api.register_blueprint(git_ops.blp)
 api.register_blueprint(pyro_assets.blp)
 api.register_blueprint(whoami.blp)
 api.register_blueprint(work_item_details.blp)
-
-TENANT_ID = getenv("AZURE_TENANT_ID")
-AUDIENCE = getenv("AZURE_CLIENT_ID")
-REQUIRED_SCOPE = "access_as_user"
-
-
-def get_openid_config():
-    """Fetch OpenID configuration from Azure AD."""
-    url = (
-        f"https://login.microsoftonline.com/"
-        f"{TENANT_ID}/v2.0/.well-known/openid-configuration"
-    )
-    return requests.get(url).json()
-
-
-openid_config = get_openid_config()
-
-# Guard against missing keys
-if "jwks_uri" not in openid_config:
-    logging.error("Missing 'jwks_uri' in OpenID config: %s", openid_config)
-    raise KeyError("'jwks_uri' not found in OpenID configuration.")
-
-jwks_uri = openid_config["jwks_uri"]
-if "issuer" not in openid_config:
-    logging.error("Missing 'issuer' in OpenID config: %s", openid_config)
-    raise KeyError("'issuer' not found in OpenID configuration.")
-issuer = openid_config["issuer"]
-jwks = requests.get(jwks_uri).json()
-
-
-# Token validator
-def validate_token(token):
-    unverified_header = jwt.get_unverified_header(token)
-    kid = unverified_header["kid"]
-    key = next(k for k in jwks["keys"] if k["kid"] == kid)
-
-    public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key)
-
-    payload = jwt.decode(
-        token, key=public_key, algorithms=["RS256"], audience=AUDIENCE, issuer=issuer
-    )
-
-    scopes = payload.get("scp", "").split()
-    if REQUIRED_SCOPE not in scopes:
-        raise jwt.InvalidTokenError("Required scope missing")
-
-    return payload
 
 
 @app.before_request

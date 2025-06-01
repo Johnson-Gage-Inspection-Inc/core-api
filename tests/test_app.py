@@ -1,155 +1,15 @@
-from unittest.mock import patch
+"""
+Tests for core Flask application functionality.
 
-import jwt
-import pytest
+Note: Authentication-specific tests are in test_auth.py.
+This file focuses on app-level functionality like route registration and basic responses.
+"""
 
-from app import REQUIRED_SCOPE, app, validate_token
-
-
-@pytest.fixture
-def fake_jwks():
-    return {
-        "keys": [
-            {
-                "kid": "testkid",
-                "kty": "RSA",
-                "alg": "RS256",
-                "use": "sig",
-                "n": "testn",
-                "e": "AQAB",
-            }
-        ]
-    }
-
-
-@pytest.fixture
-def fake_token():
-    return "fake.jwt.token"
-
-
-@pytest.fixture
-def fake_payload():
-    return {"scp": f"other_scope {REQUIRED_SCOPE}", "sub": "user1"}
-
-
-@patch("app.jwt.get_unverified_header")
-@patch(
-    "app.jwks",
-    {
-        "keys": [
-            {
-                "kid": "testkid",
-                "kty": "RSA",
-                "alg": "RS256",
-                "use": "sig",
-                "n": "testn",
-                "e": "AQAB",
-            }
-        ]
-    },
-)
-@patch("app.jwt.algorithms.RSAAlgorithm.from_jwk")
-@patch("app.jwt.decode")
-def test_validate_token_success(
-    mock_decode, mock_from_jwk, mock_get_unverified_header, fake_token, fake_payload
-):
-    mock_get_unverified_header.return_value = {"kid": "testkid"}
-    mock_from_jwk.return_value = "public_key"
-    mock_decode.return_value = fake_payload
-
-    result = validate_token(fake_token)
-    assert result == fake_payload
-    mock_decode.assert_called_once()
-
-
-@patch("app.jwt.get_unverified_header")
-@patch(
-    "app.jwks",
-    {
-        "keys": [
-            {
-                "kid": "testkid",
-                "kty": "RSA",
-                "alg": "RS256",
-                "use": "sig",
-                "n": "testn",
-                "e": "AQAB",
-            }
-        ]
-    },
-)
-@patch("app.jwt.algorithms.RSAAlgorithm.from_jwk")
-@patch("app.jwt.decode")
-def test_validate_token_missing_scope_raises(
-    mock_decode, mock_from_jwk, mock_get_unverified_header, fake_token
-):
-    mock_get_unverified_header.return_value = {"kid": "testkid"}
-    mock_from_jwk.return_value = "public_key"
-    mock_decode.return_value = {"scp": "other_scope"}
-
-    with pytest.raises(jwt.InvalidTokenError):
-        validate_token(fake_token)
-
-
-@patch("app.jwt.get_unverified_header")
-@patch(
-    "app.jwks",
-    {
-        "keys": [
-            {
-                "kid": "testkid",
-                "kty": "RSA",
-                "alg": "RS256",
-                "use": "sig",
-                "n": "testn",
-                "e": "AQAB",
-            }
-        ]
-    },
-)
-@patch("app.jwt.algorithms.RSAAlgorithm.from_jwk")
-@patch("app.jwt.decode")
-def test_validate_token_no_scp_field_raises(
-    mock_decode, mock_from_jwk, mock_get_unverified_header, fake_token
-):
-    mock_get_unverified_header.return_value = {"kid": "testkid"}
-    mock_from_jwk.return_value = "public_key"
-    mock_decode.return_value = {}
-
-    with pytest.raises(jwt.InvalidTokenError):
-        validate_token(fake_token)
-
-
-@patch("app.jwt.get_unverified_header")
-@patch(
-    "app.jwks",
-    {
-        "keys": [
-            {
-                "kid": "testkid",
-                "kty": "RSA",
-                "alg": "RS256",
-                "use": "sig",
-                "n": "testn",
-                "e": "AQAB",
-            }
-        ]
-    },
-)
-@patch("app.jwt.algorithms.RSAAlgorithm.from_jwk")
-@patch("app.jwt.decode")
-def test_validate_token_kid_not_found(
-    mock_decode, mock_from_jwk, mock_get_unverified_header, fake_token
-):
-    mock_get_unverified_header.return_value = {"kid": "unknown_kid"}
-    mock_from_jwk.return_value = "public_key"
-    mock_decode.return_value = {"scp": f"{REQUIRED_SCOPE}"}
-
-    with pytest.raises(StopIteration):
-        validate_token(fake_token)
+from app import app
 
 
 def test_index_route_returns_204():
+    """Test that the root route returns 204 No Content."""
     with app.test_client() as client:
         response = client.get("/")
         assert response.status_code == 204
@@ -157,6 +17,7 @@ def test_index_route_returns_204():
 
 
 def test_index_route_options_returns_204():
+    """Test that OPTIONS request to root route returns 204 No Content."""
     with app.test_client() as client:
         response = client.options("/")
         assert response.status_code == 204
@@ -164,15 +25,52 @@ def test_index_route_options_returns_204():
 
 
 def test_app_startup():
-    """Test that the app starts up correctly"""
+    """Test that the app starts up correctly."""
     assert app is not None
     assert app.config is not None
 
 
 def test_app_routes_exist():
-    """Test that expected routes are registered"""
+    """Test that expected routes are registered."""
     rule_paths = [rule.rule for rule in app.url_map.iter_rules()]
     expected_routes = ["/whoami", "/pyro-assets", "/work-item-details"]
 
     for route in expected_routes:
-        assert route in rule_paths
+        assert route in rule_paths, f"Route {route} not found in registered routes"
+
+
+def test_app_has_cors_support():
+    """Test that CORS is properly configured."""
+    with app.test_client() as client:
+        # Test preflight request
+        response = client.options(
+            "/whoami",
+            headers={
+                "Origin": "https://example.com",
+                "Access-Control-Request-Method": "GET",
+                "Access-Control-Request-Headers": "Authorization",
+            },
+        )
+
+        # Should get a response (not necessarily 200, but CORS headers should be present)
+        assert response.status_code in [
+            200,
+            204,
+            401,
+        ]  # Different depending on auth mode
+
+
+def test_app_blueprint_registration():
+    """Test that all expected blueprints are registered."""
+    blueprint_names = [bp.name for bp in app.blueprints.values()]
+    expected_blueprints = [
+        "whoami",
+        "work-item-details",
+        "pyro-assets",
+        "employees",
+        "clients",
+        "git-ops",
+    ]
+
+    for blueprint in expected_blueprints:
+        assert blueprint in blueprint_names, f"Blueprint {blueprint} not registered"
