@@ -102,6 +102,6 @@ class WhoamiResponse(Schema):
 class DaqbookOffsetSchema(Schema):
     """Schema for daqbook offset calibration data."""
     tn = fields.String(required=True, metadata={"description": "Test number/daqbook identifier"})
-    temp = fields.Float(required=True, metadata={"description": "Temperature point in degrees"}) 
+    temp = fields.Float(required=True, metadata={"description": "Temperature point in degrees"})
     point = fields.Integer(required=True, metadata={"description": "Measurement point number (1-40)"})
     reading = fields.Float(required=True, metadata={"description": "Offset reading value"})
