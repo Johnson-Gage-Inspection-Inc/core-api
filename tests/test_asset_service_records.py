@@ -27,7 +27,13 @@ def test_asset_service_record_endpoint_without_auth(client):
     """Test that unauthenticated requests are rejected"""
     resp = client.get("/asset-service-records/12345")
     assert resp.status_code == 401
-    assert resp.text == "Unauthorized"
+    # In SKIP_AUTH mode, we get JSON error response from Flask-Smorest abort()
+    if resp.content_type and "application/json" in resp.content_type:
+        data = resp.get_json()
+        assert "message" in data
+        assert "Unauthorized" in data["message"]
+    else:
+        assert resp.text == "Unauthorized"
 
 
 @patch("routes.asset_service_records.AssetServiceRecordsApi")
@@ -112,9 +118,9 @@ def test_asset_service_record_endpoint_not_found(
     """Test asset service records endpoint when record is not found"""
     # Check if SKIP_AUTH is enabled - in this mode, the mock bindings handle the response
     if os.getenv("SKIP_AUTH", "false").lower() == "true":
-        # Test with an ID that triggers 404 in mock bindings
+        # Test with an ID that triggers 404 in mock bindings (999999 is configured to return 404)
         response = client.get(
-            "/asset-service-records/nonexistent",
+            "/asset-service-records/999999",
             headers={"Authorization": f"Bearer {auth_token}"},
         )
 
@@ -138,14 +144,14 @@ def test_asset_service_record_endpoint_not_found(
         mock_qualer_client.return_value = mock_client
 
         response = client.get(
-            "/asset-service-records/nonexistent",
+            "/asset-service-records/999999",
             headers={"Authorization": f"Bearer {auth_token}"},
         )
 
         assert response.status_code == 404
         data = response.get_json()
         assert "message" in data
-        assert "nonexistent" in data["message"]
+        assert "999999" in data["message"]
 
 
 @patch("routes.asset_service_records.AssetServiceRecordsApi")

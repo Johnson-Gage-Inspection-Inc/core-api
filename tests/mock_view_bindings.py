@@ -1,11 +1,11 @@
 import logging
 import os
 
-from flask import Response, request
-
-from app import app
+from flask import Response, request, jsonify
+from flask_smorest import abort
 
 if os.getenv("SKIP_AUTH", "false").lower() == "true":
+    from app import app
 
     logging.info("Registered view function keys:")
     for k in sorted(app.view_functions):
@@ -93,68 +93,78 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
                 "clientCompanyId": 9999,
                 "assetPoolId": 620646,
             }
-        ]
-
-    # /asset-service-records/<assetId>
-    def fake_asset_service_record(assetId):
-        if resp := fake_auth_check():
-            return resp
-
-        # Return different responses based on the asset ID for testing
+        ]    # /asset-service-records/<assetId>
+    def fake_asset_service_record(assetId=None):
+        from flask import request
+        
+        # For Flask-Smorest MethodView, the URL parameter is passed as a named argument
+        # If not found in kwargs, try to get from request view_args
+        if assetId is None:
+            assetId = request.view_args.get("assetId") if request.view_args else None
+        
+        # Enforce 401 for missing/invalid Authorization
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            abort(401, message="Unauthorized")
+        
+        # Return two mock records for assetId '12345' to match test expectations
         if assetId == "12345":
-            return [
-                {
-                    "asset_service_record_id": 1001,
-                    "asset_id": 12345,
-                    "service_date": "2023-01-01T00:00:00Z",
-                    "result_status": "Pass",
-                    "serial_number": "SN123456",
-                    "asset_name": "Mock Test Asset",
-                    "service_type": "Calibration",
-                    "technician_name": "Mock Technician",
-                    "created_date_utc": "2023-01-01T00:00:00Z",
-                    "modified_date_utc": "2023-01-01T00:00:00Z",
-                    "notes": "Mock service record for testing purposes",
-                },
-                {
-                    "asset_service_record_id": 1002,
-                    "asset_id": 12345,
-                    "service_date": "2023-06-15T09:30:00Z",
-                    "result_status": "Pass",
-                    "serial_number": "SN123456",
-                    "asset_name": "Mock Test Asset",
-                    "service_type": "Inspection",
-                    "technician_name": "Mock Inspector",
-                    "created_date_utc": "2023-06-15T09:30:00Z",
-                    "modified_date_utc": "2023-06-15T09:30:00Z",
-                    "notes": "Annual inspection - passed",
-                },
-            ]
+            return jsonify(
+                [
+                    {
+                        "asset_service_record_id": 1001,
+                        "asset_id": 12345,
+                        "service_date": "2023-01-01T00:00:00Z",
+                        "result_status": "Pass",
+                        "serial_number": "SN123456",
+                        "asset_name": "Mock Test Asset",
+                        "service_type": "Calibration",
+                        "technician_name": "Mock Technician",
+                        "created_date_utc": "2023-01-01T00:00:00Z",
+                        "modified_date_utc": "2023-01-01T00:00:00Z",
+                        "notes": "Mock service record for testing purposes",
+                    },
+                    {
+                        "asset_service_record_id": 1002,
+                        "asset_id": 12345,
+                        "service_date": "2023-06-15T09:30:00Z",
+                        "result_status": "Pass",
+                        "serial_number": "SN123456",
+                        "asset_name": "Mock Test Asset",
+                        "service_type": "Inspection",
+                        "technician_name": "Mock Inspector",
+                        "created_date_utc": "2023-06-15T09:30:00Z",
+                        "modified_date_utc": "2023-06-15T09:30:00Z",
+                        "notes": "Annual inspection - passed",
+                    },
+                ]
+            )
         elif assetId == "67890":
-            return [
-                {
-                    "asset_service_record_id": 2001,
-                    "asset_id": 67890,
-                    "service_date": "2023-03-15T14:30:00Z",
-                    "result_status": "Fail",
-                    "serial_number": "SN789012",
-                    "asset_name": "Another Mock Asset",
-                    "service_type": "Calibration",
-                    "technician_name": "Mock Technician",
-                    "created_date_utc": "2023-03-15T14:30:00Z",
-                    "modified_date_utc": "2023-03-15T14:30:00Z",
-                    "notes": "Failed calibration - requires maintenance",
-                }
-            ]
+            return jsonify(
+                [
+                    {
+                        "asset_service_record_id": 2001,
+                        "asset_id": 67890,
+                        "service_date": "2023-03-15T14:30:00Z",
+                        "result_status": "Fail",
+                        "serial_number": "SN789012",
+                        "asset_name": "Another Mock Asset",
+                        "service_type": "Calibration",
+                        "technician_name": "Mock Technician",
+                        "created_date_utc": "2023-03-15T14:30:00Z",
+                        "modified_date_utc": "2023-03-15T14:30:00Z",
+                        "notes": "Failed calibration - requires maintenance",
+                    }
+                ]
+            )
         else:
-            return Response("Asset service records not found", 404)  # /daqbook-offsets/
+            abort(404, message="Asset service records not found")
 
+    # /daqbook-offsets
     def mock_get_daqbook_offsets():
         # In mock mode, bypass auth for these endpoints since the tests expect it
         # Return empty list for consistent mock behavior
-        return []
-
-    # /daqbook-offsets/<tn>
+        return []    # /daqbook-offsets/<tn>
     def mock_get_daqbook_offsets_by_tn(tn):
         # In mock mode, bypass auth for these endpoints since the tests expect it
         # Return empty list for consistent mock behavior
@@ -170,3 +180,11 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
     app.view_functions["daqbook_offsets.DaqbookOffsetsByTN"] = (
         mock_get_daqbook_offsets_by_tn
     )
+
+    print("Mock view bindings applied successfully!")
+    print("Updated view functions:")
+    for key in sorted(app.view_functions.keys()):
+        if any(endpoint in key for endpoint in ["whoami", "work-item", "pyro", "asset-service", "daqbook"]):
+            print(f"  {key}: {app.view_functions[key]}")
+
+    # Remove any duplicate or conflicting registration of asset-service-records.AssetServiceRecord
