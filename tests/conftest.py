@@ -1,4 +1,5 @@
 import os
+
 import pytest
 
 import utils.auth
@@ -25,11 +26,11 @@ def auth_token():
 @pytest.fixture
 def client():
     flask_app.config["TESTING"] = True
-    
+
     # Apply mock view bindings if SKIP_AUTH is true
     if os.getenv("SKIP_AUTH", "false").lower() == "true":
         # Import and apply mock bindings after app is fully initialized
         import tests.mock_view_bindings  # This will apply the mocks
-        
+
     with flask_app.test_client() as client:
         yield client
