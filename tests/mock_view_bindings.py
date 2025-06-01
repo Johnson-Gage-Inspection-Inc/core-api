@@ -142,12 +142,27 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
                     "created_date_utc": "2023-03-15T14:30:00Z",
                     "modified_date_utc": "2023-03-15T14:30:00Z",
                     "notes": "Failed calibration - requires maintenance"
-                }
-            ]
+                }        ]
         else:
             return Response("Asset service records not found", 404)
+
+    # /daqbook-offsets/ 
+    def mock_get_daqbook_offsets():
+        if resp := fake_auth_check():
+            return resp
+        # Return empty list for consistent mock behavior
+        return []
+
+    # /daqbook-offsets/<tn>
+    def mock_get_daqbook_offsets_by_tn(tn):
+        if resp := fake_auth_check():
+            return resp
+        # Return empty list for consistent mock behavior
+        return []
 
     app.view_functions["whoami.Whoami"] = fake_whoami
     app.view_functions["work-item-details.WorkItemDetails"] = fake_work_item_details
     app.view_functions["pyro-assets.PyroAssets"] = fake_pyro_assets
     app.view_functions["asset-service-records.AssetServiceRecord"] = fake_asset_service_record
+    app.view_functions["daqbook_offsets.DaqbookOffsets"] = mock_get_daqbook_offsets
+    app.view_functions["daqbook_offsets.DaqbookOffsetsByTN"] = mock_get_daqbook_offsets_by_tn

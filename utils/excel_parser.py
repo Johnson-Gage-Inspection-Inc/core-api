@@ -6,6 +6,7 @@ Handles parsing of calibration data from Excel (.xlsm) files.
 """
 
 from typing import List, Dict, Any, Optional
+import logging
 from openpyxl import load_workbook
 from pathlib import Path
 

@@ -17,10 +17,9 @@ def test_connection():
     database_url = os.getenv("DATABASE_URL")
     if not database_url or "YOUR_PASSWORD_HERE" in database_url:
         print("❌ ERROR: Please update DATABASE_URL in .env file with actual credentials")
-        return False
+        assert False, "DATABASE_URL not properly configured"
     
     print(f"🔗 Testing connection to: {database_url.split('@')[1] if '@' in database_url else 'database'}")
-    
     try:
         engine = create_engine(database_url)
         with engine.connect() as conn:
@@ -33,12 +32,14 @@ def test_connection():
             conn.execute(text("CREATE TEMP TABLE test_permissions (id int)"))
             print("✅ SUCCESS: Can create tables")
             
-            return True
+            # Use assertion instead of return for pytest
+            assert True
             
     except Exception as e:
         print(f"❌ ERROR: Connection failed")
         print(f"Details: {str(e)}")
-        return False
+        # Use assertion instead of return for pytest
+        assert False, f"Database connection failed: {str(e)}"
 
 if __name__ == "__main__":
     success = test_connection()
