@@ -30,7 +30,8 @@ def client():
     # Apply mock view bindings if SKIP_AUTH is true
     if os.getenv("SKIP_AUTH", "false").lower() == "true":
         # Import and apply mock bindings after app is fully initialized
-        import tests.mock_view_bindings  # This will apply the mocks
+        # (This will apply the mocks)
+        import tests.mock_view_bindings  # noqa: F401
 
     with flask_app.test_client() as client:
         yield client
