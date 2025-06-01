@@ -1,6 +1,8 @@
 # tests/test_work_item_details.py
 from unittest.mock import MagicMock, patch
+
 import pytest
+
 from routes.work_item_details import get_work_item_details_for_tus
 
 
