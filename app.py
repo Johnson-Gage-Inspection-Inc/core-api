@@ -1,9 +1,15 @@
 # app.py
+import logging
+from os import getenv
+
+import jwt
+import requests
 from dotenv import load_dotenv
 from flask import Flask, request
 from flask_cors import CORS
 from flask_smorest import Api
-from os import getenv
+from werkzeug.middleware.proxy_fix import ProxyFix
+
 from routes import (
     asset_service_records,
     clients,
@@ -14,10 +20,6 @@ from routes import (
     whoami,
     work_item_details,
 )
-from werkzeug.middleware.proxy_fix import ProxyFix
-import jwt
-import logging
-import requests
 
 load_dotenv()
 
@@ -37,34 +39,32 @@ app.config["API_VERSION"] = "1.0"
 app.config["OPENAPI_VERSION"] = "3.0.3"
 app.config["OPENAPI_URL_PREFIX"] = "/"
 app.config["OPENAPI_SWAGGER_UI_PATH"] = "/docs"
-app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.11.0/"
+app.config["OPENAPI_SWAGGER_UI_URL"] = (
+    "https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.11.0/"
+)
 app.config["PROPAGATE_EXCEPTIONS"] = True
 app.config["ERROR_404_HELP"] = False
 app.config["API_SPEC_OPTIONS"] = {
-  "components": {
-    "securitySchemes": {
-      "BearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
-      }
-    }
-  },
-  "security": [{"BearerAuth": []}],
-  "tags": [
-    {
-      "name": "Qualer",
-      "description": "Simple wrapper endpoints for Qualer API endpoints."
+    "components": {
+        "securitySchemes": {
+            "BearerAuth": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"}
+        }
     },
-    {
-      "name": "Pyro",
-      "description": "Data retrieval endpoints for use in the Pyro TUS workbook."
-    },
-    {
-      "name": "System",
-      "description": "Administrative and system management endpoints for operational tasks such as git operations, deployment management, and system monitoring."
-    }
-  ]
+    "security": [{"BearerAuth": []}],
+    "tags": [
+        {
+            "name": "Qualer",
+            "description": "Simple wrapper endpoints for Qualer API endpoints.",
+        },
+        {
+            "name": "Pyro",
+            "description": "Data retrieval endpoints for use in the Pyro TUS workbook.",
+        },
+        {
+            "name": "System",
+            "description": "Administrative and system management endpoints for operational tasks such as git operations, deployment management, and system monitoring.",
+        },
+    ],
 }
 
 api = Api(app)
@@ -107,6 +107,7 @@ if "issuer" not in openid_config:
 issuer = openid_config["issuer"]
 jwks = requests.get(jwks_uri).json()
 
+
 # Token validator
 def validate_token(token):
     unverified_header = jwt.get_unverified_header(token)
@@ -116,11 +117,7 @@ def validate_token(token):
     public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key)
 
     payload = jwt.decode(
-        token,
-        key=public_key,
-        algorithms=["RS256"],
-        audience=AUDIENCE,
-        issuer=issuer
+        token, key=public_key, algorithms=["RS256"], audience=AUDIENCE, issuer=issuer
     )
 
     scopes = payload.get("scp", "").split()
@@ -129,9 +126,13 @@ def validate_token(token):
 
     return payload
 
+
 @app.before_request
 def log_client_ip():
-    app.logger.debug(f"Incoming request from {request.remote_addr} → {request.method} {request.path}")
+    app.logger.debug(
+        f"Incoming request from {request.remote_addr} → {request.method} {request.path}"
+    )
+
 
 @app.route("/", methods=["GET", "OPTIONS"])
 def index():

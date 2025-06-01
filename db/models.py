@@ -1,8 +1,9 @@
 # db/models.py
-from sqlalchemy import Column, Integer, Text, Numeric, UniqueConstraint
+from sqlalchemy import Column, Integer, Numeric, Text, UniqueConstraint
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
+
 
 class DaqbookOffset(Base):
     __tablename__ = "daqbook_offsets"
@@ -14,7 +15,9 @@ class DaqbookOffset(Base):
     reading = Column(Numeric, nullable=False)
 
     __table_args__ = (
-        UniqueConstraint('tn', 'temp', 'point', name='uq_daqbook_offsets_tn_temp_point'),
+        UniqueConstraint(
+            "tn", "temp", "point", name="uq_daqbook_offsets_tn_temp_point"
+        ),
     )
 
     @property

@@ -1,7 +1,9 @@
-import os
-from flask import request, Response
-from app import app
 import logging
+import os
+
+from flask import Response, request
+
+from app import app
 
 if os.getenv("SKIP_AUTH", "false").lower() == "true":
 
@@ -20,11 +22,8 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
     def fake_whoami():
         if resp := fake_auth_check():
             return resp
-        return {
-            "user": "testuser@example.com",
-            "sub": "fake-subject"
-        }
-    
+        return {"user": "testuser@example.com", "sub": "fake-subject"}
+
     # /work-item-details
     def fake_work_item_details():
         if resp := fake_auth_check():
@@ -37,6 +36,7 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
 
         # Handle invalid workItemNumber format
         import re
+
         pattern = r"^(56561-)?\d{6}(\.\d{2})?(-\d{2})(R\d{1,2})?$"
         if not re.match(pattern, wid):
             return Response("Invalid work item number format.", 500)
@@ -74,12 +74,13 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
                 "productManufacturer": "Unidentified",
                 "productName": "Thermometers",
                 "purchaseOrderNumber": "53865",
-                "rootCategoryName": "Thermometers",                "serialNumber": "11108",
+                "rootCategoryName": "Thermometers",
+                "serialNumber": "11108",
                 "serviceOrderId": 1259027,
             }
 
         return Response("Not Found", 404)
-    
+
     # /pyro-assets
     def fake_pyro_assets():
         if resp := fake_auth_check():
@@ -90,15 +91,15 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
                 "name": "Mock Pyro Asset",
                 "serialNumber": "SN-FAKE-001",
                 "clientCompanyId": 9999,
-                "assetPoolId": 620646
+                "assetPoolId": 620646,
             }
         ]
-        
+
     # /asset-service-records/<assetId>
     def fake_asset_service_record(assetId):
         if resp := fake_auth_check():
             return resp
-        
+
         # Return different responses based on the asset ID for testing
         if assetId == "12345":
             return [
@@ -113,7 +114,7 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
                     "technician_name": "Mock Technician",
                     "created_date_utc": "2023-01-01T00:00:00Z",
                     "modified_date_utc": "2023-01-01T00:00:00Z",
-                    "notes": "Mock service record for testing purposes"
+                    "notes": "Mock service record for testing purposes",
                 },
                 {
                     "asset_service_record_id": 1002,
@@ -126,8 +127,8 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
                     "technician_name": "Mock Inspector",
                     "created_date_utc": "2023-06-15T09:30:00Z",
                     "modified_date_utc": "2023-06-15T09:30:00Z",
-                    "notes": "Annual inspection - passed"
-                }
+                    "notes": "Annual inspection - passed",
+                },
             ]
         elif assetId == "67890":
             return [
@@ -142,11 +143,12 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
                     "technician_name": "Mock Technician",
                     "created_date_utc": "2023-03-15T14:30:00Z",
                     "modified_date_utc": "2023-03-15T14:30:00Z",
-                    "notes": "Failed calibration - requires maintenance"
+                    "notes": "Failed calibration - requires maintenance",
                 }
             ]
         else:
-            return Response("Asset service records not found", 404)    # /daqbook-offsets/ 
+            return Response("Asset service records not found", 404)  # /daqbook-offsets/
+
     def mock_get_daqbook_offsets():
         # In mock mode, bypass auth for these endpoints since the tests expect it
         # Return empty list for consistent mock behavior
@@ -161,6 +163,10 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
     app.view_functions["whoami.Whoami"] = fake_whoami
     app.view_functions["work-item-details.WorkItemDetails"] = fake_work_item_details
     app.view_functions["pyro-assets.PyroAssets"] = fake_pyro_assets
-    app.view_functions["asset-service-records.AssetServiceRecord"] = fake_asset_service_record
+    app.view_functions["asset-service-records.AssetServiceRecord"] = (
+        fake_asset_service_record
+    )
     app.view_functions["daqbook_offsets.DaqbookOffsets"] = mock_get_daqbook_offsets
-    app.view_functions["daqbook_offsets.DaqbookOffsetsByTN"] = mock_get_daqbook_offsets_by_tn
+    app.view_functions["daqbook_offsets.DaqbookOffsetsByTN"] = (
+        mock_get_daqbook_offsets_by_tn
+    )

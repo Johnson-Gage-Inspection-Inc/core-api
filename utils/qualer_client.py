@@ -1,6 +1,8 @@
 # utils/qualer_client.py
 from os import getenv
-from qualer_sdk import Configuration, ApiClient
+
+from qualer_sdk import ApiClient, Configuration
+
 
 def make_qualer_client() -> ApiClient:
     config = Configuration()

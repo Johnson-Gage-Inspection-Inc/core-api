@@ -1,8 +1,8 @@
-import tests.mock_view_bindings
-from app import app as flask_app
 import pytest
-from utils.get_token import get_access_token
+
 import utils.auth
+from app import app as flask_app
+from utils.get_token import get_access_token
 
 
 @pytest.fixture(autouse=True)
