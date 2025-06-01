@@ -4,7 +4,6 @@ Test script to fetch and display WireSetCerts.xlsx content from SharePoint.
 This script demonstrates the SharePoint integration functionality with app-only auth.
 """
 
-import os
 import config  # noqa: F401  # Load environment variables from .env
 from utils.sharepoint_client import (
     get_wiresetcerts_content,

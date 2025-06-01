@@ -35,7 +35,7 @@ def test_get_pyro_standards_excel_file(filename: str):
         result = get_pyro_standards_excel_file(filename)
 
         print(f"✅ Successfully retrieved '{filename}'")
-        print(f"📊 File Info:")
+        print("📊 File Info:")
         print(f"   Name: {result['file_info']['name']}")
         print(f"   Size: {result['file_info']['size']} bytes")
         print(f"   Last Modified: {result['file_info']['last_modified']}")

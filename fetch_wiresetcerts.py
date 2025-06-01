@@ -5,8 +5,7 @@ Uses app-only authentication for headless operation.
 """
 
 import sys
-import os
-import config  # Load environment variables from .env
+import config  # noqa: F401  # Load environment variables from .env
 from utils.sharepoint_client import get_wiresetcerts_content
 
 
@@ -19,7 +18,7 @@ def main():
         # Fetch the Excel content (no token needed - will use app auth automatically)
         wiresetcerts_data = get_wiresetcerts_content()
 
-        print(f"✅ Successfully fetched WireSetCerts.xlsx")
+        print("✅ Successfully fetched WireSetCerts.xlsx")
         print(
             f"📊 File contains {wiresetcerts_data['total_sheets']} sheet(s): {', '.join(wiresetcerts_data['sheet_names'])}"
         )  # Display the content
