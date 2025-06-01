@@ -37,7 +37,7 @@ def test_connection():
         engine = create_engine(database_url)
         with engine.connect() as conn:
             result = conn.execute(text("SELECT version()"))
-            version = result.fetchone()
+            version = result.fetchone()[0]
             click.echo("✅ SUCCESS: Connected to PostgreSQL")
             click.echo(f"📊 Version: {version}")
     except Exception as e:
