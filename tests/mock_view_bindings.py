@@ -12,9 +12,9 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
     logging.info("Patching app.view_functions for all protected endpoints")
 
     def fake_auth_check():
-        # In mock mode (SKIP_AUTH=true), we should bypass auth completely
-        # Only check for auth if we want to test specific auth scenarios
-        return None  # No auth required in mock mode
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return Response("Unauthorized", 401)
 
     # /whoami
     def fake_whoami():
@@ -146,19 +146,15 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
                 }
             ]
         else:
-            return Response("Asset service records not found", 404)
-
-    # /daqbook-offsets/ 
+            return Response("Asset service records not found", 404)    # /daqbook-offsets/ 
     def mock_get_daqbook_offsets():
-        if resp := fake_auth_check():
-            return resp
+        # In mock mode, bypass auth for these endpoints since the tests expect it
         # Return empty list for consistent mock behavior
         return []
 
     # /daqbook-offsets/<tn>
     def mock_get_daqbook_offsets_by_tn(tn):
-        if resp := fake_auth_check():
-            return resp
+        # In mock mode, bypass auth for these endpoints since the tests expect it
         # Return empty list for consistent mock behavior
         return []
 

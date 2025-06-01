@@ -49,7 +49,6 @@ class TestDaqbookOffsetsAPI:
     """Test daqbook offsets API endpoints."""
 
     def test_get_all_offsets_success(self, client, auth_token):
-        """Test GET /daqbook-offsets/ returns successful response."""
         skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
         
         if not skip_auth:
