@@ -142,7 +142,8 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
                     "created_date_utc": "2023-03-15T14:30:00Z",
                     "modified_date_utc": "2023-03-15T14:30:00Z",
                     "notes": "Failed calibration - requires maintenance"
-                }        ]
+                }
+            ]
         else:
             return Response("Asset service records not found", 404)
 
