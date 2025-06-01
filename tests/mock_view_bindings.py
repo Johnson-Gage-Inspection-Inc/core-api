@@ -12,9 +12,9 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
     logging.info("Patching app.view_functions for all protected endpoints")
 
     def fake_auth_check():
-        auth_header = request.headers.get("Authorization", "")
-        if not auth_header.startswith("Bearer "):
-            return Response("Unauthorized", 401)
+        # In mock mode (SKIP_AUTH=true), we should bypass auth completely
+        # Only check for auth if we want to test specific auth scenarios
+        return None  # No auth required in mock mode
 
     # /whoami
     def fake_whoami():
@@ -74,12 +74,13 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
                 "productManufacturer": "Unidentified",
                 "productName": "Thermometers",
                 "purchaseOrderNumber": "53865",
-                "rootCategoryName": "Thermometers",
-                "serialNumber": "11108",
+                "rootCategoryName": "Thermometers",                "serialNumber": "11108",
                 "serviceOrderId": 1259027,
             }
 
-        return Response("Not Found", 404)    # /pyro-assets
+        return Response("Not Found", 404)
+    
+    # /pyro-assets
     def fake_pyro_assets():
         if resp := fake_auth_check():
             return resp
