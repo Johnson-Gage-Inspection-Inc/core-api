@@ -1,15 +1,19 @@
 alembic
+black
 click
 cryptography
 deepdiff
+flake8
 flask
 flask-cors
 flask-smorest
 git+https://github.com/Johnson-Gage-Inspection-Inc/qualer-sdk-python.git@f50f852c5af20f4cc46a6dcf8c0ab459060e7504#egg=qualer_sdk
+isort
 marshmallow
 msal
 openpyxl
 pandas
+pre-commit
 psycopg2-binary
 pyjwt
 pytest
@@ -17,8 +21,3 @@ pytest-cov
 python-dotenv
 requests
 sqlalchemy
-
-# Development/Linting tools
-flake8
-black
-isort
