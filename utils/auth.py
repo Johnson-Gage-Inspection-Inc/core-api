@@ -1,10 +1,11 @@
-from flask import request, jsonify, g, Response
+import logging
 from functools import wraps
-from jwt.algorithms import RSAAlgorithm
 from os import getenv
+
 import jwt
 import requests
-import logging
+from flask import Response, g, jsonify, request
+from jwt.algorithms import RSAAlgorithm
 
 TENANT_ID = getenv("AZURE_TENANT_ID")
 AUDIENCE = getenv("AZURE_CLIENT_ID")  # Use client ID as audience for Azure AD tokens
@@ -16,6 +17,7 @@ _jwks = None
 
 def require_auth(f):
     """Decorator to require authentication for a route."""
+
     @wraps(f)
     def wrapper(*args, **kwargs):
         # Skip authentication if SKIP_AUTH is true
@@ -23,10 +25,10 @@ def require_auth(f):
             # Set fake claims for consistency with authenticated flow
             g.claims = {
                 "preferred_username": "testuser@example.com",
-                "sub": "fake-subject"
+                "sub": "fake-subject",
             }
             return f(*args, **kwargs)
-        
+
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
             return Response(
@@ -36,11 +38,11 @@ def require_auth(f):
                     "WWW-Authenticate": (
                         f'Bearer authorization_uri="https://login.microsoftonline.com/{TENANT_ID}"'
                     )
-                }
+                },
             )
-        
-        token = auth_header[len("Bearer "):]
-        
+
+        token = auth_header[len("Bearer ") :]
+
         try:
             g.claims = validate_token(token)
         except Exception as e:
@@ -51,6 +53,7 @@ def require_auth(f):
             return jsonify({"error": str(e)}), 401
 
         return f(*args, **kwargs)
+
     return wrapper
 
 
@@ -74,10 +77,12 @@ def validate_token(token):
     config, jwks = load_openid_config()
     unverified_header = jwt.get_unverified_header(token)
     key = next((k for k in jwks["keys"] if k["kid"] == unverified_header["kid"]), None)
-    
+
     if key is None:
-        raise jwt.InvalidTokenError(f"Key ID {unverified_header['kid']} not found in JWKS")
-    
+        raise jwt.InvalidTokenError(
+            f"Key ID {unverified_header['kid']} not found in JWKS"
+        )
+
     public_key = RSAAlgorithm.from_jwk(key)
 
     payload = jwt.decode(
@@ -85,7 +90,7 @@ def validate_token(token):
         public_key,
         algorithms=["RS256"],
         audience=AUDIENCE,
-        issuer=config["issuer"]
+        issuer=config["issuer"],
     )
 
     scopes = payload.get("scp", "").split()

@@ -3,11 +3,13 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 from qualer_sdk import EmployeesApi
 from qualer_sdk.models import QualerApiModelsClientsToEmployeeResponseModel
-from utils.schemas import EmployeeResponseSchema
+
 from utils.auth import require_auth
 from utils.qualer_client import make_qualer_client
+from utils.schemas import EmployeeResponseSchema
 
 blp = Blueprint("employees", __name__, url_prefix="/")
+
 
 @blp.route("/employees")
 class Employees(MethodView):
@@ -17,7 +19,7 @@ class Employees(MethodView):
     def get(self):
         """
         Retrieve all active employees from Qualer.
-        
+
         This endpoint fetches all employees from the Qualer system and filters out
         any employees that are marked as deleted. The response includes employee
         details such as ID, name, and other relevant information.
@@ -42,14 +44,14 @@ class Employees(MethodView):
           - last_seen_date_utc: Last seen date in ISO format
           - culture_name: Culture name
           - culture_ui_name: UI culture name
-        
+
         **Raises**:
           - **401**: If authentication token is invalid or missing
           - **500**: If there's an error communicating with the Qualer API        **Example**: GET /employees with Authorization: Bearer <token>
 
         **Response**:
           - Array of employee objects with comprehensive employee information including id, name, contact details, and department assignments
-        """        
+        """
         client = make_qualer_client()
 
         employees_api = EmployeesApi(client)
@@ -57,6 +59,6 @@ class Employees(MethodView):
         assert isinstance(employees, list), "Expected a list of employees"
         Employee = QualerApiModelsClientsToEmployeeResponseModel
         assert all(isinstance(e, Employee) for e in employees)
-        
+
         # Return active employees (raw SDK objects)
         return [e for e in employees if not e.is_deleted]

@@ -1,9 +1,11 @@
-import os
-from flask import request, Response
-from app import app
 import logging
+import os
+
+from flask import Response, jsonify, request
+from flask_smorest import abort
 
 if os.getenv("SKIP_AUTH", "false").lower() == "true":
+    from app import app
 
     logging.info("Registered view function keys:")
     for k in sorted(app.view_functions):
@@ -20,11 +22,8 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
     def fake_whoami():
         if resp := fake_auth_check():
             return resp
-        return {
-            "user": "testuser@example.com",
-            "sub": "fake-subject"
-        }
-    
+        return {"user": "testuser@example.com", "sub": "fake-subject"}
+
     # /work-item-details
     def fake_work_item_details():
         if resp := fake_auth_check():
@@ -37,6 +36,7 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
 
         # Handle invalid workItemNumber format
         import re
+
         pattern = r"^(56561-)?\d{6}(\.\d{2})?(-\d{2})(R\d{1,2})?$"
         if not re.match(pattern, wid):
             return Response("Invalid work item number format.", 500)
@@ -74,12 +74,13 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
                 "productManufacturer": "Unidentified",
                 "productName": "Thermometers",
                 "purchaseOrderNumber": "53865",
-                "rootCategoryName": "Thermometers",                "serialNumber": "11108",
+                "rootCategoryName": "Thermometers",
+                "serialNumber": "11108",
                 "serviceOrderId": 1259027,
             }
 
         return Response("Not Found", 404)
-    
+
     # /pyro-assets
     def fake_pyro_assets():
         if resp := fake_auth_check():
@@ -90,69 +91,82 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
                 "name": "Mock Pyro Asset",
                 "serialNumber": "SN-FAKE-001",
                 "clientCompanyId": 9999,
-                "assetPoolId": 620646
+                "assetPoolId": 620646,
             }
-        ]
-        
-    # /asset-service-records/<assetId>
-    def fake_asset_service_record(assetId):
-        if resp := fake_auth_check():
-            return resp
-        
-        # Return different responses based on the asset ID for testing
+        ]  # /asset-service-records/<assetId>
+
+    def fake_asset_service_record(assetId=None):
+        from flask import request
+
+        # For Flask-Smorest MethodView, the URL parameter is passed as a named argument
+        # If not found in kwargs, try to get from request view_args
+        if assetId is None:
+            assetId = request.view_args.get("assetId") if request.view_args else None
+
+        # Enforce 401 for missing/invalid Authorization
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            abort(401, message="Unauthorized")
+
+        # Return two mock records for assetId '12345' to match test expectations
         if assetId == "12345":
-            return [
-                {
-                    "asset_service_record_id": 1001,
-                    "asset_id": 12345,
-                    "service_date": "2023-01-01T00:00:00Z",
-                    "result_status": "Pass",
-                    "serial_number": "SN123456",
-                    "asset_name": "Mock Test Asset",
-                    "service_type": "Calibration",
-                    "technician_name": "Mock Technician",
-                    "created_date_utc": "2023-01-01T00:00:00Z",
-                    "modified_date_utc": "2023-01-01T00:00:00Z",
-                    "notes": "Mock service record for testing purposes"
-                },
-                {
-                    "asset_service_record_id": 1002,
-                    "asset_id": 12345,
-                    "service_date": "2023-06-15T09:30:00Z",
-                    "result_status": "Pass",
-                    "serial_number": "SN123456",
-                    "asset_name": "Mock Test Asset",
-                    "service_type": "Inspection",
-                    "technician_name": "Mock Inspector",
-                    "created_date_utc": "2023-06-15T09:30:00Z",
-                    "modified_date_utc": "2023-06-15T09:30:00Z",
-                    "notes": "Annual inspection - passed"
-                }
-            ]
+            return jsonify(
+                [
+                    {
+                        "asset_service_record_id": 1001,
+                        "asset_id": 12345,
+                        "service_date": "2023-01-01T00:00:00Z",
+                        "result_status": "Pass",
+                        "serial_number": "SN123456",
+                        "asset_name": "Mock Test Asset",
+                        "service_type": "Calibration",
+                        "technician_name": "Mock Technician",
+                        "created_date_utc": "2023-01-01T00:00:00Z",
+                        "modified_date_utc": "2023-01-01T00:00:00Z",
+                        "notes": "Mock service record for testing purposes",
+                    },
+                    {
+                        "asset_service_record_id": 1002,
+                        "asset_id": 12345,
+                        "service_date": "2023-06-15T09:30:00Z",
+                        "result_status": "Pass",
+                        "serial_number": "SN123456",
+                        "asset_name": "Mock Test Asset",
+                        "service_type": "Inspection",
+                        "technician_name": "Mock Inspector",
+                        "created_date_utc": "2023-06-15T09:30:00Z",
+                        "modified_date_utc": "2023-06-15T09:30:00Z",
+                        "notes": "Annual inspection - passed",
+                    },
+                ]
+            )
         elif assetId == "67890":
-            return [
-                {
-                    "asset_service_record_id": 2001,
-                    "asset_id": 67890,
-                    "service_date": "2023-03-15T14:30:00Z",
-                    "result_status": "Fail",
-                    "serial_number": "SN789012",
-                    "asset_name": "Another Mock Asset",
-                    "service_type": "Calibration",
-                    "technician_name": "Mock Technician",
-                    "created_date_utc": "2023-03-15T14:30:00Z",
-                    "modified_date_utc": "2023-03-15T14:30:00Z",
-                    "notes": "Failed calibration - requires maintenance"
-                }
-            ]
+            return jsonify(
+                [
+                    {
+                        "asset_service_record_id": 2001,
+                        "asset_id": 67890,
+                        "service_date": "2023-03-15T14:30:00Z",
+                        "result_status": "Fail",
+                        "serial_number": "SN789012",
+                        "asset_name": "Another Mock Asset",
+                        "service_type": "Calibration",
+                        "technician_name": "Mock Technician",
+                        "created_date_utc": "2023-03-15T14:30:00Z",
+                        "modified_date_utc": "2023-03-15T14:30:00Z",
+                        "notes": "Failed calibration - requires maintenance",
+                    }
+                ]
+            )
         else:
-            return Response("Asset service records not found", 404)    # /daqbook-offsets/ 
+            abort(404, message="Asset service records not found")
+
+    # /daqbook-offsets
     def mock_get_daqbook_offsets():
         # In mock mode, bypass auth for these endpoints since the tests expect it
         # Return empty list for consistent mock behavior
-        return []
+        return []  # /daqbook-offsets/<tn>
 
-    # /daqbook-offsets/<tn>
     def mock_get_daqbook_offsets_by_tn(tn):
         # In mock mode, bypass auth for these endpoints since the tests expect it
         # Return empty list for consistent mock behavior
@@ -161,6 +175,21 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
     app.view_functions["whoami.Whoami"] = fake_whoami
     app.view_functions["work-item-details.WorkItemDetails"] = fake_work_item_details
     app.view_functions["pyro-assets.PyroAssets"] = fake_pyro_assets
-    app.view_functions["asset-service-records.AssetServiceRecord"] = fake_asset_service_record
+    app.view_functions["asset-service-records.AssetServiceRecord"] = (
+        fake_asset_service_record
+    )
     app.view_functions["daqbook_offsets.DaqbookOffsets"] = mock_get_daqbook_offsets
-    app.view_functions["daqbook_offsets.DaqbookOffsetsByTN"] = mock_get_daqbook_offsets_by_tn
+    app.view_functions["daqbook_offsets.DaqbookOffsetsByTN"] = (
+        mock_get_daqbook_offsets_by_tn
+    )
+
+    print("Mock view bindings applied successfully!")
+    print("Updated view functions:")
+    for key in sorted(app.view_functions.keys()):
+        if any(
+            endpoint in key
+            for endpoint in ["whoami", "work-item", "pyro", "asset-service", "daqbook"]
+        ):
+            print(f"  {key}: {app.view_functions[key]}")
+
+    # Remove any duplicate or conflicting registration of asset-service-records.AssetServiceRecord

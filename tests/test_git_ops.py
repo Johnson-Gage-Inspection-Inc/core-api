@@ -1,14 +1,18 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 from flask import Flask
 from flask_smorest import Api
+
 from routes.git_ops import blp
 
 # Import the Blueprint from the code to test
 
+
 @pytest.fixture(autouse=True)
 def set_deploy_token(monkeypatch):
     monkeypatch.setenv("DEPLOY_TOKEN", "testtoken")
+
 
 @pytest.fixture
 def app():
@@ -23,14 +27,17 @@ def app():
     api.register_blueprint(blp)
     return app
 
+
 @pytest.fixture
 def client(app):
     return app.test_client()
+
 
 def test_git_pull_unauthorized(client):
     response = client.post("/git-pull")
     assert response.status_code == 401
     assert b"Unauthorized" in response.data
+
 
 @patch("routes.git_ops.subprocess.run")
 def test_git_pull_success(mock_run, client):
@@ -45,6 +52,7 @@ def test_git_pull_success(mock_run, client):
     data = response.get_json()
     assert data["status"] == "success"
     assert "Already up to date." in data["output"]
+
 
 @patch("routes.git_ops.subprocess.run")
 def test_git_pull_git_error(mock_run, client):

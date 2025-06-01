@@ -1,16 +1,19 @@
 # routes/work_item_details.py
+import re
 from concurrent.futures import ThreadPoolExecutor
+
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from utils.schemas import WorkItemDetailsSchema, WorkItemDetailsQuerySchema
-from utils.auth import require_auth
-import re
-from utils.qualer_client import make_qualer_client
 from qualer_sdk import (
-    ServiceOrdersApi,
-    ServiceOrderItemsApi,
+    ClientAssetAttributesApi,
     ClientAssetsApi,
-    ClientAssetAttributesApi)
+    ServiceOrderItemsApi,
+    ServiceOrdersApi,
+)
+
+from utils.auth import require_auth
+from utils.qualer_client import make_qualer_client
+from utils.schemas import WorkItemDetailsQuerySchema, WorkItemDetailsSchema
 
 blp = Blueprint("work-item-details", __name__, url_prefix="/")
 
@@ -29,13 +32,9 @@ def get_work_item_details_for_tus(item_no):
     work_items = soi_api.get_work_items_0(work_item_number=item_no)
 
     if len(work_items) == 0:
-        raise ValueError(
-            "No work items found for the given work item number."
-            )
+        raise ValueError("No work items found for the given work item number.")
     if len(work_items) > 1:
-        raise ValueError(
-            "Multiple work items found for the given work item number."
-            )
+        raise ValueError("Multiple work items found for the given work item number.")
 
     item = work_items[0]
     service_order_id = item.service_order_id
@@ -48,17 +47,14 @@ def get_work_item_details_for_tus(item_no):
 
     with ThreadPoolExecutor() as executor:
         future_client_asset = executor.submit(
-            ClientAssetsApi(client).get_asset,
-            asset_id=asset_id
-            )
+            ClientAssetsApi(client).get_asset, asset_id=asset_id
+        )
         future_attributes = executor.submit(
-            ClientAssetAttributesApi(client).get_asset_attributes,
-            asset_id=asset_id
-            )
+            ClientAssetAttributesApi(client).get_asset_attributes, asset_id=asset_id
+        )
         future_service_order = executor.submit(
-            ServiceOrdersApi(client).get_work_order,
-            service_order_id=service_order_id
-            )
+            ServiceOrdersApi(client).get_work_order, service_order_id=service_order_id
+        )
 
         client_asset = future_client_asset.result()
         client_asset_attributes = future_attributes.result()
@@ -79,8 +75,9 @@ def get_work_item_details_for_tus(item_no):
         "productManufacturer": client_asset.product_manufacturer,
         "productName": client_asset.product_name,
         "purchaseOrderNumber": service_order.po_number,
-        "assetAttributes": client_asset_attributes
+        "assetAttributes": client_asset_attributes,
     }
+
 
 @blp.route("/work-item-details")
 class WorkItemDetails(MethodView):
@@ -91,7 +88,7 @@ class WorkItemDetails(MethodView):
     def get(self, workItemNumber):
         """
         Get detailed TUS (Testing, Upgrading, Servicing) information for a work item.
-        
+
         This endpoint retrieves comprehensive details about a work item by its number,
         including asset information, service order details, and attributes. The work
         item number must follow a specific format pattern for validation.
@@ -100,7 +97,7 @@ class WorkItemDetails(MethodView):
         - workItemNumber (str): The work item number to look up. Must match pattern:
                 r"^(56561-)?\\d{6}(\\.\\d{2})?(-\\d{2})(R\\d{1,2})?$"
                 Examples: "123456-01", "56561-123456.01-02", "123456.01-02R1"
-        
+
         **Returns**:
         - **dict**: Comprehensive work item details containing:
           - clientCompanyId: ID of the client company
@@ -118,15 +115,15 @@ class WorkItemDetails(MethodView):
           - productName: Product name
           - purchaseOrderNumber: Associated purchase order number
           - assetAttributes: List of asset attributes and their values
-        
+
         **Raises**:
         - **400**: If workItemNumber parameter is missing
         - **401**: If authentication token is invalid or missing
         - **422**: If workItemNumber format is invalid
         - **500**: If work item not found, multiple work items found, missing required fields, or API communication error
-        
+
         **Example**: GET /work-item-details?workItemNumber=123456-01 with Authorization: Bearer <token>
-        
+
         **Response**: Object with clientCompanyId, serviceOrderId, assetId, certificateNumber, assetName, assetMaker, assetTag, serialNumber, manufacturerPartNumber, categoryName, rootCategoryName, productManufacturer, productName, purchaseOrderNumber, and assetAttributes
         """
         if not workItemNumber:

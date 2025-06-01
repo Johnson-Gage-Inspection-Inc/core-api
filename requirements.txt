@@ -17,3 +17,8 @@ pytest-cov
 python-dotenv
 requests
 sqlalchemy
+
+# Development/Linting tools
+flake8
+black
+isort

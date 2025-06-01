@@ -1,10 +1,12 @@
-import pytest
-from unittest.mock import patch, MagicMock
-from flask import Flask, g, jsonify
 from os import getenv
+from unittest.mock import MagicMock, patch
+
 import jwt
+import pytest
+from flask import Flask, g, jsonify
 
 import utils.auth as auth
+
 
 @pytest.fixture
 def app():
@@ -17,9 +19,11 @@ def app():
 
     return app
 
+
 @pytest.fixture
 def client(app):
     return app.test_client()
+
 
 def test_require_auth_no_auth_header(client):
     resp = client.get("/protected")
@@ -31,6 +35,7 @@ def test_require_auth_no_auth_header(client):
         assert resp.status_code == 401
         assert "WWW-Authenticate" in resp.headers
 
+
 def test_require_auth_invalid_auth_header(client):
     resp = client.get("/protected", headers={"Authorization": "InvalidToken"})
     if getenv("SKIP_AUTH", "false").lower() == "true":
@@ -40,6 +45,7 @@ def test_require_auth_invalid_auth_header(client):
     else:
         assert resp.status_code == 401
         assert "WWW-Authenticate" in resp.headers
+
 
 @patch("utils.auth.validate_token")
 def test_require_auth_valid_token(mock_validate_token, client):
@@ -53,6 +59,7 @@ def test_require_auth_valid_token(mock_validate_token, client):
         # When auth is enabled, mocked validate_token should be called
         assert resp.json["claims"]["sub"] == "user1"
 
+
 @patch("utils.auth.validate_token")
 def test_require_auth_invalid_token(mock_validate_token, client):
     mock_validate_token.side_effect = Exception("Invalid token")
@@ -65,7 +72,11 @@ def test_require_auth_invalid_token(mock_validate_token, client):
         assert resp.status_code == 401
         assert resp.json["error"] == "Invalid token"
 
-@pytest.mark.skipif(getenv("SKIP_AUTH", "false").lower() == "true", reason="OpenID config not used when SKIP_AUTH=true")
+
+@pytest.mark.skipif(
+    getenv("SKIP_AUTH", "false").lower() == "true",
+    reason="OpenID config not used when SKIP_AUTH=true",
+)
 @patch("utils.auth.requests.get")
 def test_load_openid_config_caches(mock_get, monkeypatch):
     # Reset cache
@@ -76,7 +87,7 @@ def test_load_openid_config_caches(mock_get, monkeypatch):
     mock_jwks = {"keys": [{"kid": "abc"}]}
     mock_get.side_effect = [
         MagicMock(json=lambda: mock_openid),
-        MagicMock(json=lambda: mock_jwks)
+        MagicMock(json=lambda: mock_jwks),
     ]
     config, jwks = auth.load_openid_config()
     assert config == mock_openid
@@ -89,16 +100,19 @@ def test_load_openid_config_caches(mock_get, monkeypatch):
     assert jwks2 == mock_jwks
     mock_get.assert_not_called()
 
-@pytest.mark.skipif(getenv("SKIP_AUTH", "false").lower() == "true", reason="Token validation not used when SKIP_AUTH=true")
+
+@pytest.mark.skipif(
+    getenv("SKIP_AUTH", "false").lower() == "true",
+    reason="Token validation not used when SKIP_AUTH=true",
+)
 @patch("utils.auth.jwt.get_unverified_header")
 @patch("utils.auth.RSAAlgorithm.from_jwk")
 @patch("utils.auth.jwt.decode")
 @patch("utils.auth.load_openid_config")
-def test_validate_token_success(mock_load_config, mock_decode, mock_from_jwk, mock_get_header):
-    mock_load_config.return_value = (
-        {"issuer": "issuer"},
-        {"keys": [{"kid": "abc"}]}
-    )
+def test_validate_token_success(
+    mock_load_config, mock_decode, mock_from_jwk, mock_get_header
+):
+    mock_load_config.return_value = ({"issuer": "issuer"}, {"keys": [{"kid": "abc"}]})
     mock_get_header.return_value = {"kid": "abc"}
     mock_from_jwk.return_value = "publickey"
     mock_decode.return_value = {"scp": "access_as_user", "sub": "user1"}
@@ -108,28 +122,32 @@ def test_validate_token_success(mock_load_config, mock_decode, mock_from_jwk, mo
     assert result["sub"] == "user1"
     mock_decode.assert_called_once()
 
-@pytest.mark.skipif(getenv("SKIP_AUTH", "false").lower() == "true", reason="Token validation not used when SKIP_AUTH=true")
+
+@pytest.mark.skipif(
+    getenv("SKIP_AUTH", "false").lower() == "true",
+    reason="Token validation not used when SKIP_AUTH=true",
+)
 @patch("utils.auth.jwt.get_unverified_header")
 @patch("utils.auth.load_openid_config")
 def test_validate_token_missing_kid(mock_load_config, mock_get_header):
-    mock_load_config.return_value = (
-        {"issuer": "issuer"},
-        {"keys": [{"kid": "other"}]}
-    )
+    mock_load_config.return_value = ({"issuer": "issuer"}, {"keys": [{"kid": "other"}]})
     mock_get_header.return_value = {"kid": "abc"}
     with pytest.raises(jwt.InvalidTokenError):
         auth.validate_token("token")
 
-@pytest.mark.skipif(getenv("SKIP_AUTH", "false").lower() == "true", reason="Token validation not used when SKIP_AUTH=true")
+
+@pytest.mark.skipif(
+    getenv("SKIP_AUTH", "false").lower() == "true",
+    reason="Token validation not used when SKIP_AUTH=true",
+)
 @patch("utils.auth.jwt.get_unverified_header")
 @patch("utils.auth.RSAAlgorithm.from_jwk")
 @patch("utils.auth.jwt.decode")
 @patch("utils.auth.load_openid_config")
-def test_validate_token_missing_scope(mock_load_config, mock_decode, mock_from_jwk, mock_get_header):
-    mock_load_config.return_value = (
-        {"issuer": "issuer"},
-        {"keys": [{"kid": "abc"}]}
-    )
+def test_validate_token_missing_scope(
+    mock_load_config, mock_decode, mock_from_jwk, mock_get_header
+):
+    mock_load_config.return_value = ({"issuer": "issuer"}, {"keys": [{"kid": "abc"}]})
     mock_get_header.return_value = {"kid": "abc"}
     mock_from_jwk.return_value = "publickey"
     mock_decode.return_value = {"scp": "other_scope"}
@@ -137,28 +155,35 @@ def test_validate_token_missing_scope(mock_load_config, mock_decode, mock_from_j
     with pytest.raises(jwt.InvalidTokenError):
         auth.validate_token("token")
 
-@pytest.mark.skipif(getenv("SKIP_AUTH", "false").lower() == "true", reason="Auth error handling not tested when SKIP_AUTH=true")
+
+@pytest.mark.skipif(
+    getenv("SKIP_AUTH", "false").lower() == "true",
+    reason="Auth error handling not tested when SKIP_AUTH=true",
+)
 def test_load_openid_config_request_error(monkeypatch):
     """Test error handling when requests fail in load_openid_config"""
     # Reset cache
     auth._openid_config = None
     auth._jwks = None
-    
+
     def mock_requests_get_error(url):
         raise Exception("Network error")
-    
+
     monkeypatch.setattr("utils.auth.requests.get", mock_requests_get_error)
-    
+
     with pytest.raises(Exception, match="Network error"):
         auth.load_openid_config()
 
 
-@pytest.mark.skipif(getenv("SKIP_AUTH", "false").lower() == "true", reason="Auth error handling not tested when SKIP_AUTH=true")  
+@pytest.mark.skipif(
+    getenv("SKIP_AUTH", "false").lower() == "true",
+    reason="Auth error handling not tested when SKIP_AUTH=true",
+)
 @patch("utils.auth.validate_token")
 def test_require_auth_exception_handling(mock_validate_token, client):
     """Test that exceptions in validate_token are properly handled"""
     mock_validate_token.side_effect = jwt.DecodeError("Token decode failed")
-    
+
     resp = client.get("/protected", headers={"Authorization": "Bearer invalidtoken"})
     assert resp.status_code == 401
     assert "Token decode failed" in resp.get_data(as_text=True)

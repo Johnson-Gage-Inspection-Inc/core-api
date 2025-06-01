@@ -1,12 +1,13 @@
 import sys
 import types
 
+
 def test_load_dotenv_called(monkeypatch):
     # Create a mock for load_dotenv
     called = {}
 
     def mock_load_dotenv():
-        called['was_called'] = True
+        called["was_called"] = True
 
     # Patch sys.modules to inject the mock before import
     mock_dotenv = types.ModuleType("dotenv")
@@ -18,4 +19,4 @@ def test_load_dotenv_called(monkeypatch):
 
     import config  # noqa: F401
 
-    assert called.get('was_called') is True
+    assert called.get("was_called") is True

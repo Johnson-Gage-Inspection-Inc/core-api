@@ -4,5 +4,10 @@
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
-    "python.defaultInterpreterPath": "venv/Scripts/python.exe"
+    "python.defaultInterpreterPath": "venv/Scripts/python.exe",
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportOptionalSubscript": "warning",
+        "reportAttributeAccessIssue": "warning",
+        "reportPossiblyUnboundVariable": "warning"
+    }
 }
