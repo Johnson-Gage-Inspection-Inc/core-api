@@ -307,7 +307,7 @@ class TestExcelParser:
     def test_delta_calculation_accuracy(self):
         """Test that delta calculations are accurate."""
         base_path = Path(__file__).parent / "data"
-        excel_path = base_path / "J1_0325.xlsm"
+        excel_path = base_path / "K6_0824.xlsm"
 
         result = parse_daqbook_offsets_from_excel(str(excel_path), "TEST")
 
@@ -319,7 +319,7 @@ class TestExcelParser:
     def test_point_numbering_logic(self):
         """Test that point numbering follows (block * 6) + channel + 1 logic."""
         base_path = Path(__file__).parent / "data"
-        excel_path = base_path / "J1_0325.xlsm"
+        excel_path = base_path / "K6_0824.xlsm"
 
         result = parse_daqbook_offsets_from_excel(str(excel_path), "TEST")
 
@@ -354,7 +354,7 @@ class TestExcelParserEdgeCases:
         """Test that TN extraction from filename works correctly."""
         # Test various filename patterns
         test_cases = [
-            ("J1_0325.xlsm", "J10325"),
+            ("K6_0824.xlsm", "K60824"),
             ("J2-0456.xlsx", "J20456"),
             ("TEST_FILE.xlsm", "TESTFILE"),
         ]

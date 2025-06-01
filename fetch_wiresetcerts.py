@@ -22,7 +22,7 @@ def main():
         print(f"✅ Successfully fetched WireSetCerts.xlsx")
         print(
             f"📊 File contains {wiresetcerts_data['total_sheets']} sheet(s): {', '.join(wiresetcerts_data['sheet_names'])}"
-        )        # Display the content
+        )  # Display the content
         if wiresetcerts_data and wiresetcerts_data.get("sheets"):
             print("\n" + "=" * 80)
             print("WIRESETCERTS.XLSX CONTENT")
@@ -35,14 +35,14 @@ def main():
                 )
 
                 # Show headers
-                headers = sheet_data.get('headers', [])
+                headers = sheet_data.get("headers", [])
                 if headers:
                     print(
                         f"   Headers: {', '.join(str(h) for h in headers[:5])}{'...' if len(headers) > 5 else ''}"
                     )
 
                 # Show sample data
-                sample_data = sheet_data.get('sample_data', [])
+                sample_data = sheet_data.get("sample_data", [])
                 if sample_data:
                     print("   Sample data:")
                     for i, row_data in enumerate(sample_data[:3], 1):
@@ -55,9 +55,7 @@ def main():
                         print(f"     Row {i+1}: {row_str}")
 
                     if len(sample_data) > 3:
-                        print(
-                            f"     ... and {len(sample_data) - 3} more sample rows"
-                        )
+                        print(f"     ... and {len(sample_data) - 3} more sample rows")
 
             print("\n" + "=" * 80)
         else:

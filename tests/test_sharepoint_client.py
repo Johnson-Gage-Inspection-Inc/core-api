@@ -29,7 +29,7 @@ class TestSharePointClient:
     def test_sharepoint_client_init_without_token_uses_app_auth(self, mock_get_token):
         """Test SharePoint client initialization without token uses app-only auth."""
         mock_get_token.return_value = "app-only-token"
-        
+
         client = SharePointClient()
         assert client.access_token == "app-only-token"
         mock_get_token.assert_called_once()
@@ -38,7 +38,7 @@ class TestSharePointClient:
     def test_sharepoint_client_init_app_auth_fails_raises_error(self, mock_get_token):
         """Test SharePoint client initialization when app auth fails."""
         mock_get_token.side_effect = ValueError("Token acquisition failed")
-        
+
         with pytest.raises(ValueError, match="Failed to get app token"):
             SharePointClient()
 
