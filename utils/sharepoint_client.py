@@ -4,6 +4,7 @@
 import os
 import requests
 from typing import Optional, Dict, List, Any
+import io
 
 # For testing purposes, allow mocking of request extraction
 try:
@@ -14,6 +15,9 @@ except ImportError:
     request = None
     has_request_context = None
 
+# Import our graph auth utility
+from .graph_auth import get_app_only_token
+
 
 class SharePointClient:
     """Client for accessing SharePoint files via Microsoft Graph API."""
@@ -23,36 +27,47 @@ class SharePointClient:
 
         Args:
             access_token: Bearer token for Microsoft Graph API authentication.
-                         If not provided, will attempt to extract from Flask request.
+                         If not provided, will automatically get app-only token.
+                         Falls back to Flask request token as last resort.
 
         Raises:
-            ValueError: If no access token provided and none found in request.
+            ValueError: If no access token provided and none can be obtained.
+            RuntimeError: If app-only token acquisition fails.
         """
         if access_token:
             self.access_token = access_token
         else:
-            # Try to extract from Flask request context if available
-            if _flask_available and has_request_context and has_request_context() and request:
-                auth_header = request.headers.get("Authorization", "")
-                if auth_header.startswith("Bearer "):
-                    self.access_token = auth_header.replace("Bearer ", "")
+            # Try to get app-only token first (preferred for headless operation)
+            try:
+                self.access_token = get_app_only_token()
+            except (ValueError, RuntimeError) as e:
+                # Fall back to Flask request token if app token fails
+                if (
+                    _flask_available
+                    and has_request_context
+                    and has_request_context()
+                    and request
+                ):
+                    auth_header = request.headers.get("Authorization", "")
+                    if auth_header.startswith("Bearer "):
+                        self.access_token = auth_header.replace("Bearer ", "")
+                    else:
+                        raise ValueError(f"Failed to get app token ({e}) and no valid request token found")
                 else:
-                    raise ValueError("Access token is required for SharePoint client")
-            else:
-                raise ValueError("Access token is required for SharePoint client")
+                    raise ValueError(f"Failed to get app token ({e}) and no Flask request context available")
 
         self.base_url = "https://graph.microsoft.com/v1.0"
 
         # Load SharePoint configuration from environment
-        self.site_id = os.getenv(
-            "SHAREPOINT_SITE_ID",
-            "jgiquality.sharepoint.com,b8d7ad55-622f-41e1-9140-35b87b4616f9,160cda33-41a0-4b31-8ebf-11196986b3e3",
+        self.site_id = os.environ.get(
+            "SHAREPOINT_SITE_ID", 
+            "jgiquality.sharepoint.com,b8d7ad55-622f-41e1-9140-35b87b4616f9,160cda33-41a0-4b31-8ebf-11196986b3e3"
         )
-        self.pyro_drive_id = os.getenv(
-            "SHAREPOINT_PYRO_DRIVE_ID",
-            "b!34PQK-JF0EmH57ieExSqveCp2B5j30NMsNTGcMEXae_5x8SnfJhdR6JqUh5dD03F",
+        self.drive_id = os.environ.get(
+            "SHAREPOINT_DRIVE_ID", 
+            "b!34PQK-JF0EmH57ieExSqveCp2B5j30NMsNTGcMEXae_5x8SnfJhdR6JqUh5dD03F"
         )
-        self.pyro_standards_drive_id = os.getenv("SHAREPOINT_PYRO_STANDARDS_DRIVE_ID")
+        self.pyro_standards_drive_id = os.environ.get("SHAREPOINT_PYRO_STANDARDS_DRIVE_ID")
 
     def _make_request(self, method: str, endpoint: str, **kwargs) -> requests.Response:
         """Make authenticated request to Microsoft Graph API.
@@ -77,15 +92,11 @@ class SharePointClient:
         Returns:
             Dictionary containing site metadata
         """
-        if not self.site_id:
-            raise ValueError("SHAREPOINT_SITE_ID not configured")
-
         response = self._make_request("GET", f"sites/{self.site_id}")
+        response.raise_for_status()
         return response.json()
 
-    def get_drive_items(
-        self, drive_id: str, folder_path: str = ""
-    ) -> List[Dict[str, Any]]:
+    def get_drive_items(self, drive_id: str, folder_path: str = "") -> List[Dict[str, Any]]:
         """Get items in a SharePoint drive folder.
 
         Args:
@@ -101,14 +112,15 @@ class SharePointClient:
             endpoint = f"drives/{drive_id}/root/children"
 
         response = self._make_request("GET", endpoint)
+        response.raise_for_status()
         data = response.json()
         return data.get("value", [])
 
     def get_file_by_path(self, file_path: str, drive_id: str) -> Dict[str, Any]:
-        """Get file metadata by path within a drive.
+        """Get file metadata by path.
 
         Args:
-            file_path: Path to file within the drive
+            file_path: Path to file within drive
             drive_id: SharePoint drive identifier
 
         Returns:
@@ -116,10 +128,13 @@ class SharePointClient:
         """
         endpoint = f"drives/{drive_id}/root:/{file_path}"
         response = self._make_request("GET", endpoint)
+        if response.status_code == 404:
+            return {}
+        response.raise_for_status()
         return response.json()
 
     def get_file_by_id(self, file_id: str, drive_id: str) -> Dict[str, Any]:
-        """Get file metadata by file ID.
+        """Get file metadata by ID.
 
         Args:
             file_id: SharePoint file identifier
@@ -130,6 +145,7 @@ class SharePointClient:
         """
         endpoint = f"drives/{drive_id}/items/{file_id}"
         response = self._make_request("GET", endpoint)
+        response.raise_for_status()
         return response.json()
 
     def search_files(self, query: str, drive_id: str) -> List[Dict[str, Any]]:
@@ -144,6 +160,7 @@ class SharePointClient:
         """
         endpoint = f"drives/{drive_id}/root/search(q='{query}')"
         response = self._make_request("GET", endpoint)
+        response.raise_for_status()
         data = response.json()
         return data.get("value", [])
 
@@ -161,9 +178,7 @@ class SharePointClient:
         response = self._make_request("GET", endpoint, allow_redirects=False)
         return response.headers.get("Location", "")
 
-    def get_file_reference(
-        self, file_identifier: str, drive_id: str, by_path: bool = True
-    ) -> Dict[str, Any]:
+    def get_file_reference(self, file_identifier: str, drive_id: str, by_path: bool = True) -> Dict[str, Any]:
         """Get comprehensive file reference with metadata and download URL.
 
         Args:
@@ -182,53 +197,83 @@ class SharePointClient:
 
         # Get download URL
         file_id = file_info.get("id")
-        download_url = (
-            self.get_file_download_url(file_id, drive_id) if file_id else None
-        )
-
-        # Build comprehensive reference
+        download_url = self.get_file_download_url(file_id, drive_id) if file_id else None        # Build comprehensive reference
         return {
             "id": file_info.get("id"),
             "name": file_info.get("name"),
             "webUrl": file_info.get("webUrl"),
             "downloadUrl": download_url,
             "size": file_info.get("size"),
-            "lastModified": file_info.get("lastModifiedDateTime"),
+            "lastModifiedDateTime": file_info.get("lastModifiedDateTime"),
+            "createdDateTime": file_info.get("createdDateTime"),
             "mimeType": file_info.get("file", {}).get("mimeType"),
             "driveId": drive_id,
-            "path": (
-                file_identifier
-                if by_path
-                else file_info.get("parentReference", {}).get("path", "")
-            ),
+            "path": file_identifier if by_path else None,
         }
 
-    def get_wiresetcerts_file(self) -> Dict[str, Any]:
-        """Get WireSetCerts.xlsx file reference from Pyro Drive.
+    def download_file_content(self, file_id: str, drive_id: str) -> bytes:
+        """Download file content as bytes.
 
-        This is an internal method that uses hardcoded drive ID and file path
-        for accessing the specific WireSetCerts.xlsx file.
+        Args:
+            file_id: SharePoint file identifier
+            drive_id: SharePoint drive identifier
 
         Returns:
-            Dictionary with WireSetCerts.xlsx file metadata and download URL
+            File content as bytes
+        """
+        download_url = self.get_file_download_url(file_id, drive_id)
+        if not download_url:
+            raise ValueError(f"No download URL available for file {file_id}")
+
+        response = requests.get(download_url)
+        response.raise_for_status()
+        return response.content
+
+    def get_wiresetcerts_file(self) -> Dict[str, Any]:
+        """Get WireSetCerts.xlsx file reference from Pyro drive.
+        
+        This is an internal method that uses the hardcoded drive ID.
+
+        Returns:
+            Dictionary with file metadata and download info
 
         Raises:
-            ValueError: If Pyro drive ID is not configured
+            ValueError: If file not found or drive not configured
         """
-        if not self.pyro_drive_id:
-            raise ValueError(
-                "SHAREPOINT_PYRO_DRIVE_ID not configured for WireSetCerts access"
-            )
+        if not self.drive_id:
+            raise ValueError("SHAREPOINT_DRIVE_ID not configured")        # Try to get the file by direct path in Shared Documents/Pyro folder
+        file_path = "Shared Documents/Pyro/WireSetCerts.xlsx"
+        file_ref = self.get_file_reference(file_path, self.drive_id, by_path=True)
+        
+        # If file not found by path, try searching for it
+        if not file_ref.get("id"):
+            search_results = self.search_files("WireSetCerts.xlsx", self.drive_id)
+            if search_results:
+                # Use the first matching file
+                file_info = search_results[0]
+                file_id = file_info.get("id")
+                if file_id:
+                    return self.get_file_reference(file_id, self.drive_id, by_path=False)
+            
+            # If still not found, raise error
+            raise ValueError("WireSetCerts.xlsx file not found in SharePoint")
+        
+        return file_ref
 
-        # Hardcoded path for WireSetCerts.xlsx in the Pyro drive
-        wiresetcerts_path = "WireSetCerts.xlsx"
 
-        return self.get_file_reference(
-            wiresetcerts_path, self.pyro_drive_id, by_path=True
-        )
+# Convenience functions for external use
 
+def get_wiresetcerts_file_reference(access_token: Optional[str] = None) -> Dict[str, Any]:
+    """Get WireSetCerts.xlsx file reference from SharePoint.
 
-# Helper functions for common SharePoint operations
+    Args:
+        access_token: Bearer token for authentication (optional with new auth)
+
+    Returns:
+        File reference dictionary
+    """
+    client = SharePointClient(access_token)
+    return client.get_wiresetcerts_file()
 
 
 def get_pyro_file_reference(file_path: str, access_token: str) -> Dict[str, Any]:
@@ -242,15 +287,13 @@ def get_pyro_file_reference(file_path: str, access_token: str) -> Dict[str, Any]
         File reference dictionary
     """
     client = SharePointClient(access_token)
-    if not client.pyro_drive_id:
-        raise ValueError("SHAREPOINT_PYRO_DRIVE_ID not configured")
+    if not client.drive_id:
+        raise ValueError("SHAREPOINT_DRIVE_ID not configured")
 
-    return client.get_file_reference(file_path, client.pyro_drive_id, by_path=True)
+    return client.get_file_reference(file_path, client.drive_id, by_path=True)
 
 
-def get_pyro_standards_file_reference(
-    file_path: str, access_token: str
-) -> Dict[str, Any]:
+def get_pyro_standards_file_reference(file_path: str, access_token: str) -> Dict[str, Any]:
     """Get file reference from Pyro Standards drive.
 
     Args:
@@ -280,15 +323,13 @@ def search_pyro_files(query: str, access_token: str) -> List[Dict[str, Any]]:
         List of matching files
     """
     client = SharePointClient(access_token)
-    if not client.pyro_drive_id:
-        raise ValueError("SHAREPOINT_PYRO_DRIVE_ID not configured")
+    if not client.drive_id:
+        raise ValueError("SHAREPOINT_DRIVE_ID not configured")
 
-    return client.search_files(query, client.pyro_drive_id)
+    return client.search_files(query, client.drive_id)
 
 
-def list_pyro_folder_contents(
-    folder_path: str, access_token: str
-) -> List[Dict[str, Any]]:
+def list_pyro_folder_contents(folder_path: str, access_token: str) -> List[Dict[str, Any]]:
     """List contents of a folder in Pyro drive.
 
     Args:
@@ -299,35 +340,79 @@ def list_pyro_folder_contents(
         List of folder contents
     """
     client = SharePointClient(access_token)
-    if not client.pyro_drive_id:
-        raise ValueError("SHAREPOINT_PYRO_DRIVE_ID not configured")
+    if not client.drive_id:
+        raise ValueError("SHAREPOINT_DRIVE_ID not configured")
 
-    return client.get_drive_items(client.pyro_drive_id, folder_path)
+    return client.get_drive_items(client.drive_id, folder_path)
 
 
-def get_wiresetcerts_file_reference(access_token: str) -> Dict[str, Any]:
-    """Get WireSetCerts.xlsx file reference from Pyro Drive.
 
-    This is a convenience function that uses the hardcoded internal method
-    to fetch the specific WireSetCerts.xlsx file.
+def get_wiresetcerts_content(access_token: Optional[str] = None) -> Dict[str, Any]:
+    """Get WireSetCerts.xlsx content parsed as Excel data.
 
     Args:
-        access_token: Bearer token for authentication
+        access_token: Bearer token for authentication (optional with new auth)
 
     Returns:
-        Dictionary with WireSetCerts.xlsx file metadata and download URL
+        Dictionary containing Excel file data:
+        - sheet_names: List of sheet names
+        - total_sheets: Number of sheets
+        - sheets: Dict mapping sheet names to their data
+        - file_info: File metadata
+
+    Raises:
+        ValueError: If file not found or cannot be accessed
     """
+    try:
+        from openpyxl import load_workbook
+    except ImportError:
+        raise ImportError("openpyxl is required for Excel file parsing")
+
+    # Get file reference
     client = SharePointClient(access_token)
-    return client.get_wiresetcerts_file()
+    file_ref = client.get_wiresetcerts_file()
 
+    if not file_ref.get("id"):
+        raise ValueError("WireSetCerts.xlsx file not found in SharePoint")
 
-def make_sharepoint_client(access_token: str) -> SharePointClient:
-    """Factory function to create SharePoint client.
+    # Download file content
+    file_content = client.download_file_content(file_ref["id"], client.drive_id)
 
-    Args:
-        access_token: Bearer token for authentication
+    # Parse Excel file
+    workbook = load_workbook(io.BytesIO(file_content), read_only=True)
 
-    Returns:
-        Configured SharePointClient instance
-    """
-    return SharePointClient(access_token)
+    result = {
+        "sheet_names": workbook.sheetnames,
+        "total_sheets": len(workbook.sheetnames),
+        "sheets": {},
+        "file_info": {
+            "name": file_ref.get("name"),
+            "size": file_ref.get("size"),
+            "last_modified": file_ref.get("lastModifiedDateTime"),
+        },
+    }
+
+    # Extract data from each sheet (first few rows as sample)
+    for sheet_name in workbook.sheetnames:
+        sheet = workbook[sheet_name]
+        
+        # Get headers (first row)
+        headers = []
+        if sheet.max_row > 0:
+            headers = [cell.value for cell in sheet[1]]
+
+        # Get sample data (first 5 rows after header)
+        sample_data = []
+        for row_num in range(2, min(sheet.max_row + 1, 7)):  # Rows 2-6
+            row_data = [cell.value for cell in sheet[row_num]]
+            sample_data.append(row_data)
+
+        result["sheets"][sheet_name] = {
+            "headers": headers,
+            "sample_data": sample_data,
+            "total_rows": sheet.max_row,
+            "total_columns": sheet.max_column,
+        }
+
+    workbook.close()
+    return result

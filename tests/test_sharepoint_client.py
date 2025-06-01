@@ -10,40 +10,42 @@ from utils.sharepoint_client import (
     get_pyro_file_reference,
     get_pyro_standards_file_reference,
     search_pyro_files,
-    list_pyro_folder_contents,
     get_wiresetcerts_file_reference,
-    make_sharepoint_client,
+    get_wiresetcerts_content,
+    list_pyro_folder_contents,
 )
 
 
 class TestSharePointClient:
     """Test SharePoint client functionality."""
+
     def test_sharepoint_client_init_with_token(self):
         """Test SharePoint client initialization with access token."""
         client = SharePointClient("test-token")
         assert client.access_token == "test-token"
         assert client.base_url == "https://graph.microsoft.com/v1.0"
 
-    def test_sharepoint_client_init_without_token_raises_error(self):
-        """Test SharePoint client initialization without token raises error."""
-        with pytest.raises(ValueError, match="Access token is required"):
+    @patch("utils.sharepoint_client.get_app_only_token")
+    def test_sharepoint_client_init_without_token_uses_app_auth(self, mock_get_token):
+        """Test SharePoint client initialization without token uses app-only auth."""
+        mock_get_token.return_value = "app-only-token"
+        
+        client = SharePointClient()
+        assert client.access_token == "app-only-token"
+        mock_get_token.assert_called_once()
+
+    @patch("utils.sharepoint_client.get_app_only_token")
+    def test_sharepoint_client_init_app_auth_fails_raises_error(self, mock_get_token):
+        """Test SharePoint client initialization when app auth fails."""
+        mock_get_token.side_effect = ValueError("Token acquisition failed")
+        
+        with pytest.raises(ValueError, match="Failed to get app token"):
             SharePointClient()
-    # @patch("utils.sharepoint_client.request")
-    # @patch("utils.sharepoint_client.has_request_context")
-    # def test_extract_token_from_request(self, mock_has_context, mock_request):
-    #     """Test token extraction from Flask request when no explicit token provided."""
-    #     mock_has_context.return_value = True
-    #     mock_request.headers.get.return_value = "Bearer test-token-from-request"
 
-    #     # Test without explicit token - should extract from request
-    #     with patch("utils.sharepoint_client._flask_available", True):
-    #         client = SharePointClient()
-    #         assert client.access_token == "test-token-from-request"
-
-    def test_explicit_token_overrides_request(self):
-        """Test that explicit token takes precedence over request token."""
+    def test_explicit_token_overrides_app_auth(self):
+        """Test that explicit token takes precedence over app auth."""
         client = SharePointClient("explicit-token")
-        # Should use explicit token, not request token
+        # Should use explicit token, not app auth
         assert client.access_token == "explicit-token"
 
     @patch("utils.sharepoint_client.requests.request")
@@ -178,45 +180,58 @@ class TestSharePointClient:
             "size": 4096,
             "webUrl": "https://sharepoint.com/WireSetCerts.xlsx",
             "lastModifiedDateTime": "2025-06-01T10:00:00Z",
-            "file": {"mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
+            "file": {
+                "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            },
         }
 
         # Mock download URL response
         download_response = MagicMock()
-        download_response.headers.get.return_value = "https://download.sharepoint.com/wiresetcerts-temp"
+        download_response.headers.get.return_value = (
+            "https://download.sharepoint.com/wiresetcerts-temp"
+        )
 
         mock_request.side_effect = [file_info_response, download_response]
 
-        with patch.dict(os.environ, {"SHAREPOINT_PYRO_DRIVE_ID": "pyro-drive-123"}):
+        with patch.dict(os.environ, {"SHAREPOINT_DRIVE_ID": "pyro-drive-123"}):
             client = SharePointClient("test-token")
             result = client.get_wiresetcerts_file()
 
             assert result["id"] == "wiresetcerts-123"
             assert result["name"] == "WireSetCerts.xlsx"
-            assert result["downloadUrl"] == "https://download.sharepoint.com/wiresetcerts-temp"
-            assert result["mimeType"] == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            assert (
+                result["downloadUrl"]
+                == "https://download.sharepoint.com/wiresetcerts-temp"
+            )
+            assert (
+                result["mimeType"]
+                == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
 
     def test_get_wiresetcerts_file_missing_drive_id(self):
         """Test get_wiresetcerts_file with missing drive ID."""
-        # Set environment variable to None/empty to test the error case  
-        with patch.dict(os.environ, {"SHAREPOINT_PYRO_DRIVE_ID": ""}, clear=False):
+        # Set environment variable to None/empty to test the error case
+        with patch.dict(os.environ, {"SHAREPOINT_DRIVE_ID": ""}, clear=False):
             with patch("utils.sharepoint_client.os.getenv") as mock_getenv:
-                # Make getenv return None for the PYRO_DRIVE_ID specifically
+                # Make getenv return None for the drive_id specifically
                 def side_effect(key, default=None):
-                    if key == "SHAREPOINT_PYRO_DRIVE_ID":
+                    if key == "SHAREPOINT_DRIVE_ID":
                         return None
                     return default
+
                 mock_getenv.side_effect = side_effect
-                
+
                 client = SharePointClient("test-token")
-                with pytest.raises(ValueError, match="SHAREPOINT_PYRO_DRIVE_ID not configured"):
+                with pytest.raises(
+                    ValueError, match="SHAREPOINT_DRIVE_ID not configured"
+                ):
                     client.get_wiresetcerts_file()
 
     @patch("utils.sharepoint_client.SharePointClient")
     def test_get_pyro_file_reference(self, mock_client_class):
         """Test getting Pyro file reference."""
         mock_client = MagicMock()
-        mock_client.pyro_drive_id = "pyro-drive-123"
+        mock_client.drive_id = "pyro-drive-123"
         mock_client.get_file_reference.return_value = {"name": "pyro-file.xlsx"}
         mock_client_class.return_value = mock_client
 
@@ -231,10 +246,10 @@ class TestSharePointClient:
     def test_get_pyro_file_reference_missing_drive_id(self, mock_client_class):
         """Test getting Pyro file reference with missing drive ID."""
         mock_client = MagicMock()
-        mock_client.pyro_drive_id = None
+        mock_client.drive_id = None
         mock_client_class.return_value = mock_client
 
-        with pytest.raises(ValueError, match="SHAREPOINT_PYRO_DRIVE_ID not configured"):
+        with pytest.raises(ValueError, match="SHAREPOINT_DRIVE_ID not configured"):
             get_pyro_file_reference("data/pyro-file.xlsx", "test-token")
 
     @patch("utils.sharepoint_client.SharePointClient")
@@ -258,7 +273,7 @@ class TestSharePointClient:
     def test_search_pyro_files(self, mock_client_class):
         """Test searching Pyro files."""
         mock_client = MagicMock()
-        mock_client.pyro_drive_id = "pyro-drive-123"
+        mock_client.drive_id = "pyro-drive-123"
         mock_client.search_files.return_value = [{"name": "found-file.xlsx"}]
         mock_client_class.return_value = mock_client
 
@@ -274,7 +289,7 @@ class TestSharePointClient:
     def test_list_pyro_folder_contents(self, mock_client_class):
         """Test listing Pyro folder contents."""
         mock_client = MagicMock()
-        mock_client.pyro_drive_id = "pyro-drive-123"
+        mock_client.drive_id = "pyro-drive-123"
         mock_client.get_drive_items.return_value = [
             {"name": "file1.xlsx", "type": "file"},
             {"name": "subfolder", "type": "folder"},
@@ -294,7 +309,7 @@ class TestSharePointClient:
         mock_client.get_wiresetcerts_file.return_value = {
             "name": "WireSetCerts.xlsx",
             "id": "wiresetcerts-file-id",
-            "downloadUrl": "https://sharepoint.com/download/wiresetcerts.xlsx"
+            "downloadUrl": "https://sharepoint.com/download/wiresetcerts.xlsx",
         }
         mock_client_class.return_value = mock_client
 
@@ -304,9 +319,9 @@ class TestSharePointClient:
         assert result["id"] == "wiresetcerts-file-id"
         mock_client.get_wiresetcerts_file.assert_called_once()
 
-    def test_make_sharepoint_client_factory(self):
+    def test_SharePointClient(self):
         """Test SharePoint client factory function."""
-        client = make_sharepoint_client("test-token")
+        client = SharePointClient("test-token")
 
         assert isinstance(client, SharePointClient)
         assert client.access_token == "test-token"
@@ -323,8 +338,5 @@ class TestSharePointClientIntegration:
         """Test SharePoint client with real configuration."""
         # This test only runs when SKIP_AUTH=false
         # and would require real SharePoint configuration
-        client = make_sharepoint_client("test-token")
-        assert (
-            client.pyro_drive_id is not None
-            or client.pyro_standards_drive_id is not None
-        )
+        client = SharePointClient("test-token")
+        assert client.drive_id is not None or client.pyro_standards_drive_id is not None
