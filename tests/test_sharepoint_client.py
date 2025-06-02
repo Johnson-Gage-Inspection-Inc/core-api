@@ -5,6 +5,7 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
+import requests
 
 from utils.sharepoint_client import (
     SharePointClient,
@@ -66,6 +67,19 @@ class TestSharePointClient:
         assert kwargs["headers"]["Authorization"] == "Bearer test-token"
 
     @patch("utils.sharepoint_client.requests.request")
+    def test_make_request_error_handling(self, mock_request):
+        """Test API request error handling."""
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        mock_response.raise_for_status.side_effect = requests.HTTPError("Not found")
+        mock_request.return_value = mock_response
+
+        client = SharePointClient("test-token")
+
+        with pytest.raises(requests.HTTPError):
+            client.get_site_info()
+
+    @patch("utils.sharepoint_client.requests.request")
     def test_get_site_info_with_site_id(self, mock_request):
         """Test getting site info using site ID."""
         mock_response = MagicMock()
@@ -117,57 +131,182 @@ class TestSharePointClient:
         mock_request.assert_called_once()
 
     @patch("utils.sharepoint_client.requests.request")
-    def test_search_files(self, mock_request):
-        """Test searching files."""
+    def test_get_file_by_path_not_found(self, mock_request):
+        """Test getting file by path when file doesn't exist."""
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        mock_request.return_value = mock_response
+
+        client = SharePointClient("test-token")
+        result = client.get_file_by_path("nonexistent/file.txt", "test-drive-id")
+
+        assert result == {}
+
+    @patch("utils.sharepoint_client.requests.request")
+    def test_get_file_by_id(self, mock_request):
+        """Test getting file by ID."""
         mock_response = MagicMock()
         mock_response.json.return_value = {
-            "value": [
-                {"name": "document1.pdf", "id": "doc1-id"},
-                {"name": "document2.pdf", "id": "doc2-id"},
-            ]
+            "id": "file-id-123",
+            "name": "test.xlsx",
+            "size": 2048,
         }
         mock_request.return_value = mock_response
 
         client = SharePointClient("test-token")
-        result = client.search_files("document", "test-drive-id")
+        result = client.get_file_by_id("file-id-123", "test-drive-id")
 
-        assert len(result) == 2
-        assert result[0]["name"] == "document1.pdf"
+        assert result["id"] == "file-id-123"
+        assert result["name"] == "test.xlsx"
         mock_request.assert_called_once()
 
     @patch("utils.sharepoint_client.requests.request")
-    def test_get_file_reference(self, mock_request):
-        """Test getting comprehensive file reference."""
-        # Mock the file info request
-        file_info_response = MagicMock()
-        file_info_response.json.return_value = {
+    def test_get_file_download_url(self, mock_request):
+        """Test getting file download URL."""
+        mock_response = MagicMock()
+        mock_response.headers = {"Location": "https://download.url/file.xlsx"}
+        mock_request.return_value = mock_response
+
+        client = SharePointClient("test-token")
+        url = client.get_file_download_url("file-id", "test-drive-id")
+
+        assert url == "https://download.url/file.xlsx"
+        mock_request.assert_called_once()
+        args, kwargs = mock_request.call_args
+        assert kwargs["allow_redirects"] is False
+
+    @patch("utils.sharepoint_client.requests.request")
+    def test_get_file_download_url_no_location(self, mock_request):
+        """Test getting file download URL when Location header is missing."""
+        mock_response = MagicMock()
+        mock_response.headers = {}
+        mock_request.return_value = mock_response
+
+        client = SharePointClient("test-token")
+        url = client.get_file_download_url("file-id", "test-drive-id")
+
+        assert url == ""
+
+    @patch("utils.sharepoint_client.requests.request")
+    def test_get_file_reference_by_path(self, mock_request):
+        """Test getting file reference by path."""
+        # Mock the file metadata response
+        mock_file_response = MagicMock()
+        mock_file_response.json.return_value = {
             "id": "file-123",
-            "name": "test-document.pdf",
-            "size": 2048,
-            "webUrl": "https://sharepoint.com/test-document.pdf",
-            "lastModifiedDateTime": "2025-06-01T10:00:00Z",
-            "file": {"mimeType": "application/pdf"},
+            "name": "test.xlsx",
+            "size": 1024,
+            "webUrl": "https://sharepoint.com/test.xlsx",
         }
+        mock_file_response.status_code = 200
 
-        # Mock the download URL request
-        download_response = MagicMock()
-        download_response.headers.get.return_value = (
-            "https://download.sharepoint.com/temp-url"
-        )
+        # Mock the download URL response
+        mock_download_response = MagicMock()
+        mock_download_response.headers = {"Location": "https://download.url/test.xlsx"}
 
-        mock_request.side_effect = [file_info_response, download_response]
+        mock_request.side_effect = [mock_file_response, mock_download_response]
 
         client = SharePointClient("test-token")
         result = client.get_file_reference(
-            "documents/test-document.pdf", "test-drive-id", by_path=True
+            "documents/test.xlsx", "test-drive-id", by_path=True
         )
-
         assert result["id"] == "file-123"
-        assert result["name"] == "test-document.pdf"
-        assert result["downloadUrl"] == "https://download.sharepoint.com/temp-url"
-        assert result["mimeType"] == "application/pdf"
-        assert result["driveId"] == "test-drive-id"
-        assert result["path"] == "documents/test-document.pdf"
+        assert result["name"] == "test.xlsx"
+        assert result["downloadUrl"] == "https://download.url/test.xlsx"
+        assert mock_request.call_count == 2
+
+    @patch("utils.sharepoint_client.requests.request")
+    def test_get_file_reference_by_id(self, mock_request):
+        """Test getting file reference by ID."""
+        # Mock the file metadata response
+        mock_file_response = MagicMock()
+        mock_file_response.json.return_value = {
+            "id": "file-123",
+            "name": "test.xlsx",
+            "size": 1024,
+        }
+
+        # Mock the download URL response
+        mock_download_response = MagicMock()
+        mock_download_response.headers = {"Location": "https://download.url/test.xlsx"}
+
+        mock_request.side_effect = [mock_file_response, mock_download_response]
+
+        client = SharePointClient("test-token")
+        result = client.get_file_reference("file-123", "test-drive-id", by_path=False)
+        assert result["id"] == "file-123"
+        assert result["downloadUrl"] == "https://download.url/test.xlsx"
+        assert mock_request.call_count == 2
+
+    @patch("utils.sharepoint_client.requests.request")
+    def test_get_file_reference_file_not_found(self, mock_request):
+        """Test getting file reference when file doesn't exist."""
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        mock_request.return_value = mock_response
+
+        client = SharePointClient("test-token")
+        result = client.get_file_reference("nonexistent.xlsx", "test-drive-id")
+
+        # Should return dict with None values when file not found
+        expected_result = {
+            "id": None,
+            "name": None,
+            "webUrl": None,
+            "downloadUrl": None,
+            "size": None,
+            "lastModifiedDateTime": None,
+            "createdDateTime": None,
+            "mimeType": None,
+            "driveId": "test-drive-id",
+            "path": "nonexistent.xlsx",
+        }
+        assert result == expected_result
+
+    @patch("utils.sharepoint_client.get_app_only_token")
+    def test_init_fallback_to_flask_token(self, mock_get_token):
+        """Test fallback to Flask request token when app auth fails."""
+
+        from flask import Flask
+
+        # Mock app token failure
+        mock_get_token.side_effect = ValueError("App token failed")
+
+        # Create Flask app and context for testing
+        app = Flask(__name__)
+        with app.test_request_context(headers={"Authorization": "Bearer flask-token"}):
+            client = SharePointClient()
+            assert client.access_token == "flask-token"
+
+    @patch("utils.sharepoint_client.get_app_only_token")
+    @patch("utils.sharepoint_client.has_request_context")
+    def test_init_no_token_no_context_raises_error(
+        self, mock_has_context, mock_get_token
+    ):
+        """Test error when no token available and no Flask context."""
+        mock_get_token.side_effect = ValueError("App token failed")
+        mock_has_context.return_value = False
+        with pytest.raises(
+            ValueError,
+            match="Failed to get app token.*and no Flask request context available",
+        ):
+            SharePointClient()
+
+    @patch("utils.sharepoint_client.get_app_only_token")
+    def test_init_invalid_flask_token_raises_error(self, mock_get_token):
+        """Test error when Flask token is invalid format."""
+        from flask import Flask
+
+        mock_get_token.side_effect = ValueError("App token failed")
+
+        # Create Flask app and context with invalid token
+        app = Flask(__name__)
+        with app.test_request_context(headers={"Authorization": "InvalidToken"}):
+            with pytest.raises(
+                ValueError,
+                match="Failed to get app token.*and no valid request token found",
+            ):
+                SharePointClient()
 
     @patch("utils.sharepoint_client.requests.request")
     def test_get_wiresetcerts_file_internal_method(self, mock_request):
@@ -314,17 +453,170 @@ class TestSharePointClient:
         mock_client_class.return_value = mock_client
 
         result = get_wiresetcerts_file_reference("test-token")
-
         assert result["name"] == "WireSetCerts.xlsx"
         assert result["id"] == "wiresetcerts-file-id"
         mock_client.get_wiresetcerts_file.assert_called_once()
 
-    def test_SharePointClient(self):
-        """Test SharePoint client factory function."""
-        client = SharePointClient("test-token")
+    @patch("utils.sharepoint_client.requests.get")
+    @patch("utils.sharepoint_client.requests.request")
+    def test_get_pyro_standards_excel_file_content_parsing(
+        self, mock_request, mock_get
+    ):
+        """Test Excel content parsing in get_pyro_standards_excel_file."""
+        # Mock Excel file content
+        from unittest.mock import MagicMock
 
-        assert isinstance(client, SharePointClient)
-        assert client.access_token == "test-token"
+        # Create a mock Excel file in memory
+        excel_content = b"mock excel content"
+
+        # Mock file reference response
+        mock_file_response = MagicMock()
+        mock_file_response.json.return_value = {
+            "id": "excel-file-id",
+            "name": "test.xlsm",
+            "size": 1024,
+        }
+        mock_file_response.status_code = 200
+
+        # Mock download URL response
+        mock_download_response = MagicMock()
+        mock_download_response.headers = {"Location": "https://download.url/test.xlsm"}
+        # Mock actual file download
+        mock_content_response = MagicMock()
+        mock_content_response.content = excel_content
+        mock_content_response.raise_for_status = MagicMock()
+        mock_request.side_effect = [
+            mock_file_response,  # get_file_by_path call in get_file_reference
+            mock_download_response,  # get_file_download_url call in get_file_reference
+            mock_download_response,  # Second get_file_download_url call in download_file_content
+        ]
+
+        # Mock the requests.get call for file download
+        mock_get.return_value = mock_content_response
+
+        with patch("openpyxl.load_workbook") as mock_load_wb:
+            # Mock openpyxl workbook
+            mock_sheet = MagicMock()
+            mock_sheet.title = "Sheet1"
+            mock_sheet.max_row = 10
+            mock_sheet.max_column = 5
+            mock_sheet.iter_rows.return_value = [
+                (MagicMock(value="Header1"), MagicMock(value="Header2")),
+                (MagicMock(value="Data1"), MagicMock(value="Data2")),
+            ]
+
+            mock_workbook = MagicMock()
+            mock_workbook.sheetnames = ["Sheet1"]
+            mock_workbook.__getitem__.return_value = mock_sheet
+            mock_workbook.__iter__.return_value = iter([mock_sheet])
+            mock_load_wb.return_value = mock_workbook
+
+            from utils.sharepoint_client import get_pyro_standards_excel_file
+
+            result = get_pyro_standards_excel_file("test.xlsm", "test-token")
+
+            assert "file_info" in result
+            assert "sheets" in result
+            assert "Sheet1" in result["sheets"]
+            assert result["sheet_names"] == ["Sheet1"]
+            assert result["total_sheets"] == 1
+
+    def test_get_pyro_standards_excel_file_no_openpyxl(self):
+        """Test error when openpyxl is not available."""
+        with patch.dict("sys.modules", {"openpyxl": None}):
+            from utils.sharepoint_client import get_pyro_standards_excel_file
+
+            with pytest.raises(ImportError, match="openpyxl is required"):
+                get_pyro_standards_excel_file("test.xlsm", "test-token")
+
+    @patch("utils.sharepoint_client.requests.get")
+    @patch("utils.sharepoint_client.requests.request")
+    def test_get_wiresetcerts_content_parsing(self, mock_request, mock_get):
+        """Test wiresetcerts content parsing."""
+        # Mock Excel file content
+        excel_content = b"mock excel content"
+
+        # Mock file reference response
+        mock_file_response = MagicMock()
+        mock_file_response.json.return_value = {
+            "id": "wiresetcerts-id",
+            "name": "wiresetcerts.xlsx",
+            "size": 2048,
+        }
+        mock_file_response.status_code = 200
+        # Mock download and content responses
+        mock_download_response = MagicMock()
+        mock_download_response.headers = {
+            "Location": "https://download.url/wiresetcerts.xlsx"
+        }
+
+        mock_content_response = MagicMock()
+        mock_content_response.content = excel_content
+        mock_content_response.raise_for_status = MagicMock()
+        mock_request.side_effect = [
+            mock_file_response,  # get_file_by_path call in get_wiresetcerts_file -> get_file_reference
+            mock_download_response,  # get_file_download_url call in get_file_reference
+            mock_download_response,  # Second get_file_download_url call in download_file_content
+        ]
+
+        # Mock the requests.get call for file download
+        mock_get.return_value = mock_content_response
+
+        with patch("openpyxl.load_workbook") as mock_load_wb:
+            # Mock workbook with wiresetcerts data
+            mock_sheet = MagicMock()
+            mock_sheet.title = "WireSetCerts"
+            mock_sheet.max_row = 100
+            mock_sheet.max_column = 10
+            mock_sheet.iter_rows.return_value = [
+                # Header row
+                (MagicMock(value="Wire Lot"), MagicMock(value="Certificate")),
+                # Data rows
+                (MagicMock(value="W12345"), MagicMock(value="Cert123")),
+                (MagicMock(value="W67890"), MagicMock(value="Cert456")),
+            ]
+            mock_workbook = MagicMock()
+            mock_workbook.sheetnames = ["WireSetCerts"]
+            mock_workbook.__getitem__.return_value = mock_sheet
+            mock_load_wb.return_value = mock_workbook
+
+            from utils.sharepoint_client import get_wiresetcerts_content
+
+            result = get_wiresetcerts_content("test-token")
+
+            assert "file_info" in result
+            assert "sheets" in result
+            assert "WireSetCerts" in result["sheets"]
+            assert "sample_data" in result["sheets"]["WireSetCerts"]
+            # The implementation tries to get up to 5 rows of data (rows 2-6)
+            # Our mock data is repeated for each row, so we'll have 5 identical rows
+            assert len(result["sheets"]["WireSetCerts"]["sample_data"]) == 5
+
+    @patch("utils.sharepoint_client.SharePointClient")
+    def test_search_pyro_files_error_handling(self, mock_client_class):
+        """Test error handling in search_pyro_files."""
+        mock_client = MagicMock()
+        mock_client.search_files.side_effect = Exception("Search failed")
+        mock_client_class.return_value = mock_client
+
+        from utils.sharepoint_client import search_pyro_files
+
+        with pytest.raises(Exception, match="Search failed"):
+            search_pyro_files("test query", "test-token")
+
+    @patch("utils.sharepoint_client.SharePointClient")
+    def test_list_pyro_folder_contents_error_handling(self, mock_client_class):
+        """Test error handling in list_pyro_folder_contents."""
+        mock_client = MagicMock()
+        mock_client.get_drive_items.side_effect = Exception("Folder access failed")
+        mock_client_class.return_value = mock_client
+
+        from utils.sharepoint_client import list_pyro_folder_contents
+
+        with pytest.raises(Exception, match="Folder access failed"):
+            list_pyro_folder_contents("test-folder", "test-token")
+
+    # ...existing tests...
 
 
 @pytest.mark.skipif(
