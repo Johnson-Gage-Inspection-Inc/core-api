@@ -6,6 +6,8 @@ def test_load_dotenv_called(monkeypatch):
     # Create a mock for load_dotenv
     called = {}
 
+    # Mock function for load_dotenv. Captures *args and **kwargs to verify
+    # the function's call signature during testing.
     def mock_load_dotenv(*args, **kwargs):
         called["was_called"] = True
         called["args"] = args
