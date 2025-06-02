@@ -28,10 +28,18 @@ type_mapping = {
 }
 
 
-def generate_schema_from_swagger(model_cls: type) -> Schema:
+def generate_schema_from_swagger(model_cls: type) -> type[Schema]:
     """
-    Generate Marshmallow schemas from Qualer SDK model classes.
-    Creates schemas that can serialize SDK objects directly using their to_dict() method.
+    Generate a Marshmallow schema class from a Qualer SDK model class.
+    This function creates a schema class dynamically based on the model's
+    swagger_types mapping, allowing it to handle both single objects and lists
+    of objects.
+
+    Args:
+        model_cls (type): The Qualer SDK model class to generate the schema from.
+    Returns:
+        type[Schema]: A Marshmallow schema class that can serialize/deserialize
+                      instances of the given model class.
     """
     model_name = model_cls.__name__
 
@@ -139,4 +147,52 @@ class DaqbookOffsetSchema(Schema):
     )
     reading = fields.Float(
         required=True, metadata={"description": "Offset reading value"}
+    )
+
+
+# SharePoint Integration Schemas
+class SharePointFileReferenceSchema(Schema):
+    """Schema for SharePoint file reference responses."""
+
+    id = fields.String(allow_none=True, metadata={"description": "SharePoint file ID"})
+    name = fields.String(allow_none=True, metadata={"description": "File name"})
+    webUrl = fields.String(
+        allow_none=True, metadata={"description": "SharePoint web URL for the file"}
+    )
+    downloadUrl = fields.String(
+        allow_none=True, metadata={"description": "Temporary download URL"}
+    )
+    size = fields.Integer(
+        allow_none=True, metadata={"description": "File size in bytes"}
+    )
+    lastModified = fields.String(
+        allow_none=True, metadata={"description": "Last modified timestamp"}
+    )
+    mimeType = fields.String(
+        allow_none=True, metadata={"description": "MIME type of the file"}
+    )
+    driveId = fields.String(
+        allow_none=True, metadata={"description": "SharePoint drive ID"}
+    )
+    path = fields.String(
+        allow_none=True, metadata={"description": "File path within the drive"}
+    )
+
+
+class SharePointFileSearchQuerySchema(Schema):
+    """Schema for SharePoint file search requests."""
+
+    query = fields.String(
+        required=True,
+        metadata={"description": "Search query for finding files in SharePoint"},
+    )
+
+
+class SharePointFolderContentsQuerySchema(Schema):
+    """Schema for SharePoint folder listing requests."""
+
+    folderPath = fields.String(
+        required=False,
+        load_default="",
+        metadata={"description": "Path to folder within the drive (empty for root)"},
     )

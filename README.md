@@ -66,25 +66,34 @@ Authorization: Bearer <access_token>
    pip install -r requirements.txt
    ```
 
-3. **Create environment file**
-   
-   Copy `.env.example` to `.env` and configure:
+3. **🔐 Environment Configuration**
+
+   This project uses a **two-tier environment setup** for security:
+
+   - **`config/settings.env`**: Safe defaults (checked into Git)
+   - **`.env`**: Secrets (DO NOT COMMIT)
+
+   **Create your `.env` file** with secrets:
    ```env
-   # Azure AD Configuration
-   AZURE_TENANT_ID=9def3ae4-854a-4465-952c-5693835965d9
-   AZURE_CLIENT_ID=43a01068-983b-41b9-bb61-7ed191bd0e29
-   AZURE_API_AUDIENCE=https://api.jgiquality.com
-   AZURE_REQUIRED_SCOPE=access_as_user
+   # .env (secrets only - DO NOT COMMIT)
    
    # Qualer API Integration
    QUALER_API_KEY=your-qualer-api-key
    
-   # Development Settings
-   SKIP_AUTH=false  # Set to 'true' for testing without Azure AD
+   # Azure Authentication
+   AZURE_CLIENT_SECRET=your-azure-client-secret
    
-   # Production Only
-   DEPLOY_TOKEN=your-deploy-token  # For git-pull endpoint
+   # Database Connection
+   DATABASE_URL=postgresql+psycopg2://user:pass@host:5432/dbname
+   
+   # Development Settings (optional)
+   SKIP_AUTH=false  # Set to 'true' for testing without Azure AD
    ```
+
+   **Safe configuration** is already in `config/settings.env`:
+   - Azure client ID, tenant ID, API audience
+   - SharePoint site and drive IDs
+   - Other non-sensitive defaults
 
 4. **Run the application**
    ```powershell

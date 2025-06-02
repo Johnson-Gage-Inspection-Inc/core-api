@@ -9,8 +9,6 @@ import msal
 class TokenAcquisitionError(Exception):
     """Exception raised when token acquisition fails."""
 
-    pass
-
 
 def get_access_token():
     from dotenv import load_dotenv

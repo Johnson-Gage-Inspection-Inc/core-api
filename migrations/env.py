@@ -1,16 +1,15 @@
-from logging.config import fileConfig
 import os
-
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from logging.config import fileConfig
 
 from alembic import context
+
+# Load environment variables
+from dotenv import load_dotenv
+from sqlalchemy import engine_from_config, pool
 
 # Import your models
 from db.models import Base
 
-# Load environment variables
-from dotenv import load_dotenv
 load_dotenv()
 
 # this is the Alembic Config object, which provides
@@ -20,7 +19,10 @@ config = context.config
 # Set the database URL from environment variable
 config.set_main_option(
     "sqlalchemy.url",
-    os.getenv("DATABASE_URL", "postgresql+psycopg2://jhall:password@pyro.postgres.database.azure.com:5432/pyro")
+    os.getenv(
+        "DATABASE_URL",
+        "postgresql+psycopg2://jhall:password@pyro.postgres.database.azure.com:5432/pyro",
+    ),
 )
 
 # Interpret the config file for Python logging.
@@ -77,7 +79,7 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, 
+            connection=connection,
             target_metadata=target_metadata,
             compare_type=True,  # detect column type changes
         )

@@ -5,14 +5,20 @@ from os import getenv
 import jwt
 import requests
 from flask import Response, g, jsonify, request
-from jwt.algorithms import RSAAlgorithm
-
-TENANT_ID = getenv("AZURE_TENANT_ID")
-AUDIENCE = getenv("AZURE_CLIENT_ID")  # Use client ID as audience for Azure AD tokens
-REQUIRED_SCOPE = getenv("AZURE_REQUIRED_SCOPE", "access_as_user")
 
 _openid_config = None
 _jwks = None
+
+
+def get_azure_config():
+    """Get Azure configuration from environment variables."""
+    return {
+        "tenant_id": getenv("AZURE_TENANT_ID"),
+        "audience": getenv(
+            "AZURE_CLIENT_ID"
+        ),  # Use client ID as audience for Azure AD tokens
+        "required_scope": getenv("AZURE_REQUIRED_SCOPE", "access_as_user"),
+    }
 
 
 def require_auth(f):
@@ -29,6 +35,7 @@ def require_auth(f):
             }
             return f(*args, **kwargs)
 
+        config = get_azure_config()
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
             return Response(
@@ -36,7 +43,7 @@ def require_auth(f):
                 401,
                 {
                     "WWW-Authenticate": (
-                        f'Bearer authorization_uri="https://login.microsoftonline.com/{TENANT_ID}"'
+                        f'Bearer authorization_uri="https://login.microsoftonline.com/{config["tenant_id"]}"'
                     )
                 },
             )
@@ -60,9 +67,10 @@ def require_auth(f):
 def load_openid_config():
     global _openid_config, _jwks
     if _openid_config is None:
+        config = get_azure_config()
         url = (
             f"https://login.microsoftonline.com/"
-            f"{TENANT_ID}/v2.0/.well-known/openid-configuration"
+            f"{config['tenant_id']}/v2.0/.well-known/openid-configuration"
         )
         try:
             _openid_config = requests.get(url).json()
@@ -75,6 +83,7 @@ def load_openid_config():
 
 def validate_token(token):
     config, jwks = load_openid_config()
+    azure_config = get_azure_config()
     unverified_header = jwt.get_unverified_header(token)
     key = next((k for k in jwks["keys"] if k["kid"] == unverified_header["kid"]), None)
 
@@ -83,17 +92,18 @@ def validate_token(token):
             f"Key ID {unverified_header['kid']} not found in JWKS"
         )
 
-    public_key = RSAAlgorithm.from_jwk(key)
+    # Use PyJWT's built-in JWK handling
+    public_key = jwt.PyJWK(key).key
 
     payload = jwt.decode(
         token,
         public_key,
         algorithms=["RS256"],
-        audience=AUDIENCE,
+        audience=azure_config["audience"],
         issuer=config["issuer"],
     )
 
     scopes = payload.get("scp", "").split()
-    if REQUIRED_SCOPE not in scopes:
+    if azure_config["required_scope"] not in scopes:
         raise jwt.InvalidTokenError("Missing required scope")
     return payload
