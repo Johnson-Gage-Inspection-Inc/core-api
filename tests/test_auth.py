@@ -369,7 +369,7 @@ def test_require_auth_skip_auth_true():
 
 def test_require_auth_bearer_token_extraction():
     """Test various bearer token formats"""
-    with patch.dict("os.environ", {"SKIP_AUTH": "false"}):
+    with patch.dict(os.environ, {"SKIP_AUTH": "false"}):
         app = Flask(__name__)
 
         @app.route("/test")
