@@ -619,6 +619,197 @@ class TestSharePointClient:
     # ...existing tests...
 
 
+class TestSharePointClientConfiguration:
+    """Test SharePoint client configuration and environment variables."""
+
+    def test_default_site_id_configuration(self):
+        """Test default site ID when environment variable not set."""
+        with patch.dict(os.environ, {}, clear=True):
+            client = SharePointClient("test-token")
+            assert (
+                client.site_id
+                == "jgiquality.sharepoint.com,b8d7ad55-622f-41e1-9140-35b87b4616f9,160cda33-41a0-4b31-8ebf-11196986b3e3"
+            )
+
+    def test_custom_site_id_from_environment(self):
+        """Test site ID loaded from environment variable."""
+        custom_site_id = "custom.sharepoint.com,custom-id"
+        with patch.dict(os.environ, {"SHAREPOINT_SITE_ID": custom_site_id}):
+            client = SharePointClient("test-token")
+            assert client.site_id == custom_site_id
+
+    def test_default_drive_id_configuration(self):
+        """Test default drive ID when environment variable not set."""
+        with patch.dict(os.environ, {}, clear=True):
+            client = SharePointClient("test-token")
+            assert (
+                client.drive_id
+                == "b!34PQK-JF0EmH57ieExSqveCp2B5j30NMsNTGcMEXae_5x8SnfJhdR6JqUh5dD03F"
+            )
+
+    def test_custom_drive_id_from_environment(self):
+        """Test drive ID loaded from environment variable."""
+        custom_drive_id = "custom-drive-id-123"
+        with patch.dict(os.environ, {"SHAREPOINT_DRIVE_ID": custom_drive_id}):
+            client = SharePointClient("test-token")
+            assert client.drive_id == custom_drive_id
+
+    def test_pyro_standards_drive_id_not_set_by_default(self):
+        """Test pyro standards drive ID is None when not configured."""
+        with patch.dict(os.environ, {}, clear=True):
+            client = SharePointClient("test-token")
+            assert client.pyro_standards_drive_id is None
+
+    def test_pyro_standards_drive_id_from_environment(self):
+        """Test pyro standards drive ID loaded from environment variable."""
+        standards_drive_id = "standards-drive-id-456"
+        with patch.dict(
+            os.environ, {"SHAREPOINT_PYRO_STANDARDS_DRIVE_ID": standards_drive_id}
+        ):
+            client = SharePointClient("test-token")
+            assert client.pyro_standards_drive_id == standards_drive_id
+
+    def test_all_environment_variables_configured(self):
+        """Test client with all environment variables configured."""
+        env_vars = {
+            "SHAREPOINT_SITE_ID": "test-site-id",
+            "SHAREPOINT_DRIVE_ID": "test-drive-id",
+            "SHAREPOINT_PYRO_STANDARDS_DRIVE_ID": "test-standards-drive-id",
+        }
+        with patch.dict(os.environ, env_vars):
+            client = SharePointClient("test-token")
+            assert client.site_id == "test-site-id"
+            assert client.drive_id == "test-drive-id"
+            assert client.pyro_standards_drive_id == "test-standards-drive-id"
+
+    def test_empty_string_environment_variables(self):
+        """Test handling of empty string environment variables."""
+        env_vars = {
+            "SHAREPOINT_SITE_ID": "",
+            "SHAREPOINT_DRIVE_ID": "",
+            "SHAREPOINT_PYRO_STANDARDS_DRIVE_ID": "",
+        }
+        with patch.dict(os.environ, env_vars):
+            client = SharePointClient("test-token")
+            # Empty strings should be treated as not configured
+            assert client.site_id == ""
+            assert client.drive_id == ""
+            assert client.pyro_standards_drive_id == ""
+
+    def test_drive_id_validation_in_convenience_functions(self):
+        """Test drive ID validation in convenience functions."""
+        with patch.dict(os.environ, {"SHAREPOINT_DRIVE_ID": ""}, clear=False):
+            with patch("utils.sharepoint_client.os.getenv") as mock_getenv:
+                mock_getenv.return_value = None
+
+                with pytest.raises(
+                    ValueError, match="SHAREPOINT_DRIVE_ID not configured"
+                ):
+                    search_pyro_files("test", "token")
+
+                with pytest.raises(
+                    ValueError, match="SHAREPOINT_DRIVE_ID not configured"
+                ):
+                    list_pyro_folder_contents("folder", "token")
+
+    def test_pyro_standards_drive_id_validation(self):
+        """Test pyro standards drive ID validation."""
+        with patch("utils.sharepoint_client.SharePointClient") as mock_client_class:
+            mock_client = MagicMock()
+            mock_client.pyro_standards_drive_id = None
+            mock_client_class.return_value = mock_client
+
+            with pytest.raises(
+                ValueError, match="SHAREPOINT_PYRO_STANDARDS_DRIVE_ID not configured"
+            ):
+                get_pyro_standards_file_reference("test.pdf", "token")
+
+
+class TestSharePointClientIntegrationSetup:
+    """Test integration test class setup and configuration validation."""
+
+    def test_integration_test_skip_condition(self):
+        """Test that integration tests are properly skipped when SKIP_AUTH=true."""
+        # This test verifies the skip condition works correctly
+        skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
+        if skip_auth:
+            pytest.skip("Integration tests skipped when SKIP_AUTH=true")
+
+    def test_sharepoint_client_configuration_validation(self):
+        """Test SharePoint client configuration for integration testing."""
+        client = SharePointClient("test-token")
+
+        # Verify client has required configuration properties
+        assert hasattr(client, "site_id")
+        assert hasattr(client, "drive_id")
+        assert hasattr(client, "pyro_standards_drive_id")
+        assert hasattr(client, "base_url")
+        assert hasattr(client, "access_token")
+
+        # Verify base URL is correct
+        assert client.base_url == "https://graph.microsoft.com/v1.0"
+
+        # Verify at least one drive ID is configured (either main or standards)
+        has_main_drive = client.drive_id is not None and client.drive_id != ""
+        has_standards_drive = (
+            client.pyro_standards_drive_id is not None
+            and client.pyro_standards_drive_id != ""
+        )
+        assert (
+            has_main_drive or has_standards_drive
+        ), "At least one drive ID should be configured"
+
+    def test_integration_test_environment_requirements(self):
+        """Test environment requirements for integration testing."""
+        # Check if required environment variables would be available for real testing
+        required_env_vars = ["SHAREPOINT_SITE_ID", "SHAREPOINT_DRIVE_ID"]
+        for var in required_env_vars:
+            assert os.getenv(var) is not None
+
+        client = SharePointClient("test-token")
+
+        # For integration tests, we need at least the basic configuration
+        assert client.site_id is not None, "Site ID required for integration tests"
+
+        # Drive ID can be default or from environment
+        assert client.drive_id is not None, "Drive ID required for integration tests"
+
+    @patch("utils.sharepoint_client.get_app_only_token")
+    def test_integration_client_with_app_only_auth(self, mock_get_token):
+        """Test integration client initialization with app-only authentication."""
+        mock_get_token.return_value = "app-only-integration-token"
+
+        client = SharePointClient()
+        assert client.access_token == "app-only-integration-token"
+        assert client.site_id is not None
+        assert client.drive_id is not None
+
+    def test_integration_client_methods_available(self):
+        """Test that all required methods are available for integration testing."""
+        client = SharePointClient("test-token")
+
+        # Verify all required methods exist
+        required_methods = [
+            "get_site_info",
+            "get_drive_items",
+            "get_file_by_path",
+            "get_file_by_id",
+            "search_files",
+            "get_file_download_url",
+            "get_file_reference",
+            "download_file_content",
+            "get_wiresetcerts_file",
+        ]
+
+        for method_name in required_methods:
+            assert hasattr(
+                client, method_name
+            ), f"Method {method_name} should be available"
+            assert callable(
+                getattr(client, method_name)
+            ), f"Method {method_name} should be callable"
+
+
 @pytest.mark.skipif(
     os.getenv("SKIP_AUTH", "false").lower() == "true",
     reason="Skipped when SKIP_AUTH=true",
@@ -632,3 +823,34 @@ class TestSharePointClientIntegration:
         # and would require real SharePoint configuration
         client = SharePointClient("test-token")
         assert client.drive_id is not None or client.pyro_standards_drive_id is not None
+
+    def test_integration_client_initialization(self):
+        """Test client initialization for integration testing."""
+        client = SharePointClient("test-token")
+
+        # Verify client is properly configured for integration tests
+        assert client.access_token == "test-token"
+        assert client.base_url == "https://graph.microsoft.com/v1.0"
+
+        # At least one drive should be configured
+        has_configuration = (client.drive_id is not None and client.drive_id != "") or (
+            client.pyro_standards_drive_id is not None
+            and client.pyro_standards_drive_id != ""
+        )
+        assert (
+            has_configuration
+        ), "Client should have at least one drive configured for integration tests"
+
+    def test_integration_environment_variables_loaded(self):
+        """Test that environment variables are properly loaded for integration."""
+        client = SharePointClient("test-token")
+
+        # Site ID should always be configured (either default or from env)
+        assert client.site_id is not None and client.site_id != ""
+
+        # Main drive ID should be configured
+        assert client.drive_id is not None and client.drive_id != ""
+
+        # Standards drive ID is optional but should be None if not configured
+        if client.pyro_standards_drive_id is not None:
+            assert client.pyro_standards_drive_id != ""

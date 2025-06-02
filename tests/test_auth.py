@@ -1,3 +1,4 @@
+import os
 from os import getenv
 from unittest.mock import MagicMock, patch
 
