@@ -347,7 +347,7 @@ def test_validate_token_pyjwk_error(mock_load_config, mock_get_header):
 
 def test_require_auth_skip_auth_true():
     """Test that SKIP_AUTH=true bypasses all authentication"""
-    with patch.dict("os.environ", {"SKIP_AUTH": "true"}):
+    with patch.dict(os.environ, {"SKIP_AUTH": "true"}):
         app = Flask(__name__)
 
         @app.route("/test")
