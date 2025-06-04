@@ -854,3 +854,19 @@ class TestSharePointClientIntegration:
         # Standards drive ID is optional but should be None if not configured
         if client.pyro_standards_drive_id is not None:
             assert client.pyro_standards_drive_id != ""
+
+
+@pytest.mark.skipif(
+    os.getenv("SKIP_AUTH", "false").lower() == "true",
+    reason="Skipped when SKIP_AUTH=true",
+)
+def test_list_pyro_standards_excel_files_contains_xlsm():
+    """Should include at least one .xlsm file from the Pyro_Standards folder."""
+    from utils.sharepoint_client import list_pyro_standards_excel_files
+
+    files = list_pyro_standards_excel_files()
+    xlsm_files = [f for f in files if f["name"].lower().endswith(".xlsm")]
+    assert xlsm_files, "Expected at least one .xlsm file in Pyro_Standards folder"
+    assert "K6_0525.xlsm" in [
+        f["name"] for f in xlsm_files
+    ], "Expected K6_0525.xlsm file to be present"

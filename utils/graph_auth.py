@@ -55,22 +55,3 @@ def get_app_only_token() -> str:
     error_description = result.get("error_description", "Unknown error")
     error_code = result.get("error", "unknown_error")
     raise RuntimeError(f"Token acquisition failed [{error_code}]: {error_description}")
-
-
-def get_delegated_token(user_token: str) -> str:
-    """Get a delegated access token using on-behalf-of flow.
-
-    This would be used to act on behalf of a specific user, but requires
-    additional setup and is not needed for basic SharePoint file access.
-
-    Args:
-        user_token: The user's access token from Azure AD
-
-    Returns:
-        Delegated access token for Microsoft Graph API
-
-    Note:
-        This is a placeholder for future implementation if needed.
-    """
-    # TODO: Implement on-behalf-of flow if needed for user-specific access
-    raise NotImplementedError("Delegated token flow not yet implemented")

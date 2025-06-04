@@ -11,9 +11,14 @@ class TokenAcquisitionError(Exception):
 
 
 def get_access_token():
-    from dotenv import load_dotenv
+    # Import config to load environment variables from both files
+    if __name__ == "__main__":
+        # If running as script, add parent directory to path
+        import sys
 
-    load_dotenv()
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+    import config  # noqa: F401
 
     if os.getenv("SKIP_AUTH", "false").lower() == "true":
         logging.info("Skipping get_access_token() because SKIP_AUTH is true")
@@ -68,4 +73,5 @@ def get_access_token():
 
 
 if __name__ == "__main__":
-    get_access_token()
+    token = get_access_token()
+    print(f"Access Token: {token}")

@@ -1,4 +1,4 @@
-from marshmallow import Schema, fields
+from marshmallow import EXCLUDE, Schema, fields, pre_load
 from qualer_sdk.models.qualer_api_models_asset_service_records_to_asset_service_record_response_model import (
     QualerApiModelsAssetServiceRecordsToAssetServiceRecordResponseModel,
 )
@@ -196,3 +196,32 @@ class SharePointFolderContentsQuerySchema(Schema):
         load_default="",
         metadata={"description": "Path to folder within the drive (empty for root)"},
     )
+
+
+class SharePointFileInfoSchema(Schema):
+    """Schema for SharePoint file metadata from the Graph API."""
+
+    class Meta:
+        unknown = EXCLUDE  # Ignore extra fields not defined below
+
+    # Top-level fields
+    id = fields.String(required=True)
+    name = fields.String(required=True)
+    webUrl = fields.String(required=True)
+    size = fields.Integer(required=True)
+    lastModifiedDateTime = fields.String(required=True)
+    downloadUrl = fields.String(required=True, data_key="@microsoft.graph.downloadUrl")
+
+    # Flattened from nested objects via @pre_load
+    mimeType = fields.String(required=True)
+    driveId = fields.String(required=True)
+    path = fields.String(required=True)
+
+    @pre_load
+    def flatten_nested_fields(self, data, **kwargs):
+        """Extract nested fields from `file` and `parentReference`."""
+        data["mimeType"] = data.get("file", {}).get("mimeType")
+        parent = data.get("parentReference", {})
+        data["driveId"] = parent.get("driveId")
+        data["path"] = parent.get("path")
+        return data

@@ -24,7 +24,7 @@ The JGI Flask API is a secure internal REST interface that exposes quality and c
 ### Core Application Files
 
 * `app.py` – Entry point and blueprint registration
-* `config.py` – `.env` loader
+* `config/__init__.py` – `.env` loader
 * `schemas.py` – Marshmallow schemas
 * `requirements.txt` – Dependencies
 
