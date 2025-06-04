@@ -54,14 +54,16 @@ def test_required_secrets_in_env_example():
 
 def test_environment_split_is_secure():
     """Test that the environment split configuration is working properly."""
-    # This test ensures config.py loads both files in the correct order
+    # This test ensures config/__init__.py loads both files in the correct order
 
-    # Verify that config.py exists and has the right structure
-    config_file = Path(__file__).parent.parent / "config.py"
-    assert config_file.exists(), "config.py not found"
+    # Verify that config/__init__.py exists and has the right structure
+    config_file = Path(__file__).parent.parent / "config/__init__.py"
+    assert config_file.exists(), "config/__init__.py not found"
 
     config_content = config_file.read_text()
-    assert "settings.env" in config_content, "config.py should load settings.env"
+    assert (
+        "settings.env" in config_content
+    ), "config/__init__.py should load settings.env"
     assert "override=False" in config_content, "settings.env should not override"
     assert "override=True" in config_content, ".env should override settings.env"
 

@@ -17,7 +17,7 @@
 - **Created two-tier environment system**:
   - `config/settings.env` - Safe defaults (tracked in Git)
   - `.env` - Secrets only (excluded from Git)
-- **Updated configuration loading** - `config.py` loads both files in correct order
+- **Updated configuration loading** - `config/__init__.py` loads both files in correct order
 - **Added security validation** - Created `test_environment_security.py` to prevent secret leakage
 - **Updated documentation** - Added `.env.example` template and updated README.md
 
@@ -34,9 +34,9 @@
 - `app.py` - Fixed import order for environment variables
 
 ### Environment Configuration
+- `config/__init__.py` - Two-tier environment loading
 - `config/settings.env` - Safe defaults including Azure/SharePoint configuration
 - `.env` - Secrets only (API keys, client secret, database URL)
-- `config.py` - Two-tier environment loading
 - `.env.example` - Template for required secrets
 - `.gitignore` - Proper secret exclusion
 

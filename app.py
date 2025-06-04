@@ -1,6 +1,4 @@
 # app.py
-import logging  # noqa: F401
-
 from flask import Flask, request
 from flask_cors import CORS
 from flask_smorest import Api
@@ -11,6 +9,7 @@ import config  # noqa: F401
 from routes import (
     asset_service_records,
     clients,
+    daqbook,
     daqbook_offsets,
     employees,
     git_ops,
@@ -68,6 +67,7 @@ api = Api(app)
 # Register all your blueprints with this, not `app`
 api.register_blueprint(asset_service_records.blp)
 api.register_blueprint(clients.blp)
+api.register_blueprint(daqbook.blp)
 api.register_blueprint(daqbook_offsets.blp)
 api.register_blueprint(employees.blp)
 api.register_blueprint(git_ops.blp)
@@ -90,4 +90,4 @@ def index():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()

@@ -155,11 +155,12 @@ python -m pytest -v
 ## 🏗️ Project Structure
 
 ```
-├── app.py                 # Main Flask application
-├── config.py             # Environment configuration
-├── requirements.txt      # Python dependencies
-├── .env                  # Environment variables (not in git)
-├── routes/               # API endpoint blueprints
+├── app.py               # Main Flask application
+├── config/              # Environment configuration
+│   └── settings.
+├── requirements.txt     # Python dependencies
+├── .env                 # Environment variables (not in git)
+├── routes/              # API endpoint blueprints
 │   ├── whoami.py        # User authentication info
 │   ├── work_item_details.py  # Work item data from Qualer
 │   ├── pyro_assets.py   # Pyrotechnic assets

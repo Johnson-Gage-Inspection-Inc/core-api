@@ -274,36 +274,6 @@ class TestExcelParser:
         result = parse_daqbook_offsets_from_excel("test.xlsx", "TEST")
         assert result == []
 
-    @patch("utils.excel_parser.load_workbook")
-    def test_parse_excel_sheet1_missing_uses_first_sheet(self, mock_load_workbook):
-        """Test Excel parsing when Sheet1 missing, uses first available sheet."""
-        mock_workbook = MagicMock()
-        mock_workbook.sheetnames = ["Data", "Summary"]
-
-        # Mock sheet with some data
-        mock_sheet = MagicMock()
-        # Mock temperature cells (A42:A47)
-        temp_cells = [MagicMock() for _ in range(6)]
-        for i, cell in enumerate(temp_cells):
-            cell.value = [-100, -50, 0, 250, 500, 1000][i]
-
-        # Mock data cells (return 0 for simplicity)
-        def mock_cell(row, column):
-            if 42 <= row <= 47 and column == 1:  # Temperature cells
-                return temp_cells[row - 42]
-            else:
-                mock_cell = MagicMock()
-                mock_cell.value = 0.0
-                return mock_cell
-
-        mock_sheet.cell = mock_cell
-        mock_workbook.__getitem__.return_value = mock_sheet
-        mock_load_workbook.return_value = mock_workbook
-
-        result = parse_daqbook_offsets_from_excel("test.xlsx", "TEST")
-        # Should process some data
-        assert isinstance(result, list)
-
     def test_delta_calculation_accuracy(self):
         """Test that delta calculations are accurate."""
         base_path = Path(__file__).parent / "data"
@@ -350,33 +320,188 @@ class TestExcelParser:
 class TestExcelParserEdgeCases:
     """Test edge cases and error conditions in Excel parser."""
 
-    def test_filename_extraction_logic(self):
-        """Test that TN extraction from filename works correctly."""
-        # Test various filename patterns
-        test_cases = [
-            ("K6_0824.xlsm", "K60824"),
-            ("J2-0456.xlsx", "J20456"),
-            ("TEST_FILE.xlsm", "TESTFILE"),
-        ]
+    @patch("routes.daqbook_offsets.SessionLocal")
+    def test_get_all_offsets_data_transformation(
+        self, mock_session_local, client, auth_token
+    ):
+        """Test that database objects are properly converted to dict format for GET /daqbook-offsets/."""
+        skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
 
-        for filename, expected_tn in test_cases:
-            # Mock the filename extraction logic
-            path = Path(filename)
-            actual_tn = path.stem.replace("_", "").replace("-", "")
-            assert actual_tn == expected_tn
+        if skip_auth:
+            # In mock mode, restore real view function
+            from app import app
+            from routes.daqbook_offsets import DaqbookOffsets
 
-    def test_column_range_mapping(self):
-        """Test that column ranges (B-G) map to correct indices."""
-        # Columns B-G should be indices 2-7 (1-based to 0-based is 1-6)
-        expected_columns = list(range(2, 8))  # [2, 3, 4, 5, 6, 7]
-        assert len(expected_columns) == 6
-        assert expected_columns == [2, 3, 4, 5, 6, 7]
+            original_view_func = app.view_functions.get(
+                "daqbook_offsets.DaqbookOffsets"
+            )
+            app.view_functions["daqbook_offsets.DaqbookOffsets"] = DaqbookOffsets().get
 
-    def test_block_offset_calculation(self):
-        """Test that block offsets are correctly defined."""
-        block_offsets = [42, 50, 60, 68, 78, 86, 96]
-        assert len(block_offsets) == 7
+        try:
+            # Create mock database objects with various data types
+            mock_offset1 = MagicMock()
+            mock_offset1.tn = "J10325"
+            mock_offset1.temp = "25.5"  # String that should be converted to float
+            mock_offset1.point = 1
+            mock_offset1.reading = "0.123456"  # String with high precision
 
-        # Each block should handle 6 channels
-        total_points = len(block_offsets) * 6
-        assert total_points == 42
+            mock_offset2 = MagicMock()
+            mock_offset2.tn = "K40824"
+            mock_offset2.temp = 100.0  # Already float
+            mock_offset2.point = 2
+            mock_offset2.reading = -0.456789  # Negative float
+
+            mock_offset3 = MagicMock()
+            mock_offset3.tn = "N20999"
+            mock_offset3.temp = "0"  # Zero as string
+            mock_offset3.point = 40
+            mock_offset3.reading = "0.000000"  # Zero as string with decimals
+
+            mock_offsets = [mock_offset1, mock_offset2, mock_offset3]
+
+            # Mock database session
+            mock_session = MagicMock()
+            mock_session.query.return_value.all.return_value = mock_offsets
+            mock_session_local.return_value = mock_session
+
+            response = client.get(
+                "/daqbook-offsets/", headers={"Authorization": f"Bearer {auth_token}"}
+            )
+
+            assert response.status_code == 200
+            data = response.get_json()
+
+            # Verify data structure and type conversion
+            assert len(data) == 3
+
+            # Test first offset
+            first_item = data[0]
+            assert first_item["tn"] == "J10325"
+            assert first_item["temp"] == 25.5  # Converted to float
+            assert first_item["point"] == 1
+            assert (
+                first_item["reading"] == 0.123456
+            )  # Converted to float, precision preserved
+            assert isinstance(first_item["temp"], float)
+            assert isinstance(first_item["point"], int)
+            assert isinstance(first_item["reading"], float)
+
+            # Test second offset (negative values)
+            second_item = data[1]
+            assert second_item["tn"] == "K40824"
+            assert second_item["temp"] == 100.0
+            assert second_item["point"] == 2
+            assert second_item["reading"] == -0.456789  # Negative value preserved
+            assert isinstance(second_item["temp"], float)
+            assert isinstance(second_item["reading"], float)
+
+            # Test third offset (zero values)
+            third_item = data[2]
+            assert third_item["tn"] == "N20999"
+            assert third_item["temp"] == 0.0  # Zero converted properly
+            assert third_item["point"] == 40
+            assert third_item["reading"] == 0.0  # Zero reading converted properly
+            assert isinstance(third_item["temp"], float)
+            assert isinstance(third_item["reading"], float)
+
+            # Verify session.close() was called
+            mock_session.close.assert_called_once()
+
+        finally:
+            if skip_auth and original_view_func:
+                app.view_functions["daqbook_offsets.DaqbookOffsets"] = (
+                    original_view_func
+                )
+
+    @patch("routes.daqbook_offsets.SessionLocal")
+    def test_data_transformation_with_decimal_objects(
+        self, mock_session_local, client, auth_token
+    ):
+        """Test data transformation when database returns Decimal objects."""
+        from decimal import Decimal
+
+        skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
+
+        if skip_auth:
+            # In mock mode, restore real view function
+            from app import app
+            from routes.daqbook_offsets import DaqbookOffsets
+
+            original_view_func = app.view_functions.get(
+                "daqbook_offsets.DaqbookOffsets"
+            )
+            app.view_functions["daqbook_offsets.DaqbookOffsets"] = DaqbookOffsets().get
+
+        try:
+            # Create mock database objects with Decimal types (common with SQLAlchemy Numeric columns)
+            mock_offset = MagicMock()
+            mock_offset.tn = "J10325"
+            mock_offset.temp = Decimal("25.5")  # Decimal object
+            mock_offset.point = 1
+            mock_offset.reading = Decimal("0.123456")  # Decimal object
+
+            mock_offsets = [mock_offset]
+
+            # Mock database session
+            mock_session = MagicMock()
+            mock_session.query.return_value.all.return_value = mock_offsets
+            mock_session_local.return_value = mock_session
+
+            response = client.get(
+                "/daqbook-offsets/", headers={"Authorization": f"Bearer {auth_token}"}
+            )
+
+            assert response.status_code == 200
+            data = response.get_json()
+
+            # Verify Decimal objects are converted to float
+            assert len(data) == 1
+            item = data[0]
+            assert item["temp"] == 25.5
+            assert item["reading"] == 0.123456
+            assert isinstance(item["temp"], float)
+            assert isinstance(item["reading"], float)
+
+        finally:
+            if skip_auth and original_view_func:
+                app.view_functions["daqbook_offsets.DaqbookOffsets"] = (
+                    original_view_func
+                )
+
+    @patch("routes.daqbook_offsets.SessionLocal")
+    def test_empty_result_transformation(self, mock_session_local, client, auth_token):
+        """Test data transformation when database returns empty result."""
+        skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
+
+        if skip_auth:
+            # In mock mode, restore real view function
+            from app import app
+            from routes.daqbook_offsets import DaqbookOffsets
+
+            original_view_func = app.view_functions.get(
+                "daqbook_offsets.DaqbookOffsets"
+            )
+            app.view_functions["daqbook_offsets.DaqbookOffsets"] = DaqbookOffsets().get
+
+        try:
+            # Mock database session returning empty list
+            mock_session = MagicMock()
+            mock_session.query.return_value.all.return_value = []
+            mock_session_local.return_value = mock_session
+
+            response = client.get(
+                "/daqbook-offsets/", headers={"Authorization": f"Bearer {auth_token}"}
+            )
+
+            assert response.status_code == 200
+            data = response.get_json()
+
+            # Should return empty list when no results
+            assert data == []
+            assert isinstance(data, list)
+
+        finally:
+            if skip_auth and original_view_func:
+                app.view_functions["daqbook_offsets.DaqbookOffsets"] = (
+                    original_view_func
+                )

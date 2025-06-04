@@ -7,6 +7,9 @@ from typing import Any, Dict, List, Optional
 
 import requests
 
+from utils.constants import daqbook_filename_pattern, wirecert_filename_pattern
+from utils.schemas import SharePointFileInfoSchema
+
 # For testing purposes, allow mocking of request extraction
 try:
     from flask import has_request_context, request
@@ -277,6 +280,104 @@ class SharePointClient:
             raise ValueError("WireSetCerts.xlsx file not found in SharePoint")
 
         return file_ref
+
+    @staticmethod
+    def list_files_in_pyro_standards_folder() -> List[SharePointFileInfoSchema]:
+        """
+        List all files in the SharePoint Pyro_Standards folder.
+
+        This function searches in: /sites/JGI/Shared Documents/Pyro/Pyro_Standards
+        for all files.
+
+        Returns:
+            List of file metadata dictionaries with keys: name, id, lastModifiedDateTime
+        """
+        from utils.sharepoint_client import SharePointClient
+
+        # Initialize SharePoint client
+        client = SharePointClient()
+
+        if not client.drive_id:
+            raise ValueError("SHAREPOINT_DRIVE_ID not configured")
+
+        try:
+            # Try to list files directly from the Pyro_Standards folder
+            folder_path = "Pyro/Pyro_Standards"
+            files = client.get_drive_items(client.drive_id, folder_path)
+
+            # Filter for files only (not folders) and return the required metadata
+            file_list = []
+            for item in files:
+                # Skip folders
+                if "folder" in item:
+                    continue
+
+                file_list.append(SharePointFileInfoSchema().load(item))
+
+            return file_list
+
+        except Exception:
+            # If direct folder listing fails, fall back to search-based approach
+            from utils.sharepoint_client import list_pyro_standards_excel_files
+
+            # Get Excel files using the existing function
+            excel_files = list_pyro_standards_excel_files()
+
+            # Convert to the expected format
+            file_list = []
+            for file_info in excel_files:
+                file_list.append(
+                    {
+                        "name": file_info.get("name"),
+                        "id": file_info.get("id"),
+                        "lastModifiedDateTime": file_info.get("last_modified"),
+                        "size": file_info.get("size"),
+                        "webUrl": file_info.get("web_url"),
+                    }
+                )
+
+            return file_list
+
+    @staticmethod
+    def download_file_from_sharepoint(file_metadata: Dict[str, Any]) -> str:
+        """
+        Download a file from SharePoint and return the local file path.
+
+        Args:
+            file_metadata: File metadata dictionary with id, name, etc.
+
+        Returns:
+            Local file path where the file was downloaded
+        """
+        import os
+        import tempfile
+
+        from utils.sharepoint_client import SharePointClient
+
+        # Initialize SharePoint client
+        client = SharePointClient()
+
+        if not client.drive_id:
+            raise ValueError("SHAREPOINT_DRIVE_ID not configured")
+
+        file_id = file_metadata.get("id")
+        if not file_id:
+            raise ValueError("File ID not provided in metadata")
+
+        filename = file_metadata.get("name", "unknown.xlsx")
+
+        # Download file content as bytes
+        file_content = client.download_file_content(file_id, client.drive_id)
+
+        # Create temporary file to store the download
+        temp_dir = tempfile.gettempdir()
+        temp_file_path = os.path.join(temp_dir, filename)
+
+        # Write file content to temporary location
+        with open(temp_file_path, "wb") as temp_file:
+            temp_file.write(file_content)
+
+        return temp_file_path
 
 
 # Convenience functions for external use
@@ -626,7 +727,7 @@ def list_pyro_standards_excel_files(
     client = SharePointClient(access_token)
 
     # Search for common Excel file terms
-    search_terms = ["xlsx", "excel", "calibration", "standards", "pyro"]
+    search_terms = [".xls", ".xlsm", "pyro"]
     all_files = []
 
     for term in search_terms:
@@ -650,6 +751,16 @@ def list_pyro_standards_excel_files(
         # Check if it's an Excel file
         is_excel = file_name.lower().endswith((".xlsx", ".xls", ".xlsm"))
         if not is_excel:
+            continue
+
+        if file_name.startswith("56561-"):
+            # Skip files that start with 56561-
+            continue
+
+        # Make sure it's either a daqbook cert or a wire roll/set cert
+        daqbook_file_match = daqbook_filename_pattern.match(file_name)
+        wire_certification_match = wirecert_filename_pattern.match(file_name)
+        if not (daqbook_file_match or wire_certification_match):
             continue
 
         # Get detailed file info to check parent folder
