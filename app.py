@@ -14,6 +14,7 @@ from routes import (
     employees,
     git_ops,
     pyro_assets,
+    refresh_excel_data,
     whoami,
     wire_offsets,
     work_item_details,
@@ -73,6 +74,7 @@ api.register_blueprint(daqbook_offsets.blp)
 api.register_blueprint(employees.blp)
 api.register_blueprint(git_ops.blp)
 api.register_blueprint(pyro_assets.blp)
+api.register_blueprint(refresh_excel_data.blp)
 api.register_blueprint(whoami.blp)
 api.register_blueprint(wire_offsets.blp)
 api.register_blueprint(work_item_details.blp)

@@ -151,20 +151,28 @@ class DaqbookOffsetSchema(Schema):
 
 
 class WireOffsetSchema(Schema):
-    """Schema for wire offset measurements"""
+    """Schema for wire offset correction factors"""
 
     class Meta:
         unknown = EXCLUDE
 
     id = fields.Integer(dump_only=True)
-    wirelot = fields.String(required=True)
-    block = fields.String(required=True)
-    col1 = fields.Decimal(allow_none=True)
-    col2 = fields.Decimal(allow_none=True)
-    col3 = fields.Decimal(allow_none=True)
-    col4 = fields.Decimal(allow_none=True)
-    col5 = fields.Decimal(allow_none=True)
-    created_at = fields.DateTime(dump_only=True)
+    traceability_no = fields.String(
+        required=True, description="Wire lot identifier (e.g., '072513A')"
+    )
+    nominal_temp = fields.Decimal(required=True, description="Temperature in Celsius")
+    correction_factor = fields.Decimal(
+        required=True, description="Wire correction factor"
+    )
+    created_at = fields.DateTime(
+        dump_only=True, description="When this record was created"
+    )
+    updated_at = fields.DateTime(
+        dump_only=True, description="When this record was last updated"
+    )
+    updated_by = fields.String(
+        allow_none=True, description="SharePoint user who last modified the source file"
+    )
 
 
 class WireSetCertSchema(Schema):

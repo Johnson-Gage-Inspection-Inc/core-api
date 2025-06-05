@@ -1,9 +1,10 @@
 # routes/wire_offsets.py
 from flask.views import MethodView
-from flask_smorest import Blueprint
-from sqlalchemy import func
+from flask_smorest import Blueprint, abort
+from sqlalchemy import text
+from werkzeug.exceptions import HTTPException
 
-from db.models import WireOffset, WireSetCert
+from db.models import WireSetCert
 from utils.auth import require_auth
 from utils.database import SessionLocal
 from utils.schemas import WireOffsetSchema, WireSetCertSchema
@@ -20,18 +21,16 @@ class WireOffsets(MethodView):
         """
         Retrieve current wire offset calibration data.
 
-        TODO: This should query the wire_offsets_current view (not yet created)
-        to get the latest offset data for each wirelot/block combination.
-
-        The view should handle the append-only nature of the table and return
-        only the most recent entry for each wirelot/block pair.
+        Uses the wire_offsets_current view to get the latest correction factors
+        for each wire lot and temperature combination.
 
         **Returns**:
         - **list**: A list of current offset objects containing:
-          - wirelot: Wire lot identifier
-          - block: Block type ("Top" or "Bottom")
-          - col1-col5: Latest offset reading values
+          - traceability_no: Wire lot identifier (e.g., "072513A")
+          - nominal_temp: Temperature in Celsius
+          - correction_factor: Wire correction factor
           - created_at: Timestamp of the measurement
+          - updated_by: User who last updated the source file
 
         **Raises**:
           - **401**: If authentication token is invalid or missing
@@ -40,52 +39,38 @@ class WireOffsets(MethodView):
         db = None
         try:
             db = SessionLocal()
-            # TODO: Replace this with a query to wire_offsets_current view
-            # For now, get latest entry for each wirelot/block combination
-
-            # Subquery to get latest timestamp for each wirelot/block
-            latest_subq = (
-                db.query(
-                    WireOffset.wirelot,
-                    WireOffset.block,
-                    func.max(WireOffset.created_at).label("max_created_at"),
+            # Query the wire_offsets_current view for most recent entries
+            result = db.execute(
+                text(
+                    """
+                SELECT id, traceability_no, nominal_temp, correction_factor,
+                       created_at, updated_at, updated_by
+                FROM wire_offsets_current
+                ORDER BY traceability_no, nominal_temp
+            """
                 )
-                .group_by(WireOffset.wirelot, WireOffset.block)
-                .subquery()
-            )
-
-            # Join with main table to get full records
-            offsets = (
-                db.query(WireOffset)
-                .join(
-                    latest_subq,
-                    (WireOffset.wirelot == latest_subq.c.wirelot)
-                    & (WireOffset.block == latest_subq.c.block)
-                    & (WireOffset.created_at == latest_subq.c.max_created_at),
-                )
-                .all()
-            )
+            ).fetchall()
 
             # Convert to dict format
-            result = []
-            for offset in offsets:
-                result.append(
+            offsets = []
+            for row in result:
+                offsets.append(
                     {
-                        "id": offset.id,
-                        "wirelot": offset.wirelot,
-                        "block": offset.block,
-                        "col1": float(offset.col1) if offset.col1 is not None else None,
-                        "col2": float(offset.col2) if offset.col2 is not None else None,
-                        "col3": float(offset.col3) if offset.col3 is not None else None,
-                        "col4": float(offset.col4) if offset.col4 is not None else None,
-                        "col5": float(offset.col5) if offset.col5 is not None else None,
+                        "id": row.id,
+                        "traceability_no": row.traceability_no,
+                        "nominal_temp": float(row.nominal_temp),
+                        "correction_factor": float(row.correction_factor),
                         "created_at": (
-                            offset.created_at.isoformat() if offset.created_at else None
+                            row.created_at.isoformat() if row.created_at else None
                         ),
+                        "updated_at": (
+                            row.updated_at.isoformat() if row.updated_at else None
+                        ),
+                        "updated_by": row.updated_by,
                     }
                 )
 
-            return result
+            return offsets
 
         except Exception as e:
             # Log the error and return 500
@@ -100,82 +85,84 @@ class WireOffsets(MethodView):
                 db.close()
 
 
-@blp.route("/wire-offsets/<string:wirelot>")
-class WireOffsetsByWirelot(MethodView):
+@blp.route("/wire-offsets/<string:traceability_no>")
+class WireOffsetsByTraceabilityNo(MethodView):
     @require_auth
     @blp.doc(security=[{"BearerAuth": []}], tags=["Calibration"])
     @blp.response(200, WireOffsetSchema(many=True))
-    def get(self, wirelot):
+    def get(self, traceability_no):
         """
         Retrieve current wire offset data for a specific wire lot.
 
-        TODO: This should also use the wire_offsets_current view.
+        Uses the wire_offsets_current view filtered by traceability number.
 
         **Parameters**:
-        - **wirelot**: Wire lot identifier to filter by
+        - **traceability_no**: Wire lot identifier to filter by (e.g., "072513A")
 
         **Returns**:
         - **list**: A list of current offset objects for the specified wire lot
 
         **Raises**:
           - **401**: If authentication token is invalid or missing
+          - **404**: If no wire lot found with that traceability number
           - **500**: If there's an error communicating with the database
         """
+
         db = None
         try:
             db = SessionLocal()
-            # TODO: Replace with view query
-            # For now, get latest entry for each block of this wirelot
 
-            latest_subq = (
-                db.query(
-                    WireOffset.block,
-                    func.max(WireOffset.created_at).label("max_created_at"),
-                )
-                .filter(WireOffset.wirelot == wirelot)
-                .group_by(WireOffset.block)
-                .subquery()
-            )
+            # Query the wire_offsets_current view for specific traceability number
+            result = db.execute(
+                text(
+                    """
+                SELECT id, traceability_no, nominal_temp, correction_factor,
+                       created_at, updated_at, updated_by
+                FROM wire_offsets_current
+                WHERE traceability_no = :traceability_no
+                ORDER BY nominal_temp
+            """
+                ),
+                {"traceability_no": traceability_no},
+            ).fetchall()
 
-            offsets = (
-                db.query(WireOffset)
-                .filter(WireOffset.wirelot == wirelot)
-                .join(
-                    latest_subq,
-                    (WireOffset.block == latest_subq.c.block)
-                    & (WireOffset.created_at == latest_subq.c.max_created_at),
+            if not result:
+                abort(
+                    404,
+                    message=f"No wire offsets found for traceability number: {traceability_no}",
                 )
-                .all()
-            )
 
             # Convert to dict format
-            result = []
-            for offset in offsets:
-                result.append(
+            offsets = []
+            for row in result:
+                offsets.append(
                     {
-                        "id": offset.id,
-                        "wirelot": offset.wirelot,
-                        "block": offset.block,
-                        "col1": float(offset.col1) if offset.col1 is not None else None,
-                        "col2": float(offset.col2) if offset.col2 is not None else None,
-                        "col3": float(offset.col3) if offset.col3 is not None else None,
-                        "col4": float(offset.col4) if offset.col4 is not None else None,
-                        "col5": float(offset.col5) if offset.col5 is not None else None,
+                        "id": row.id,
+                        "traceability_no": row.traceability_no,
+                        "nominal_temp": float(row.nominal_temp),
+                        "correction_factor": float(row.correction_factor),
                         "created_at": (
-                            offset.created_at.isoformat() if offset.created_at else None
+                            row.created_at.isoformat() if row.created_at else None
                         ),
+                        "updated_at": (
+                            row.updated_at.isoformat() if row.updated_at else None
+                        ),
+                        "updated_by": row.updated_by,
                     }
                 )
 
-            return result
+            return offsets
 
         except Exception as e:
-            # Log the error and return 500
+            # Check if this is an abort exception (werkzeug HTTPException)
+
+            if isinstance(e, HTTPException):
+                raise
+
+            # Log the error and return 500 for actual database errors
             import logging
 
-            logging.error(f"Database error in wire-offsets/{wirelot}: {e}")
-            from flask_smorest import abort
-
+            logging.error(f"Database error in wire-offsets/{traceability_no}: {e}")
             abort(500, message="Internal server error")
         finally:
             if db:
@@ -222,35 +209,64 @@ class WireSetCerts(MethodView):
                 db.close()
 
 
-@blp.route("/wire-set-certs/refresh")
-class WireSetCertsRefresh(MethodView):
+@blp.route("/wire-set-certs/<string:serial_number>")
+class WireSetCertBySerial(MethodView):
     @require_auth
-    @blp.doc(security=[{"BearerAuth": []}], tags=["System"])
-    @blp.response(200)
-    def post(self):
+    @blp.doc(security=[{"BearerAuth": []}], tags=["Calibration"])
+    @blp.response(200, WireSetCertSchema)
+    def get(self, serial_number):
         """
-        Refresh wire set certificate data from SharePoint.
+        Retrieve wire set certification data for a specific serial number.
 
-        Downloads the latest WireSetCerts.xlsx from SharePoint, parses it to extract
-        serial number -> wire set group mappings, and updates the wire_set_certs table.
+        **Parameters**:
+        - **serial_number**: Wire serial number to look up (e.g., "J201")
 
         **Returns**:
-        - **dict**: Summary of refresh operation (records added/updated/errors)
+        - **object**: Wire set cert object with all certification details
 
         **Raises**:
           - **401**: If authentication token is invalid or missing
-          - **500**: If there's an error during the refresh process
+          - **404**: If no wire found with that serial number
+          - **500**: If there's an error communicating with the database
         """
+        db = None
         try:
-            from utils.wire_set_cert_refresher import refresh_wire_set_certs
+            db = SessionLocal()
+            cert = (
+                db.query(WireSetCert)
+                .filter(WireSetCert.serial_number == serial_number)
+                .first()
+            )
 
-            # Execute the refresh operation
-            result = refresh_wire_set_certs()
+            if not cert:
+                from flask_smorest import abort
 
-            # Log the operation result
-            import logging
+                abort(
+                    404,
+                    message=f"No wire set cert found for serial number: {serial_number}",
+                )
 
-            logging.info(f"Wire set certificate refresh completed: {result}")
+            # Convert to dict format
+            result = {
+                "id": cert.id,
+                "serial_number": cert.serial_number,
+                "wire_set_group": cert.wire_set_group,
+                "asset_id": cert.asset_id,
+                "asset_tag": cert.asset_tag,
+                "custom_order_number": cert.custom_order_number,
+                "service_date": (
+                    cert.service_date.isoformat() if cert.service_date else None
+                ),
+                "next_service_date": (
+                    cert.next_service_date.isoformat()
+                    if cert.next_service_date
+                    else None
+                ),
+                "certificate_number": cert.certificate_number,
+                "wire_roll_cert_number": cert.wire_roll_cert_number,
+                "created_at": cert.created_at.isoformat() if cert.created_at else None,
+                "updated_at": cert.updated_at.isoformat() if cert.updated_at else None,
+            }
 
             return result
 
@@ -258,7 +274,11 @@ class WireSetCertsRefresh(MethodView):
             # Log the error and return 500
             import logging
 
-            logging.error(f"Error in wire-set-certs refresh: {e}")
+            logging.error(f"Database error in wire-set-certs/{serial_number}: {e}")
             from flask_smorest import abort
 
-            abort(500, message=f"Refresh failed: {str(e)}")
+            abort(500, message="Internal server error")
+        finally:
+            if db:
+                db.close()
+                db.close()

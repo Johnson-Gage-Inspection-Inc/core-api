@@ -6,10 +6,7 @@ import pytest
 from sqlalchemy import text
 
 from db.models import DaqbookOffset as DaqbookOffset
-from utils.daqbook import (
-    get_updated_daqbook_files,
-    refresh_daqbook_offsets,
-)
+from utils.daqbook import get_updated_daqbook_files, refresh_daqbook_offsets
 from utils.sharepoint_client import SharePointClient
 
 # from utils.test_models import StupidDaqbookOffset
@@ -125,7 +122,7 @@ def test_refresh_daqbook_offsets_upserts(monkeypatch, db_session):
     assert float(stored.reading) == 0.123
 
 
-@pytest.mark.integration
+@pytest.mark.integration  # FIXME: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
 def test_refresh_daqbook_offsets_inserts_multiple_unique_daqbooks(
     monkeypatch, db_session
 ):

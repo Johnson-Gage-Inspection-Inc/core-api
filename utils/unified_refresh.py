@@ -4,13 +4,13 @@ Unified refresh system for detecting SharePoint file changes and triggering appr
 
 This module handles:
 1. WireSetCerts: Single file Pyro/WireSetCerts.xlsx
-2. WireOffsets: Wire certificate .xls files in Pyro_Standards matching regex ^\d{6}[A-Z0-9]{0,5}\.xls$
-3. DaqbookOffsets: DAQbook .xlsm files in Pyro_Standards matching ^(J[123]|K[456]|N2)_(0[1-9]|1[0-2])\d{2}\.xlsm$
+2. WireOffsets: Wire certificate .xls files in Pyro_Standards matching regex ^\d{6}[A-Z0-9]{0,5}\.xls$  # noqa: W605
+3. DaqbookOffsets: DAQbook .xlsm files in Pyro_Standards matching ^(J[123]|K[456]|N2)_(0[1-9]|1[0-2])\d{2}\.xlsm$  # noqa: W605
 """
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from utils.constants import daqbook_filename_pattern, wirecert_filename_pattern
 from utils.daqbook import refresh_daqbook_offsets
@@ -253,6 +253,7 @@ def refresh_all_updated_categories(
         try:
             # DAQbook refresh function handles its own file filtering
             daqbook_result = refresh_daqbook_offsets()
+            logger.info(f"DAQbook offsets refresh result: {daqbook_result}")
             result["results"]["daqbookoffsets"] = {
                 "status": "success",
                 "message": "DAQbook offsets refreshed successfully",
@@ -272,14 +273,68 @@ def refresh_all_updated_categories(
                 "message": f"Refresh failed: {str(e)}",
             }
     else:
-        result["results"]["daqbookoffsets"] = {"skipped": "no updates"}
-
-    # Update summary
+        result["results"]["daqbookoffsets"] = {
+            "skipped": "no updates"
+        }  # Update summary
     result["summary"]["categories_with_updates"] = len(categories_with_updates)
+
+    # Generate a compact summary line
+    if len(categories_with_updates) > 0:
+        updated_categories = ", ".join(categories_with_updates)
+        result["summary_line"] = (
+            f"Updated: {updated_categories} — {result['summary']['total_files_processed']} files total"
+        )
+    else:
+        result["summary_line"] = "No categories needed updates"
 
     logger.info(
         f"Unified refresh completed: {len(categories_with_updates)} categories updated, "
         f"{result['summary']['total_files_processed']} total files processed"
     )
 
+    # Log the refresh result to the database
+    try:
+        log_refresh_result(result)
+        logger.info("Refresh result logged to database")
+    except Exception as e:
+        logger.error(f"Failed to log refresh result: {e}")
+
     return result
+
+
+def log_refresh_result(result: Dict[str, Any]):
+    """
+    Log refresh results to the refresh_log database table.
+
+    Args:
+        result: Dictionary containing refresh operation results
+    """
+    logger = logging.getLogger(__name__)
+
+    try:
+        from db.models import RefreshLog
+        from utils.database import SessionLocal
+
+        db = SessionLocal()  # Create new refresh log entry
+        # Explicitly set refreshed_at to current time
+        log_entry = RefreshLog(
+            refreshed_at=datetime.now(),
+            total_files_processed=result.get("summary", {}).get(
+                "total_files_processed", 0
+            ),
+        )
+
+        # Set categories and details using the new methods
+        log_entry.set_categories_updated(result.get("categories_updated", []))
+        log_entry.set_details(result.get("results", {}))
+
+        db.add(log_entry)
+        db.commit()
+
+    except Exception as e:
+        logger.error(f"Error logging refresh result: {e}")
+        # Don't raise the error - this is a non-critical operation
+
+    finally:
+        if "db" in locals():
+            db.close()

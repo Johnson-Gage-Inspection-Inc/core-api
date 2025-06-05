@@ -296,7 +296,7 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
     def fake_wire_offsets_by_wirelot():
         if resp := fake_auth_check():
             return resp
-        wirelot = request.view_args.get("wirelot") if request.view_args else None
+        # wirelot = request.view_args.get("wirelot") if request.view_args else None
         # Return empty list since no data exists yet
         return []
 
@@ -330,23 +330,56 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
             "status": "success",
         }
 
-    # Register wire offsets mock endpoints
+    def fake_unified_refresh():
+        """Mock unified refresh endpoint."""
+        if resp := fake_auth_check():
+            return resp
+        # Mock successful unified refresh
+        return {
+            "status": "success",
+            "message": "All categories refreshed successfully",
+            "summary": "Refreshed 0 files across 3 categories",
+            "categories": {
+                "WireSetCerts": {
+                    "status": "success",
+                    "files_processed": 0,
+                    "records_processed": 0,
+                    "errors": [],
+                },
+                "WireOffsets": {
+                    "status": "success",
+                    "files_processed": 0,
+                    "records_processed": 0,
+                    "errors": [],
+                },
+                "DaqbookOffsets": {
+                    "status": "success",
+                    "files_processed": 0,
+                    "records_processed": 0,
+                    "errors": [],
+                },
+            },
+        }  # Register wire offsets mock endpoints
+
     wire_offset_endpoints = [
-        "wire_offsets.WireOffsetList",
-        "wire_offsets.WireOffsetByWirelot",
-        "wire_offsets.WireSetCertList",
-        "wire_offsets.WireSetCertRefresh",
+        "wire_offsets.WireOffsets",
+        "wire_offsets.WireOffsetsByTraceabilityNo",
+        "wire_offsets.WireSetCerts",
+        "wire_offsets.WireSetCertBySerial",
     ]
 
     for endpoint in wire_offset_endpoints:
         if endpoint in app.view_functions:
-            if "WireOffsetList" in endpoint:
+            if "WireOffsets" == endpoint:
                 app.view_functions[endpoint] = fake_wire_offsets
-            elif "WireOffsetByWirelot" in endpoint:
+            elif "WireOffsetsByTraceabilityNo" in endpoint:
                 app.view_functions[endpoint] = fake_wire_offsets_by_wirelot
-            elif "WireSetCertList" in endpoint:
+            elif "WireSetCerts" == endpoint:
                 app.view_functions[endpoint] = fake_wire_set_certs
-            elif "WireSetCertRefresh" in endpoint:
-                app.view_functions[endpoint] = fake_refresh_wire_set_certs
+            elif "WireSetCertBySerial" in endpoint:
+                # Mock for individual wire set cert lookup
+                app.view_functions[endpoint] = fake_wire_set_certs
 
-    # Remove any duplicate or conflicting registration of asset-service-records.AssetServiceRecord
+    # Register unified refresh endpoint mock
+    if "refresh_excel_data.ExcelRefresh" in app.view_functions:
+        app.view_functions["refresh_excel_data.ExcelRefresh"] = fake_unified_refresh

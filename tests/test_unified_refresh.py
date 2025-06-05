@@ -1,11 +1,18 @@
-import unittest
+# tests/test_unified_refresh.py
+"""
+Tests for the unified refresh system.
+"""
+
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
-import utils.unified_refresh as unified_refresh
+from utils.unified_refresh import (
+    get_file_categories_with_updates,
+    refresh_all_updated_categories,
+)
 
 
-class TestUnifiedRefreshPipeline(unittest.TestCase):
+class TestUnifiedRefreshPipeline:
 
     @patch("utils.unified_refresh.SharePointClient")
     def test_get_file_categories_with_updates_detects_all_categories(
@@ -26,9 +33,7 @@ class TestUnifiedRefreshPipeline(unittest.TestCase):
         ]
         mock_client_cls.return_value = mock_client
 
-        result = unified_refresh.get_file_categories_with_updates(
-            last_checked=now - timedelta(days=1)
-        )
+        result = get_file_categories_with_updates(last_checked=now - timedelta(days=1))
 
         assert result["wiresetcerts"]["has_updates"] is True
         assert result["wireoffsets"]["has_updates"] is True
@@ -56,17 +61,12 @@ class TestUnifiedRefreshPipeline(unittest.TestCase):
             },
             "last_checked": now.isoformat(),
         }
-
         mock_wiresetcerts.return_value = {"records_processed": 1}
         mock_daqbook.return_value = {}
 
-        result = unified_refresh.refresh_all_updated_categories()
+        result = refresh_all_updated_categories()
 
         assert "wiresetcerts" in result["categories_updated"]
         assert "daqbookoffsets" in result["categories_updated"]
         assert "wireoffsets" not in result["categories_updated"]
         assert result["summary"]["total_files_processed"] == 2
-
-
-if __name__ == "__main__":
-    unittest.main()

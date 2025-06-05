@@ -102,9 +102,8 @@ def refresh_wire_offsets(
                     if not offset_data:
                         logger.warning(f"No offset data found in {filename}")
                         continue
-
-                    # Extract wirelot from filename (e.g., "072513A.xls" -> "072513A")
-                    wirelot = os.path.splitext(filename)[0]
+                    # Extract traceability number from filename (e.g., "072513A.xls" -> "072513A")
+                    traceability_no = os.path.splitext(filename)[0]
 
                     # Process each offset record
                     records_for_this_file = 0
@@ -112,39 +111,15 @@ def refresh_wire_offsets(
                         try:
                             # Map parsed data to database model
                             # Wire offset parser returns: {"TraceabilityNo", "NominalTemp", "CorrectionFactor"}
-                            # We need to map this to WireOffset model fields
+                            # Create new wire offset record using proper schema (append-only table)
 
-                            # Create new wire offset record (append-only table)
                             wire_offset = WireOffset(
-                                wirelot=wirelot,
-                                block="Unknown",  # Default, may need to be determined from data
-                                # Map correction factors to col1-col5 based on temperature
-                                # This is a simplified mapping - may need refinement based on actual data structure
-                                col1=(
-                                    data["CorrectionFactor"]
-                                    if data["NominalTemp"] == -40.0
-                                    else None
+                                traceability_no=data.get(
+                                    "TraceabilityNo", traceability_no
                                 ),
-                                col2=(
-                                    data["CorrectionFactor"]
-                                    if data["NominalTemp"] == 0.0
-                                    else None
-                                ),
-                                col3=(
-                                    data["CorrectionFactor"]
-                                    if data["NominalTemp"] == 25.0
-                                    else None
-                                ),
-                                col4=(
-                                    data["CorrectionFactor"]
-                                    if data["NominalTemp"] == 50.0
-                                    else None
-                                ),
-                                col5=(
-                                    data["CorrectionFactor"]
-                                    if data["NominalTemp"] == 100.0
-                                    else None
-                                ),
+                                nominal_temp=data["NominalTemp"],
+                                correction_factor=data["CorrectionFactor"],
+                                updated_by=file_info.get("modified_by", "SharePoint"),
                             )
 
                             session.add(wire_offset)

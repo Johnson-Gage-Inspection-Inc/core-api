@@ -1,4 +1,6 @@
 # db/models.py
+import json
+
 from sqlalchemy import Column, DateTime, Integer, Numeric, Text, UniqueConstraint, func
 from sqlalchemy.orm import declarative_base
 
@@ -31,28 +33,35 @@ class DaqbookOffset(Base):
 
 class WireOffset(Base):
     """
-    Append-only table for wire offset data.
+    Append-only table for wire correction factors by temperature.
 
-    TODO: This table stores historical wire offset measurements.
-    Each record represents a single measurement event with timestamp.
-    Use wire_offsets_current view for latest data per wirelot/block.
+    This table stores wire correction factors for each wire lot (traceability number)
+    at different nominal temperatures. Each record represents a measurement from
+    a wire certificate Excel file with full audit trail.
+
+    Use wire_offsets_current view for the most recent correction factors.
     """
 
     __tablename__ = "wire_offsets"
 
     id = Column(Integer, primary_key=True)
-    wirelot = Column(Text, nullable=False)  # e.g. "123456A"
-    block = Column(Text, nullable=False)  # "Top" or "Bottom"
-    col1 = Column(Numeric, nullable=True)
-    col2 = Column(Numeric, nullable=True)
-    col3 = Column(Numeric, nullable=True)
-    col4 = Column(Numeric, nullable=True)
-    col5 = Column(Numeric, nullable=True)
+    traceability_no = Column(
+        Text, nullable=False
+    )  # Wire lot identifier (e.g., "072513A")
+    nominal_temp = Column(
+        Numeric(precision=8, scale=2), nullable=False
+    )  # Temperature in Celsius
+    correction_factor = Column(
+        Numeric(precision=10, scale=6), nullable=False
+    )  # Wire correction factor
     created_at = Column(DateTime, nullable=False, server_default=func.now())
-    # TODO: Add source tracking fields like source_file, imported_by, etc.
+    updated_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_by = Column(
+        Text, nullable=True
+    )  # SharePoint user who last modified the source file
 
     def __repr__(self):
-        return f"<WireOffset(id={self.id}, wirelot='{self.wirelot}', block='{self.block}', created_at={self.created_at})>"
+        return f"<WireOffset(id={self.id}, traceability_no='{self.traceability_no}', temp={self.nominal_temp}, cf={self.correction_factor})>"
 
 
 class WireSetCert(Base):
@@ -87,3 +96,38 @@ class WireSetCert(Base):
 
     def __repr__(self):
         return f"<WireSetCert(serial_number='{self.serial_number}', wire_set_group='{self.wire_set_group}', asset_id={self.asset_id})>"
+
+
+class RefreshLog(Base):
+    """Track history and results of Excel data refresh operations."""
+
+    __tablename__ = "refresh_log"
+
+    id = Column(Integer, primary_key=True)
+    refreshed_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    # Store categories as JSON text for SQLite compatibility
+    categories_updated = Column(Text, nullable=False)
+    total_files_processed = Column(Integer, nullable=False)
+    # Store details as JSON text for SQLite compatibility
+    details = Column(Text, nullable=False)
+
+    def set_categories_updated(self, categories):
+        """Set categories_updated from a list."""
+        self.categories_updated = json.dumps(categories)
+
+    def get_categories_updated(self):
+        """Get categories_updated as a list."""
+        return json.loads(self.categories_updated) if self.categories_updated else []
+
+    def set_details(self, details):
+        """Set details from a dict."""
+        self.details = json.dumps(details)
+
+    def get_details(self):
+        """Get details as a dict."""
+        return json.loads(self.details) if self.details else {}
+
+    def __repr__(self):
+        return f"<RefreshLog(id={self.id}, refreshed_at='{self.refreshed_at}', categories={self.get_categories_updated()})>"
