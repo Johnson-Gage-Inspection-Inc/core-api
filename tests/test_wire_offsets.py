@@ -2,6 +2,8 @@
 import os
 from datetime import datetime
 
+import pytest
+
 from db.models import WireOffset, WireSetCert
 from utils.wire_set_cert_refresher import WireSetCertRefresher
 
@@ -394,21 +396,28 @@ class TestWireSetCertsParser:
 class TestWireOffsetParsing:
     """Test wire offset Excel parsing functionality."""
 
-    def test_parse_wire_offsets_072513A(self):
-        """Test parsing 072513A.xlsx matches expected 072513A_offsets.csv values."""
+    @pytest.mark.parametrize(
+        "excel_file, expected_values_csv",
+        [
+            ("072513A.xlsx", "072513A_offsets.csv"),
+            ("011391L.xls", "011391L_offsets.csv"),
+        ],
+    )
+    def test_parse_wire_offsets(self, excel_file, expected_values_csv):
+        """Test parsing wire offset Excel files with both .xlsx and .xls formats."""
         import csv
         import os
 
         from utils.wire_offset_parser import parse_wire_offsets_from_excel
 
-        # Get test data file paths
+        # Get test data file paths using parametrized values
         test_data_dir = os.path.join(os.path.dirname(__file__), "data")
-        excel_file = os.path.join(test_data_dir, "072513A.xlsx")
-        csv_file = os.path.join(test_data_dir, "072513A_offsets.csv")
+        excel_path = os.path.join(test_data_dir, excel_file)
+        csv_path = os.path.join(test_data_dir, expected_values_csv)
 
         # Parse expected results from CSV
         expected_results = []
-        with open(csv_file, "r") as f:
+        with open(csv_path, "r") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 expected_results.append(
@@ -420,7 +429,7 @@ class TestWireOffsetParsing:
                 )
 
         # Parse actual results from Excel
-        actual_results = parse_wire_offsets_from_excel(excel_file)
+        actual_results = parse_wire_offsets_from_excel(excel_path)
 
         # Assert results match
         assert len(actual_results) == len(
@@ -428,7 +437,6 @@ class TestWireOffsetParsing:
         ), f"Expected {len(expected_results)} records, got {len(actual_results)}"
 
         # Sort both lists for consistent comparison
-
         expected_sorted = sorted(expected_results, key=lambda x: x["NominalTemp"])
         actual_sorted = sorted(actual_results, key=lambda x: x["NominalTemp"])
 

@@ -364,3 +364,109 @@ class TestRefreshWireOffsets:
         assert isinstance(result["errors"], list)
         assert isinstance(result["records_updated"], int)
         assert isinstance(result["errors"], list)
+
+    @patch("utils.wire_offset_refresher.os.path.exists")
+    @patch("utils.wire_offset_refresher.SharePointClient")
+    @patch("utils.wire_offset_refresher.parse_wire_offsets_from_excel")
+    def test_database_population_after_successful_refresh(
+        self, mock_parse, mock_sp_client, mock_exists
+    ):
+        """Test that database is populated with records after successful refresh."""
+        from sqlalchemy import text
+
+        from db.models import WireOffset
+        from utils.database import SessionLocal
+
+        # Use real database session for this integration test
+        session = SessionLocal()
+
+        try:
+            # Clean up any existing test data
+            session.query(WireOffset).delete()
+            session.commit()
+
+            # Verify table is empty before test
+            count_before = session.execute(
+                text("SELECT COUNT(*) FROM public.wire_offsets")
+            ).scalar()
+            assert count_before == 0, "Database should be empty before test"
+
+            # Mock external dependencies
+            mock_exists.return_value = True
+            mock_sp_instance = mock_sp_client.return_value
+            mock_sp_instance.list_files_in_pyro_standards_folder.return_value = [
+                {"name": "072513A.xls", "modified_by": "test_user"}
+            ]
+            mock_sp_instance.download_file_from_sharepoint.return_value = (
+                "/tmp/072513A.xls"
+            )
+
+            # Mock parsed wire offset data
+            mock_parse.return_value = [
+                {
+                    "TraceabilityNo": "072513A-001",
+                    "NominalTemp": -40.0,
+                    "CorrectionFactor": 1.001,
+                },
+                {
+                    "TraceabilityNo": "072513A-002",
+                    "NominalTemp": 0.0,
+                    "CorrectionFactor": 1.002,
+                },
+                {
+                    "TraceabilityNo": "072513A-003",
+                    "NominalTemp": 25.0,
+                    "CorrectionFactor": 1.003,
+                },
+                {
+                    "TraceabilityNo": "072513A-004",
+                    "NominalTemp": 50.0,
+                    "CorrectionFactor": 1.004,
+                },
+                {
+                    "TraceabilityNo": "072513A-005",
+                    "NominalTemp": 100.0,
+                    "CorrectionFactor": 1.005,
+                },
+            ]
+
+            # Run the refresh with real database session
+            result = refresh_wire_offsets(session=session)
+
+            # Verify successful refresh
+            assert result["status"] == "success"
+            assert result["files_processed"] == 1
+            assert result["records_processed"] == 5
+            assert result["records_added"] == 5
+            assert not result["errors"]
+
+            # Verify database population
+            count_after = session.execute(
+                text("SELECT COUNT(*) FROM public.wire_offsets")
+            ).scalar()
+            assert (
+                count_after > 0
+            ), "Database should contain records after successful refresh"
+            assert (
+                count_after == 5
+            ), f"Expected 5 records, found {count_after}"  # Verify specific record content
+            sample_record = session.execute(
+                text(
+                    "SELECT traceability_no, nominal_temp, correction_factor FROM public.wire_offsets WHERE traceability_no = '072513A-001'"
+                )
+            ).fetchone()
+
+            assert sample_record is not None, "Sample record should exist in database"
+            assert sample_record[0] == "072513A-001"  # traceability_no
+            assert (
+                float(sample_record[1]) == -40.0
+            )  # nominal_temp (convert from Decimal)
+            assert (
+                float(sample_record[2]) == 1.001
+            )  # correction_factor (convert from Decimal)
+
+        finally:
+            # Clean up test data
+            session.query(WireOffset).delete()
+            session.commit()
+            session.close()
