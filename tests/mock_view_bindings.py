@@ -310,29 +310,32 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
                 "serial_number": "J201",
                 "wire_set_group": "J201-J214",
                 "created_at": "2025-06-04T12:00:00",
-                "updated_at": "2025-06-04T12:00:00"
+                "updated_at": "2025-06-04T12:00:00",
             },
             {
                 "id": 2,
                 "serial_number": "J215",
                 "wire_set_group": "J215-J228",
                 "created_at": "2025-06-04T12:00:00",
-                "updated_at": "2025-06-04T12:00:00"
-            }
+                "updated_at": "2025-06-04T12:00:00",
+            },
         ]
 
     def fake_refresh_wire_set_certs():
         if resp := fake_auth_check():
             return resp
         # Mock successful refresh
-        return {"message": "Wire set certificates refreshed successfully", "status": "success"}
+        return {
+            "message": "Wire set certificates refreshed successfully",
+            "status": "success",
+        }
 
     # Register wire offsets mock endpoints
     wire_offset_endpoints = [
         "wire_offsets.WireOffsetList",
-        "wire_offsets.WireOffsetByWirelot", 
+        "wire_offsets.WireOffsetByWirelot",
         "wire_offsets.WireSetCertList",
-        "wire_offsets.WireSetCertRefresh"
+        "wire_offsets.WireSetCertRefresh",
     ]
 
     for endpoint in wire_offset_endpoints:

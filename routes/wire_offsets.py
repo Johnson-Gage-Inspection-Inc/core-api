@@ -22,14 +22,14 @@ class WireOffsets(MethodView):
 
         TODO: This should query the wire_offsets_current view (not yet created)
         to get the latest offset data for each wirelot/block combination.
-        
+
         The view should handle the append-only nature of the table and return
         only the most recent entry for each wirelot/block pair.
 
         **Returns**:
         - **list**: A list of current offset objects containing:
           - wirelot: Wire lot identifier
-          - block: Block type ("Top" or "Bottom")  
+          - block: Block type ("Top" or "Bottom")
           - col1-col5: Latest offset reading values
           - created_at: Timestamp of the measurement
 
@@ -40,28 +40,28 @@ class WireOffsets(MethodView):
         db = None
         try:
             db = SessionLocal()
-              # TODO: Replace this with a query to wire_offsets_current view
+            # TODO: Replace this with a query to wire_offsets_current view
             # For now, get latest entry for each wirelot/block combination
-            
+
             # Subquery to get latest timestamp for each wirelot/block
             latest_subq = (
                 db.query(
                     WireOffset.wirelot,
                     WireOffset.block,
-                    func.max(WireOffset.created_at).label('max_created_at')
+                    func.max(WireOffset.created_at).label("max_created_at"),
                 )
                 .group_by(WireOffset.wirelot, WireOffset.block)
                 .subquery()
             )
-            
+
             # Join with main table to get full records
             offsets = (
                 db.query(WireOffset)
                 .join(
                     latest_subq,
-                    (WireOffset.wirelot == latest_subq.c.wirelot) &
-                    (WireOffset.block == latest_subq.c.block) &
-                    (WireOffset.created_at == latest_subq.c.max_created_at)
+                    (WireOffset.wirelot == latest_subq.c.wirelot)
+                    & (WireOffset.block == latest_subq.c.block)
+                    & (WireOffset.created_at == latest_subq.c.max_created_at),
                 )
                 .all()
             )
@@ -79,7 +79,9 @@ class WireOffsets(MethodView):
                         "col3": float(offset.col3) if offset.col3 is not None else None,
                         "col4": float(offset.col4) if offset.col4 is not None else None,
                         "col5": float(offset.col5) if offset.col5 is not None else None,
-                        "created_at": offset.created_at.isoformat() if offset.created_at else None,
+                        "created_at": (
+                            offset.created_at.isoformat() if offset.created_at else None
+                        ),
                     }
                 )
 
@@ -122,26 +124,26 @@ class WireOffsetsByWirelot(MethodView):
         db = None
         try:
             db = SessionLocal()
-              # TODO: Replace with view query
+            # TODO: Replace with view query
             # For now, get latest entry for each block of this wirelot
-            
+
             latest_subq = (
                 db.query(
                     WireOffset.block,
-                    func.max(WireOffset.created_at).label('max_created_at')
+                    func.max(WireOffset.created_at).label("max_created_at"),
                 )
                 .filter(WireOffset.wirelot == wirelot)
                 .group_by(WireOffset.block)
                 .subquery()
             )
-            
+
             offsets = (
                 db.query(WireOffset)
                 .filter(WireOffset.wirelot == wirelot)
                 .join(
                     latest_subq,
-                    (WireOffset.block == latest_subq.c.block) &
-                    (WireOffset.created_at == latest_subq.c.max_created_at)
+                    (WireOffset.block == latest_subq.c.block)
+                    & (WireOffset.created_at == latest_subq.c.max_created_at),
                 )
                 .all()
             )
@@ -159,7 +161,9 @@ class WireOffsetsByWirelot(MethodView):
                         "col3": float(offset.col3) if offset.col3 is not None else None,
                         "col4": float(offset.col4) if offset.col4 is not None else None,
                         "col5": float(offset.col5) if offset.col5 is not None else None,
-                        "created_at": offset.created_at.isoformat() if offset.created_at else None,
+                        "created_at": (
+                            offset.created_at.isoformat() if offset.created_at else None
+                        ),
                     }
                 )
 
@@ -200,22 +204,10 @@ class WireSetCerts(MethodView):
         db = None
         try:
             db = SessionLocal()
-            certs = db.query(WireSetCert).all()
-
-            # Convert to dict format
-            result = []
-            for cert in certs:
-                result.append(
-                    {
-                        "id": cert.id,
-                        "serial_number": cert.serial_number,
-                        "wire_set_group": cert.wire_set_group,
-                        "created_at": cert.created_at.isoformat() if cert.created_at else None,
-                        "updated_at": cert.updated_at.isoformat() if cert.updated_at else None,
-                    }
-                )
-
-            return result
+            certs = db.query(
+                WireSetCert
+            ).all()  # Return the SQLAlchemy objects directly - Marshmallow will handle serialization
+            return certs
 
         except Exception as e:
             # Log the error and return 500
@@ -239,11 +231,8 @@ class WireSetCertsRefresh(MethodView):
         """
         Refresh wire set certificate data from SharePoint.
 
-        TODO: This endpoint should:
-        1. Download the latest WireSetCerts.xlsx from SharePoint
-        2. Parse the file to extract serial number -> wire set group mappings
-        3. Update the wire_set_certs table with new/changed data
-        4. Return a summary of the refresh operation
+        Downloads the latest WireSetCerts.xlsx from SharePoint, parses it to extract
+        serial number -> wire set group mappings, and updates the wire_set_certs table.
 
         **Returns**:
         - **dict**: Summary of refresh operation (records added/updated/errors)
@@ -253,20 +242,16 @@ class WireSetCertsRefresh(MethodView):
           - **500**: If there's an error during the refresh process
         """
         try:
-            # TODO: Implement wire set cert refresh logic
-            # from utils.wire_set_cert_refresher import refresh_wire_set_certs
-            # result = refresh_wire_set_certs()
-            
-            # Placeholder response
-            result = {
-                "status": "success",
-                "message": "Wire set certificate refresh not yet implemented",
-                "records_processed": 0,
-                "records_added": 0,
-                "records_updated": 0,
-                "errors": []
-            }
-            
+            from utils.wire_set_cert_refresher import refresh_wire_set_certs
+
+            # Execute the refresh operation
+            result = refresh_wire_set_certs()
+
+            # Log the operation result
+            import logging
+
+            logging.info(f"Wire set certificate refresh completed: {result}")
+
             return result
 
         except Exception as e:
@@ -276,4 +261,4 @@ class WireSetCertsRefresh(MethodView):
             logging.error(f"Error in wire-set-certs refresh: {e}")
             from flask_smorest import abort
 
-            abort(500, message="Internal server error")
+            abort(500, message=f"Refresh failed: {str(e)}")
