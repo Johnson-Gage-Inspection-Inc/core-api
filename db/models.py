@@ -1,5 +1,5 @@
 # db/models.py
-from sqlalchemy import Column, Integer, Numeric, Text, UniqueConstraint, DateTime, func
+from sqlalchemy import Column, DateTime, Integer, Numeric, Text, UniqueConstraint, func
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -59,8 +59,9 @@ class WireSetCert(Base):
     """
     Cached data from WireSetCerts.xlsx for mapping serial numbers to wire sets.
 
-    TODO: This table caches the WireSetCerts.xlsx data from SharePoint.
-    It maps individual wire serial numbers (like 'J201') to their wire set groups.
+    This table caches the complete WireSetCerts.xlsx data from SharePoint.
+    It maps individual wire serial numbers (like 'J201') to their wire set groups
+    and includes all certification metadata.
     Should be refreshed periodically or on-demand via API.
     """
 
@@ -69,14 +70,20 @@ class WireSetCert(Base):
     id = Column(Integer, primary_key=True)
     serial_number = Column(Text, nullable=False, unique=True)  # e.g. "J201"
     wire_set_group = Column(Text, nullable=False)  # e.g. "J201-J214"
-    # TODO: Add additional fields from WireSetCerts.xlsx as needed
-    # cert_date = Column(Date, nullable=True)
-    # cert_status = Column(Text, nullable=True)
-    # notes = Column(Text, nullable=True)
+
+    # Additional fields from WireSetCerts.xlsx
+    asset_id = Column(Integer, nullable=True)  # Asset ID number
+    asset_tag = Column(Text, nullable=True)  # Asset tag identifier
+    custom_order_number = Column(Text, nullable=True)  # Custom order number
+    service_date = Column(DateTime, nullable=True)  # Service date
+    next_service_date = Column(DateTime, nullable=True)  # Next service date
+    certificate_number = Column(Text, nullable=True)  # Certificate number
+    wire_roll_cert_number = Column(Text, nullable=True)  # Wire roll certificate number
+
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(
         DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
     def __repr__(self):
-        return f"<WireSetCert(serial_number='{self.serial_number}', wire_set_group='{self.wire_set_group}')>"
+        return f"<WireSetCert(serial_number='{self.serial_number}', wire_set_group='{self.wire_set_group}', asset_id={self.asset_id})>"

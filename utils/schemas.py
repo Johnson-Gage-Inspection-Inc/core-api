@@ -176,6 +176,16 @@ class WireSetCertSchema(Schema):
     id = fields.Integer(dump_only=True)
     serial_number = fields.String(required=True)
     wire_set_group = fields.String(required=True)
+
+    # Additional fields from WireSetCerts.xlsx
+    asset_id = fields.Integer(allow_none=True)
+    asset_tag = fields.String(allow_none=True)
+    custom_order_number = fields.String(allow_none=True)
+    service_date = fields.DateTime(allow_none=True)
+    next_service_date = fields.DateTime(allow_none=True)
+    certificate_number = fields.String(allow_none=True)
+    wire_roll_cert_number = fields.String(allow_none=True)
+
     created_at = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True)
 

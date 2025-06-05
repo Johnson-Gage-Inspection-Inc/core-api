@@ -159,50 +159,87 @@ class WireSetCertRefresher:
                     str(cell).strip().lower() if cell else "" for cell in headers_row
                 ]
 
-                self.logger.info(f"Sheet headers: {headers}")
+                self.logger.info(
+                    f"Sheet headers: {headers}"
+                )  # Find columns for all required fields
+                column_mapping = {}
 
-                # Find columns for serial number and wire set group
-                serial_col = None
-                group_col = None
+                # Define column keywords for each field
+                column_keywords = {
+                    "serial_number": [
+                        "serial",
+                        "serial_number",
+                        "serial number",
+                        "wire_serial",
+                        "wire serial",
+                    ],
+                    "wire_set_group": [
+                        "type",
+                        "group",
+                        "wire_set_group",
+                        "wire set group",
+                        "wire_set",
+                        "wire set",
+                    ],
+                    "asset_id": ["asset_id", "asset id", "assetid", "id"],
+                    "asset_tag": ["asset_tag", "asset tag", "assettag", "tag"],
+                    "custom_order_number": [
+                        "custom_order_number",
+                        "custom order number",
+                        "order_number",
+                        "order number",
+                        "custom_order",
+                        "custom order",
+                    ],
+                    "service_date": [
+                        "service_date",
+                        "service date",
+                        "servicedate",
+                        "calibration_date",
+                        "calibration date",
+                    ],
+                    "next_service_date": [
+                        "next_service_date",
+                        "next service date",
+                        "nextservicedate",
+                        "next_calibration",
+                        "next calibration",
+                    ],
+                    "certificate_number": [
+                        "certificate_number",
+                        "certificate number",
+                        "cert_number",
+                        "cert number",
+                        "certificate",
+                    ],
+                    "wire_roll_cert_number": [
+                        "wire_roll_cert_number",
+                        "wire roll cert number",
+                        "roll_cert",
+                        "roll cert",
+                        "wire_roll_certificate",
+                    ],
+                }
 
-                # Look for common column names for serial numbers
-                serial_keywords = [
-                    "serial",
-                    "serial_number",
-                    "serial number",
-                    "wire_serial",
-                    "wire serial",
-                ]
+                # Find column indices for each field
+                for field, keywords in column_keywords.items():
+                    for i, header in enumerate(headers):
+                        if any(keyword in header for keyword in keywords):
+                            column_mapping[field] = i
+                            break
 
-                for i, header in enumerate(headers):
-                    if any(keyword in header for keyword in serial_keywords):
-                        serial_col = i
-                        break
+                self.logger.info(f"Column mapping found: {column_mapping}")
 
-                # Look for common column names for wire set groups
-                group_keywords = [
-                    "type",  # This is the actual column name in WireSetCerts.xlsx
-                    "group",
-                    "wire_set_group",
-                    "wire set group",
-                    "wire_set",
-                    "wire set",
-                    "set_group",
-                    "set group",
-                ]
-                for i, header in enumerate(headers):
-                    if any(keyword in header for keyword in group_keywords):
-                        group_col = i
-                        break
-
-                if serial_col is None or group_col is None:
+                # Check if we have the required columns (serial_number and wire_set_group)
+                if (
+                    "serial_number" not in column_mapping
+                    or "wire_set_group" not in column_mapping
+                ):
                     self.logger.warning(
                         f"Could not find required columns in sheet '{sheet_name}'. "
-                        f"Serial column: {serial_col}, Group column: {group_col}"
+                        f"Found columns: {list(column_mapping.keys())}"
                     )
-                    continue
-
-                # Process data rows
+                    continue  # Process data rows
                 for row_num in range(2, sheet.max_row + 1):
                     try:
                         row_data = list(
@@ -211,28 +248,72 @@ class WireSetCertRefresher:
                             )
                         )[0]
 
-                        serial_number = (
-                            row_data[serial_col] if serial_col < len(row_data) else None
-                        )
-                        wire_set_group = (
-                            row_data[group_col] if group_col < len(row_data) else None
-                        )
+                        # Extract all fields using column mapping
+                        record = {}
 
-                        # Skip empty rows
-                        if not serial_number or not wire_set_group:
+                        for field, col_index in column_mapping.items():
+                            if col_index < len(row_data):
+                                value = row_data[col_index]
+
+                                # Handle different data types
+                                if field in ["service_date", "next_service_date"]:
+                                    # Handle datetime fields
+                                    if value:
+                                        from datetime import datetime
+
+                                        if isinstance(value, datetime):
+                                            record[field] = value
+                                        elif isinstance(value, str):
+                                            try:
+                                                # Try to parse string dates
+                                                record[field] = datetime.strptime(
+                                                    value.strip(), "%Y-%m-%d"
+                                                )
+                                            except ValueError:
+                                                try:
+                                                    record[field] = datetime.strptime(
+                                                        value.strip(), "%m/%d/%Y"
+                                                    )
+                                                except ValueError:
+                                                    record[field] = None
+                                        else:
+                                            record[field] = None
+                                    else:
+                                        record[field] = None
+
+                                elif field == "asset_id":
+                                    # Handle integer field
+                                    if value:
+                                        try:
+                                            record[field] = (
+                                                int(float(str(value).strip()))
+                                                if str(value).strip()
+                                                else None
+                                            )
+                                        except (ValueError, TypeError):
+                                            record[field] = None
+                                    else:
+                                        record[field] = None
+
+                                else:
+                                    # Handle string fields
+                                    if value:
+                                        record[field] = str(value).strip()
+                                    else:
+                                        record[field] = None
+
+                        # Skip rows without required fields
+                        if not record.get("serial_number") or not record.get(
+                            "wire_set_group"
+                        ):
                             continue
 
-                        # Clean up the values
-                        serial_number = str(serial_number).strip()
-                        wire_set_group = str(wire_set_group).strip()
+                        # Clean up required string values
+                        record["serial_number"] = record["serial_number"].strip()
+                        record["wire_set_group"] = record["wire_set_group"].strip()
 
-                        if serial_number and wire_set_group:
-                            mappings.append(
-                                {
-                                    "serial_number": serial_number,
-                                    "wire_set_group": wire_set_group,
-                                }
-                            )
+                        if record["serial_number"] and record["wire_set_group"]:
+                            mappings.append(record)
 
                     except (IndexError, TypeError) as e:
                         self.logger.warning(
@@ -277,9 +358,7 @@ class WireSetCertRefresher:
         try:
             # Start a transaction
             for mapping in mappings:
-                result["records_processed"] += 1
-
-                # Check if record already exists
+                result["records_processed"] += 1  # Check if record already exists
                 existing = (
                     self.session.query(WireSetCert)
                     .filter_by(serial_number=mapping["serial_number"])
@@ -287,19 +366,49 @@ class WireSetCertRefresher:
                 )
 
                 if existing:
-                    # Update existing record if the wire_set_group has changed
-                    if existing.wire_set_group != mapping["wire_set_group"]:
-                        existing.wire_set_group = mapping["wire_set_group"]
+                    # Update existing record if any field has changed
+                    updated = False
+
+                    # Check and update all fields
+                    fields_to_check = [
+                        "wire_set_group",
+                        "asset_id",
+                        "asset_tag",
+                        "custom_order_number",
+                        "service_date",
+                        "next_service_date",
+                        "certificate_number",
+                        "wire_roll_cert_number",
+                    ]
+
+                    for field in fields_to_check:
+                        new_value = mapping.get(field)
+                        current_value = getattr(existing, field, None)
+
+                        if new_value != current_value:
+                            setattr(existing, field, new_value)
+                            updated = True
+                            self.logger.debug(
+                                f"Updated {field} for serial {mapping['serial_number']}: "
+                                f"{current_value} -> {new_value}"
+                            )
+
+                    if updated:
                         result["records_updated"] += 1
-                        self.logger.info(
-                            f"Updated serial {mapping['serial_number']}: "
-                            f"{existing.wire_set_group} -> {mapping['wire_set_group']}"
-                        )
+                        self.logger.info(f"Updated serial {mapping['serial_number']}")
+
                 else:
-                    # Insert new record
+                    # Insert new record with all fields
                     new_cert = WireSetCert(
                         serial_number=mapping["serial_number"],
                         wire_set_group=mapping["wire_set_group"],
+                        asset_id=mapping.get("asset_id"),
+                        asset_tag=mapping.get("asset_tag"),
+                        custom_order_number=mapping.get("custom_order_number"),
+                        service_date=mapping.get("service_date"),
+                        next_service_date=mapping.get("next_service_date"),
+                        certificate_number=mapping.get("certificate_number"),
+                        wire_roll_cert_number=mapping.get("wire_roll_cert_number"),
                     )
                     self.session.add(new_cert)
                     result["records_added"] += 1

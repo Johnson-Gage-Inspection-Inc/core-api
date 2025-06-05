@@ -7,6 +7,7 @@ import pytest
 
 from db.models import WireOffset, WireSetCert
 from utils.database import SessionLocal
+from utils.wire_set_cert_refresher import WireSetCertRefresher
 
 
 class TestWireOffsetModel:
@@ -77,7 +78,7 @@ class TestWireSetCertModel:
         """Test WireSetCert string representation."""
         cert = WireSetCert(serial_number="J201", wire_set_group="J201-J214")
 
-        expected = "<WireSetCert(serial_number='J201', wire_set_group='J201-J214')>"
+        expected = "<WireSetCert(serial_number='J201', wire_set_group='J201-J214', asset_id=None)>"
         assert repr(cert) == expected
 
 
@@ -185,7 +186,8 @@ class TestWireOffsetsAPI:
                 data = response.get_json()
                 assert isinstance(data, list)
 
-                # If we have data, verify structure
+                # If we have data, verify structure including new fields
+
                 if data:
                     first_item = data[0]
                     assert "id" in first_item
@@ -193,6 +195,15 @@ class TestWireOffsetsAPI:
                     assert "wire_set_group" in first_item
                     assert "created_at" in first_item
                     assert "updated_at" in first_item
+
+                    # Check for new fields (may be None)
+                    assert "asset_id" in first_item
+                    assert "asset_tag" in first_item
+                    assert "custom_order_number" in first_item
+                    assert "service_date" in first_item
+                    assert "next_service_date" in first_item
+                    assert "certificate_number" in first_item
+                    assert "wire_roll_cert_number" in first_item
             finally:
                 # Restore the original view function
                 if endpoint_name and original_view_func:
@@ -295,3 +306,91 @@ class TestWireSetCertsParser:
         mappings = refresher._parse_wiresetcerts_excel(b"invalid excel data")
         assert mappings == [], "Invalid data should return empty list"
         assert mappings == [], "Invalid data should return empty list"
+
+    def test_parse_wiresetcerts_excel_complete_schema(self):
+        """Test parsing Excel with complete schema including all new fields."""
+        # Create a test Excel file with all columns
+        from datetime import datetime
+        from io import BytesIO
+
+        from openpyxl import Workbook
+
+        # Create workbook with complete schema
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "WireSetCerts"
+
+        # Add headers matching the complete schema
+        headers = [
+            "serial_number",
+            "type",
+            "asset_id",
+            "asset_tag",
+            "custom_order_number",
+            "service_date",
+            "next_service_date",
+            "certificate_number",
+            "wire_roll_cert_number",
+        ]
+        for col, header in enumerate(headers, 1):
+            ws.cell(row=1, column=col, value=header)
+
+        # Add test data
+        test_data = [
+            [
+                "J201",
+                "J201-J214",
+                12345,
+                "TAG001",
+                "ORD-2024-001",
+                datetime(2024, 1, 15),
+                datetime(2025, 1, 15),
+                "CERT-001",
+                "ROLL-001",
+            ],
+            [
+                "J202",
+                "J201-J214",
+                12346,
+                "TAG002",
+                "ORD-2024-002",
+                datetime(2024, 2, 15),
+                datetime(2025, 2, 15),
+                "CERT-002",
+                "ROLL-002",
+            ],
+        ]
+
+        for row, data in enumerate(test_data, 2):
+            for col, value in enumerate(data, 1):
+                ws.cell(row=row, column=col, value=value)
+
+        # Save to bytes
+        excel_buffer = BytesIO()
+        wb.save(excel_buffer)
+        excel_data = excel_buffer.getvalue()
+
+        # Parse the Excel data
+        refresher = WireSetCertRefresher()
+        mappings = refresher._parse_wiresetcerts_excel(excel_data)
+
+        # Assertions
+        assert len(mappings) == 2, "Should find 2 wire set mappings"
+
+        # Check first mapping has all fields
+        mapping = mappings[0]
+        assert mapping["serial_number"] == "J201"
+        assert mapping["wire_set_group"] == "J201-J214"
+        assert mapping["asset_id"] == 12345
+        assert mapping["asset_tag"] == "TAG001"
+        assert mapping["custom_order_number"] == "ORD-2024-001"
+        assert isinstance(mapping["service_date"], datetime)
+        assert isinstance(mapping["next_service_date"], datetime)
+        assert mapping["certificate_number"] == "CERT-001"
+        assert mapping["wire_roll_cert_number"] == "ROLL-001"
+
+        # Check second mapping
+        mapping2 = mappings[1]
+        assert mapping2["serial_number"] == "J202"
+        assert mapping2["asset_id"] == 12346
+        assert mapping2["asset_id"] == 12346
