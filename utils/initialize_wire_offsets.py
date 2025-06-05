@@ -8,14 +8,12 @@ and populates the wire_offsets table with all historical data.
 """
 
 import logging
-import os
 from typing import Any, Dict, List
 
 from sqlalchemy import text
 
 # Import config first to load environment variables
-import config
-from db.models import WireOffset
+import config  # noqa: F401
 from utils.database import SessionLocal
 from utils.wire_offset_refresher import refresh_wire_offsets
 

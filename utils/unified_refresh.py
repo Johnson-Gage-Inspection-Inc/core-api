@@ -4,8 +4,8 @@ Unified refresh system for detecting SharePoint file changes and triggering appr
 
 This module handles:
 1. WireSetCerts: Single file Pyro/WireSetCerts.xlsx
-2. WireOffsets: Wire certificate .xls files in Pyro_Standards matching regex ^\d{6}[A-Z0-9]{0,5}\.xls$  # noqa: W605
-3. DaqbookOffsets: DAQbook .xlsm files in Pyro_Standards matching ^(J[123]|K[456]|N2)_(0[1-9]|1[0-2])\d{2}\.xlsm$  # noqa: W605
+2. WireOffsets: Wire certificate .xls files in Pyro_Standards
+3. DaqbookOffsets: DAQbook .xlsm files in Pyro_Standards
 """
 
 import logging
