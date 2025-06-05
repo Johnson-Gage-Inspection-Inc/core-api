@@ -394,3 +394,50 @@ class TestWireSetCertsParser:
         assert mapping2["serial_number"] == "J202"
         assert mapping2["asset_id"] == 12346
         assert mapping2["asset_id"] == 12346
+
+
+class TestWireOffsetParsing:
+    """Test wire offset Excel parsing functionality."""
+
+    def test_parse_wire_offsets_072513A(self):
+        """Test parsing 072513A.xlsx matches expected 072513A_offsets.csv values."""
+        import csv
+        import os
+
+        from utils.wire_offset_parser import parse_wire_offsets_from_excel
+
+        # Get test data file paths
+        test_data_dir = os.path.join(os.path.dirname(__file__), "data")
+        excel_file = os.path.join(test_data_dir, "072513A.xlsx")
+        csv_file = os.path.join(test_data_dir, "072513A_offsets.csv")
+
+        # Parse expected results from CSV
+        expected_results = []
+        with open(csv_file, "r") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                expected_results.append(
+                    {
+                        "TraceabilityNo": row["TraceabilityNo"],
+                        "NominalTemp": float(row["NominalTemp"]),
+                        "CorrectionFactor": float(row["CorrectionFactor"]),
+                    }
+                )
+
+        # Parse actual results from Excel
+        actual_results = parse_wire_offsets_from_excel(excel_file)
+
+        # Assert results match
+        assert len(actual_results) == len(
+            expected_results
+        ), f"Expected {len(expected_results)} records, got {len(actual_results)}"
+
+        # Sort both lists for consistent comparison
+
+        expected_sorted = sorted(expected_results, key=lambda x: x["NominalTemp"])
+        actual_sorted = sorted(actual_results, key=lambda x: x["NominalTemp"])
+
+        for expected, actual in zip(expected_sorted, actual_sorted):
+            assert actual["TraceabilityNo"] == expected["TraceabilityNo"]
+            assert actual["NominalTemp"] == expected["NominalTemp"]
+            assert actual["CorrectionFactor"] == expected["CorrectionFactor"]
