@@ -150,6 +150,36 @@ class DaqbookOffsetSchema(Schema):
     )
 
 
+class WireOffsetSchema(Schema):
+    """Schema for wire offset measurements"""
+
+    class Meta:
+        unknown = EXCLUDE
+
+    id = fields.Integer(dump_only=True)
+    wirelot = fields.String(required=True)
+    block = fields.String(required=True)
+    col1 = fields.Decimal(allow_none=True)
+    col2 = fields.Decimal(allow_none=True)
+    col3 = fields.Decimal(allow_none=True)
+    col4 = fields.Decimal(allow_none=True)
+    col5 = fields.Decimal(allow_none=True)
+    created_at = fields.DateTime(dump_only=True)
+
+
+class WireSetCertSchema(Schema):
+    """Schema for wire set certificate mappings"""
+
+    class Meta:
+        unknown = EXCLUDE
+
+    id = fields.Integer(dump_only=True)
+    serial_number = fields.String(required=True)
+    wire_set_group = fields.String(required=True)
+    created_at = fields.DateTime(dump_only=True)
+    updated_at = fields.DateTime(dump_only=True)
+
+
 # SharePoint Integration Schemas
 class SharePointFileReferenceSchema(Schema):
     """Schema for SharePoint file reference responses."""
