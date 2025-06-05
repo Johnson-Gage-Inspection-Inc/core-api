@@ -158,20 +158,23 @@ class WireOffsetSchema(Schema):
 
     id = fields.Integer(dump_only=True)
     traceability_no = fields.String(
-        required=True, description="Wire lot identifier (e.g., '072513A')"
+        required=True, metadata={"description": "Wire lot identifier (e.g., '072513A')"}
     )
-    nominal_temp = fields.Decimal(required=True, description="Temperature in Celsius")
+    nominal_temp = fields.Decimal(
+        required=True, metadata={"description": "Temperature in Celsius"}
+    )
     correction_factor = fields.Decimal(
-        required=True, description="Wire correction factor"
+        required=True, metadata={"description": "Wire correction factor"}
     )
     created_at = fields.DateTime(
-        dump_only=True, description="When this record was created"
+        dump_only=True, metadata={"description": "When this record was created"}
     )
     updated_at = fields.DateTime(
-        dump_only=True, description="When this record was last updated"
+        dump_only=True, metadata={"description": "When this record was last updated"}
     )
     updated_by = fields.String(
-        allow_none=True, description="SharePoint user who last modified the source file"
+        allow_none=True,
+        metadata={"description": "SharePoint user who last modified the source file"},
     )
 
 
