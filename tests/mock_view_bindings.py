@@ -284,42 +284,27 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
             elif "FileSearch" in endpoint:
                 app.view_functions[endpoint] = mock_search_pyro_files
             elif "FolderContents" in endpoint:
-                app.view_functions[endpoint] = mock_list_pyro_folder_contents
+                app.view_functions[endpoint] = (
+                    mock_list_pyro_folder_contents  # Wire Offsets mock endpoints
+                )
 
-    # Wire Offsets mock endpoints
     def fake_wire_offsets():
         if resp := fake_auth_check():
             return resp
         # Return empty list since no data exists yet
         return []
 
-    def fake_wire_offsets_by_wirelot():
+    def fake_wire_offsets_by_wirelot(traceability_no):
         if resp := fake_auth_check():
-            return resp
-        # wirelot = request.view_args.get("wirelot") if request.view_args else None
+            return resp  # wirelot = request.view_args.get("wirelot") if request.view_args else None
         # Return empty list since no data exists yet
         return []
 
     def fake_wire_set_certs():
         if resp := fake_auth_check():
             return resp
-        # Return mock wire set cert data
-        return [
-            {
-                "id": 1,
-                "serial_number": "J201",
-                "wire_set_group": "J201-J214",
-                "created_at": "2025-06-04T12:00:00",
-                "updated_at": "2025-06-04T12:00:00",
-            },
-            {
-                "id": 2,
-                "serial_number": "J215",
-                "wire_set_group": "J215-J228",
-                "created_at": "2025-06-04T12:00:00",
-                "updated_at": "2025-06-04T12:00:00",
-            },
-        ]
+        # Return empty list since no data exists yet in mock mode
+        return []
 
     def fake_refresh_wire_set_certs():
         if resp := fake_auth_check():
@@ -359,8 +344,9 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
                     "errors": [],
                 },
             },
-        }  # Register wire offsets mock endpoints
+        }
 
+    # Register wire offsets mock endpoints
     wire_offset_endpoints = [
         "wire_offsets.WireOffsets",
         "wire_offsets.WireOffsetsByTraceabilityNo",
@@ -370,11 +356,14 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
 
     for endpoint in wire_offset_endpoints:
         if endpoint in app.view_functions:
-            if "WireOffsets" == endpoint:
+            if (
+                "WireOffsets" in endpoint
+                and "WireOffsetsByTraceabilityNo" not in endpoint
+            ):
                 app.view_functions[endpoint] = fake_wire_offsets
             elif "WireOffsetsByTraceabilityNo" in endpoint:
                 app.view_functions[endpoint] = fake_wire_offsets_by_wirelot
-            elif "WireSetCerts" == endpoint:
+            elif "WireSetCerts" in endpoint and "WireSetCertBySerial" not in endpoint:
                 app.view_functions[endpoint] = fake_wire_set_certs
             elif "WireSetCertBySerial" in endpoint:
                 # Mock for individual wire set cert lookup

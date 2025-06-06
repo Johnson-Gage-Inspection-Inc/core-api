@@ -136,9 +136,7 @@ class TestRefreshExcelData:
                     response = client.post(
                         "/refresh-excel-data/",
                         headers={"Authorization": f"Bearer {auth_token}"},
-                    )
-
-                    # Should return 500 for unhandled exception
+                    )  # Should return 500 for unhandled exception
                     assert response.status_code == 500
 
             finally:
@@ -147,12 +145,16 @@ class TestRefreshExcelData:
                         original_view_func
                     )
 
-    def test_refresh_excel_data_unauthorized(self, client):
+    def test_refresh_excel_data_no_auth(self, client):
         """Test unauthorized access to refresh endpoint."""
         response = client.post("/refresh-excel-data/")
 
         assert response.status_code == 401
 
+    @pytest.mark.skipif(
+        os.getenv("SKIP_AUTH", "false").lower() == "true",
+        reason="Auth validation tests skipped when SKIP_AUTH=true",
+    )
     def test_refresh_excel_data_invalid_token(self, client):
         """Test access with invalid token."""
         response = client.post(

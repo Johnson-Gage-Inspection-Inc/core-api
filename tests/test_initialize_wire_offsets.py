@@ -25,6 +25,7 @@ class TestWireOffsetsInitialization:
 
     def test_get_all_wire_certificate_files_success(self):
         """Test successful retrieval of wire certificate files from SharePoint."""
+
         mock_files = [
             {
                 "name": "Wire_Cert_001.xlsx",
@@ -48,10 +49,10 @@ class TestWireOffsetsInitialization:
             },  # Upper case extension
         ]
 
-        with patch("utils.initialize_wire_offsets.SharePointClient") as mock_sp_client:
-            mock_instance = MagicMock()
-            mock_instance.get_files_from_sharepoint.return_value = mock_files
-            mock_sp_client.return_value = mock_instance
+        with patch(
+            "utils.sharepoint_client.list_pyro_standards_excel_files"
+        ) as mock_list_files:
+            mock_list_files.return_value = mock_files
 
             result = get_all_wire_certificate_files()
 
@@ -64,12 +65,10 @@ class TestWireOffsetsInitialization:
 
     def test_get_all_wire_certificate_files_sharepoint_error(self):
         """Test handling of SharePoint connection errors."""
-        with patch("utils.initialize_wire_offsets.SharePointClient") as mock_sp_client:
-            mock_instance = MagicMock()
-            mock_instance.get_files_from_sharepoint.side_effect = Exception(
-                "SharePoint connection failed"
-            )
-            mock_sp_client.return_value = mock_instance
+        with patch(
+            "utils.sharepoint_client.list_pyro_standards_excel_files"
+        ) as mock_list_files:
+            mock_list_files.side_effect = Exception("SharePoint connection failed")
 
             with pytest.raises(Exception, match="SharePoint connection failed"):
                 get_all_wire_certificate_files()
