@@ -1,13 +1,14 @@
-from unittest.mock import Mock, patch
-
-from sqlalchemy.orm import Session
-
-from utils.wire_offset_refresher import refresh_wire_offsets
-
 # utils/test_wire_offset_refresher.py
 """
 Tests for wire_offset_refresher module.
 """
+
+from unittest.mock import Mock, patch
+
+import pytest
+from sqlalchemy.orm import Session
+
+from utils.wire_offset_refresher import refresh_wire_offsets
 
 
 class TestRefreshWireOffsets:
@@ -365,6 +366,7 @@ class TestRefreshWireOffsets:
         assert isinstance(result["records_updated"], int)
         assert isinstance(result["errors"], list)
 
+    @pytest.mark.skip(reason="Integration test requires real database setup")
     @patch("utils.wire_offset_refresher.os.path.exists")
     @patch("utils.wire_offset_refresher.SharePointClient")
     @patch("utils.wire_offset_refresher.parse_wire_offsets_from_excel")
@@ -469,4 +471,7 @@ class TestRefreshWireOffsets:
             # Clean up test data
             session.query(WireOffset).delete()
             session.commit()
+            session.close()
+            session.close()
+            session.close()
             session.close()
