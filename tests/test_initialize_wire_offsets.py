@@ -277,4 +277,3 @@ class TestWireOffsetsInitializationIntegration:
 
         finally:
             session.close()
-            session.close()

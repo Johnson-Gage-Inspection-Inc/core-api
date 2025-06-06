@@ -22,4 +22,3 @@ def test_pyro_assets_without_auth(client):
     response = client.get("/pyro-assets")
     assert response.status_code == 401
     assert response.text == "Unauthorized"
-    assert response.text == "Unauthorized"

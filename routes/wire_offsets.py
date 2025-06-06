@@ -281,4 +281,3 @@ class WireSetCertBySerial(MethodView):
         finally:
             if db:
                 db.close()
-                db.close()
