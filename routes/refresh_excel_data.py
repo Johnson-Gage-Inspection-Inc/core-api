@@ -8,6 +8,9 @@ This endpoint triggers a unified refresh of all Excel data categories:
 3. DaqbookOffsets (DAQbook files in Pyro_Standards)
 """
 
+import logging
+
+from flask import jsonify
 from flask.views import MethodView
 from flask_smorest import Blueprint
 
@@ -41,8 +44,16 @@ class ExcelRefresh(MethodView):
         """
         try:
             return refresh_all_updated_categories()
-        except Exception as e:
+        except Exception:
             # Return 500 error for unhandled exceptions
-            from flask import jsonify
 
-            return jsonify({"error": "Internal server error", "message": str(e)}), 500
+            logging.error("Unhandled exception occurred", exc_info=True)
+            return (
+                jsonify(
+                    {
+                        "error": "Internal server error",
+                        "message": "An internal error occurred.",
+                    }
+                ),
+                500,
+            )
