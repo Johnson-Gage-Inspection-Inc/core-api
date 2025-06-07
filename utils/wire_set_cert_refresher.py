@@ -576,16 +576,19 @@ class WireSetCertRefresher:
         ]
 
         for field_name in updatable_fields:
-            new_value = mapping.get(field_name)
-            current_value = getattr(existing, field_name, None)
+            # Only compare fields that are actually in the mapping
+            if field_name in mapping:
+                new_value = mapping.get(field_name)
+                current_value = getattr(existing, field_name, None)
 
-            if new_value != current_value:
-                setattr(existing, field_name, new_value)
-                updated = True
-                self.logger.debug(
-                    f"Updated {field_name} for serial {mapping['serial_number']}: "
-                    f"{current_value} -> {new_value}"
-                )
+                # Compare values and update if different
+                if new_value != current_value:
+                    setattr(existing, field_name, new_value)
+                    updated = True
+                    self.logger.debug(
+                        f"Updated {field_name} for serial {mapping['serial_number']}: "
+                        f"{current_value} -> {new_value}"
+                    )
 
         return updated
 
