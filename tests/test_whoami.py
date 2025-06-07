@@ -9,4 +9,5 @@ def test_whoami_with_auth(client, auth_token):
 def test_whoami_without_auth(client):
     response = client.get("/whoami")
     assert response.status_code == 401
-    assert response.text == "Unauthorized"
+    # Support both simple text and JSON format for Unauthorized message
+    assert "Unauthorized" in response.text

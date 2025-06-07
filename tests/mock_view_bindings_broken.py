@@ -268,13 +268,16 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
                 "lastModified": "2025-05-30T12:00:00Z",
                 "mimeType": None,  # Folder has no MIME type
             },
-        ]    # Register SharePoint mock endpoints (if they exist)
+        ]
+
+    # Register SharePoint mock endpoints (if they exist)
+
     sharepoint_endpoints = [
         "sharepoint.PyroFileReference",
         "sharepoint.PyroFileSearch",
         "sharepoint.PyroFolderContents",
     ]
-    
+
     for endpoint in sharepoint_endpoints:
         if endpoint in app.view_functions:
             if "FileReference" in endpoint:
@@ -309,6 +312,7 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
         # Mock single wire set cert lookup
         # Return 404 for any serial number in mock mode
         from flask_smorest import abort
+
         abort(404, message="Wire set certificate not found")
 
     def fake_refresh_wire_set_certs():
@@ -367,7 +371,8 @@ if os.getenv("SKIP_AUTH", "false").lower() == "true":
             ):
                 app.view_functions[endpoint] = fake_wire_offsets
             elif "WireOffsetsByTraceabilityNo" in endpoint:
-                app.view_functions[endpoint] = fake_wire_offsets_by_wirelot            elif "WireSetCerts" in endpoint and "WireSetCertBySerial" not in endpoint:
+                app.view_functions[endpoint] = fake_wire_offsets_by_wirelot
+            elif "WireSetCerts" in endpoint and "WireSetCertBySerial" not in endpoint:
                 app.view_functions[endpoint] = fake_wire_set_certs
             elif "WireSetCertBySerial" in endpoint:
                 # Mock for individual wire set cert lookup

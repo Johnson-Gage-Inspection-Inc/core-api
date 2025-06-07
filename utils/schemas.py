@@ -217,17 +217,28 @@ class WireSetCertSchema(Schema):
     serial_number = fields.String(required=True)
     wire_set_group = fields.String(required=True)
 
-    # Additional fields from WireSetCerts.xlsx
     asset_id = fields.Integer(allow_none=True)
     asset_tag = fields.String(allow_none=True)
     custom_order_number = fields.String(allow_none=True)
+
     service_date = fields.DateTime(allow_none=True)
     next_service_date = fields.DateTime(allow_none=True)
+
     certificate_number = fields.String(allow_none=True)
     wire_roll_cert_number = fields.String(allow_none=True)
 
     created_at = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True)
+
+    @pre_load
+    def normalize_dates(self, data, **kwargs):
+        for fld in ("service_date", "next_service_date"):
+            val = data.get(fld)
+            # pandas.Timestamp or numpy datetime64
+            if hasattr(val, "to_pydatetime"):
+                # Convert to ISO string: "2025-01-15T00:00:00"
+                data[fld] = val.to_pydatetime().isoformat()
+        return data
 
 
 # SharePoint Integration Schemas
@@ -304,5 +315,6 @@ class SharePointFileInfoSchema(Schema):
         parent = data.get("parentReference", {})
         data["driveId"] = parent.get("driveId")
         data["path"] = parent.get("path")
+        return data
         return data
         return data

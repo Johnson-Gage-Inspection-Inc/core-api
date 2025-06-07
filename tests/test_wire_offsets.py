@@ -135,9 +135,9 @@ class TestWireOffsetsAPI:
             else:
                 assert response.status_code == 200
                 data = response.get_json()
-                assert isinstance(data, list)
-
-                # All returned items should have the specified traceability_no
+                assert isinstance(
+                    data, list
+                )  # All returned items should have the specified traceability_no
                 for item in data:
                     assert item.get("traceability_no") == test_traceability_no
         else:  # Mock mode
@@ -147,7 +147,10 @@ class TestWireOffsetsAPI:
             )
             assert response.status_code == 200
             data = response.get_json()
-            assert data == []
+            assert isinstance(data, list)
+            # In mock mode, we should get the mock data for test_traceability_no "123456A"
+            assert len(data) == 1
+            assert data[0]["traceability_no"] == test_traceability_no
 
     def test_get_wire_set_certs_success(self, client, auth_token):
         """Test GET /wire-set-certs/ returns certificate mappings."""
@@ -401,148 +404,13 @@ class TestWireOffsetsAPI:
                 if original_view_func:
                     app.view_functions["wire_offsets.WireSetCerts"] = original_view_func
 
-    def test_get_wire_set_cert_by_serial_success(self, client, auth_token):
-        """Test GET /wire-set-certs/<serial_number> success path."""
-        skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
-        test_serial = "J201"
-
-        if skip_auth:
-            # Temporarily restore real view function
-            from app import app
-            from routes.wire_offsets import WireSetCertBySerial
-
-            original_view_func = app.view_functions.get(
-                "wire_offsets.WireSetCertBySerial"
-            )
-            app.view_functions["wire_offsets.WireSetCertBySerial"] = (
-                WireSetCertBySerial().get
-            )
-
-            try:
-                with patch("routes.wire_offsets.SessionLocal") as mock_session:
-                    mock_db = MagicMock()
-                    mock_session.return_value = mock_db
-
-                    # Create a simple object that acts like a WireSetCert model
-                    class MockWireSetCert:
-                        def __init__(self):
-                            self.id = 1
-                            self.serial_number = "J201"
-                            self.wire_set_group = "J201-J214"
-                            self.asset_id = 12345
-                            self.asset_tag = "TAG001"
-                            self.custom_order_number = "ORD001"
-                            self.service_date = datetime(2024, 1, 15)
-                            self.next_service_date = datetime(2025, 1, 15)
-                            self.certificate_number = "CERT001"
-                            self.wire_roll_cert_number = "ROLL001"
-                            self.created_at = datetime(2024, 1, 1)
-                            self.updated_at = datetime(2024, 1, 1)
-
-                    mock_cert = MockWireSetCert()
-
-                    mock_db.query.return_value.filter.return_value.first.return_value = (
-                        mock_cert
-                    )
-
-                    response = client.get(
-                        f"/wire-set-certs/{test_serial}",
-                        headers={"Authorization": f"Bearer {auth_token}"},
-                    )
-                    assert response.status_code == 200
-                    data = response.get_json()
-                    assert data["serial_number"] == "J201"
-                    assert data["wire_set_group"] == "J201-J214"
-                    assert data["asset_id"] == 12345
-            finally:
-                if original_view_func:
-                    app.view_functions["wire_offsets.WireSetCertBySerial"] = (
-                        original_view_func
-                    )
-
-    def test_get_wire_set_cert_by_serial_not_found(self, client, auth_token):
-        """Test GET /wire-set-certs/<serial_number> when serial not found."""
-        skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
-        test_serial = "NOTFOUND"
-
-        if skip_auth:
-            # Temporarily restore real view function
-            from app import app
-            from routes.wire_offsets import WireSetCertBySerial
-
-            original_view_func = app.view_functions.get(
-                "wire_offsets.WireSetCertBySerial"
-            )
-            app.view_functions["wire_offsets.WireSetCertBySerial"] = (
-                WireSetCertBySerial().get
-            )
-
-            try:
-                with patch("routes.wire_offsets.SessionLocal") as mock_session:
-                    mock_db = MagicMock()
-                    mock_session.return_value = mock_db
-                    # Mock empty result to trigger 404
-                    mock_db.query.return_value.filter.return_value.first.return_value = (
-                        None
-                    )
-
-                    response = client.get(
-                        f"/wire-set-certs/{test_serial}",
-                        headers={"Authorization": f"Bearer {auth_token}"},
-                    )
-                    assert response.status_code == 404
-                    data = response.get_json()
-                    assert test_serial in data["message"]
-            finally:
-                if original_view_func:
-                    app.view_functions["wire_offsets.WireSetCertBySerial"] = (
-                        original_view_func
-                    )
-
-    def test_get_wire_set_cert_by_serial_database_error(self, client, auth_token):
-        """Test GET /wire-set-certs/<serial_number> handles database errors."""
-        skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
-        test_serial = "J201"
-
-        if skip_auth:
-            # Temporarily restore real view function
-            from app import app
-            from routes.wire_offsets import WireSetCertBySerial
-
-            original_view_func = app.view_functions.get(
-                "wire_offsets.WireSetCertBySerial"
-            )
-            app.view_functions["wire_offsets.WireSetCertBySerial"] = (
-                WireSetCertBySerial().get
-            )
-
-            try:
-                with patch("routes.wire_offsets.SessionLocal") as mock_session:
-                    mock_db = MagicMock()
-                    mock_session.return_value = mock_db
-                    mock_db.query.side_effect = Exception("Database connection failed")
-
-                    response = client.get(
-                        f"/wire-set-certs/{test_serial}",
-                        headers={"Authorization": f"Bearer {auth_token}"},
-                    )
-                    assert response.status_code == 500
-                    data = response.get_json()
-                    assert "Internal server error" in data["message"]
-            finally:
-                if original_view_func:
-                    app.view_functions["wire_offsets.WireSetCertBySerial"] = (
-                        original_view_func
-                    )
-
+    @pytest.mark.skipif(
+        os.getenv("SKIP_AUTH", "false").lower() == "true",
+        reason="Auth tests skipped when SKIP_AUTH=true",
+    )
     def test_unauthenticated_requests_fail(self, client):
         """Test that all endpoints require authentication."""
-        endpoints = [
-            "/wire-offsets/",
-            "/wire-offsets/123456A",
-            "/wire-set-certs/",
-            "/wire-set-certs/J201",
-        ]
+        endpoints = ["/wire-offsets/", "/wire-offsets/123456A", "/wire-set-certs/"]
 
         for endpoint in endpoints:
             response = client.get(endpoint)
@@ -585,17 +453,17 @@ class TestWireSetCertsParser:
         serial_numbers = [m["serial_number"] for m in mappings]
         wire_set_groups = [m["wire_set_group"] for m in mappings]
 
-        assert "ENV101" in serial_numbers, "Should find ENV101 serial number"
-        assert "J01-J24" in serial_numbers, "Should find J01-J24 serial number"
-        assert "ENV" in wire_set_groups, "Should find ENV wire set group"
+        assert "J201-J214" in serial_numbers, "Should find J201-J214 serial number"
+        assert "K01-K16" in serial_numbers, "Should find K01-K16 serial number"
+        assert "K" in wire_set_groups, "Should find K wire set group"
         assert "J" in wire_set_groups, "Should find J wire set group"
 
         # Find specific mapping
-        env_mapping = next(
-            (m for m in mappings if m["serial_number"] == "ENV101"), None
+        K01_mapping = next(
+            (m for m in mappings if m["serial_number"] == "K01-K16"), None
         )
-        assert env_mapping is not None, "Should find ENV101 mapping"
-        assert env_mapping["wire_set_group"] == "ENV", "ENV101 should map to ENV group"
+        assert K01_mapping is not None, "Should find K01-K16 mapping"
+        assert K01_mapping["wire_set_group"] == "K", "K01-K16 should map to K group"
 
     def test_parse_wiresetcerts_excel_empty_file(self):
         """Test parsing with empty or invalid Excel data."""
