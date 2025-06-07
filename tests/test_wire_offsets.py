@@ -1,6 +1,7 @@
 # tests/test_wire_offsets.py
 import os
 from datetime import datetime
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -239,6 +240,313 @@ class TestWireOffsetsAPI:
             # In mock mode, we might get 404 if the endpoint isn't mocked yet
             # This is acceptable for now
             assert response.status_code in [200, 404]
+
+    def test_get_wire_offsets_database_error(self, client, auth_token):
+        """Test GET /wire-offsets/ handles database errors properly."""
+        skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
+
+        if skip_auth:
+            # Temporarily restore real view function to test error handling
+            from app import app
+            from routes.wire_offsets import WireOffsets
+
+            original_view_func = app.view_functions.get("wire_offsets.WireOffsets")
+            app.view_functions["wire_offsets.WireOffsets"] = WireOffsets().get
+
+            try:
+                with patch("routes.wire_offsets.SessionLocal") as mock_session:
+                    mock_db = MagicMock()
+                    mock_session.return_value = mock_db
+                    mock_db.execute.side_effect = Exception(
+                        "Database connection failed"
+                    )
+
+                    response = client.get(
+                        "/wire-offsets/",
+                        headers={"Authorization": f"Bearer {auth_token}"},
+                    )
+                    assert response.status_code == 500
+                    data = response.get_json()
+                    assert "Internal server error" in data["message"]
+            finally:
+                if original_view_func:
+                    app.view_functions["wire_offsets.WireOffsets"] = original_view_func
+        else:
+            # In production mode, we can test with mocked database
+            with patch("routes.wire_offsets.SessionLocal") as mock_session:
+                mock_db = MagicMock()
+                mock_session.return_value = mock_db
+                mock_db.execute.side_effect = Exception("Database connection failed")
+
+                response = client.get(
+                    "/wire-offsets/", headers={"Authorization": f"Bearer {auth_token}"}
+                )
+                assert response.status_code == 500
+
+    def test_get_wire_offsets_by_traceability_database_error(self, client, auth_token):
+        """Test GET /wire-offsets/<traceability_no> handles database errors properly."""
+        skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
+        test_traceability_no = "123456A"
+
+        if skip_auth:
+            # Temporarily restore real view function to test error handling
+            from app import app
+            from routes.wire_offsets import WireOffsetsByTraceabilityNo
+
+            original_view_func = app.view_functions.get(
+                "wire_offsets.WireOffsetsByTraceabilityNo"
+            )
+            app.view_functions["wire_offsets.WireOffsetsByTraceabilityNo"] = (
+                WireOffsetsByTraceabilityNo().get
+            )
+
+            try:
+                with patch("routes.wire_offsets.SessionLocal") as mock_session:
+                    mock_db = MagicMock()
+                    mock_session.return_value = mock_db
+                    mock_db.execute.side_effect = Exception(
+                        "Database connection failed"
+                    )
+
+                    response = client.get(
+                        f"/wire-offsets/{test_traceability_no}",
+                        headers={"Authorization": f"Bearer {auth_token}"},
+                    )
+                    assert response.status_code == 500
+                    data = response.get_json()
+                    assert "Internal server error" in data["message"]
+            finally:
+                if original_view_func:
+                    app.view_functions["wire_offsets.WireOffsetsByTraceabilityNo"] = (
+                        original_view_func
+                    )
+        else:
+            # In production mode, we can test with mocked database
+            with patch("routes.wire_offsets.SessionLocal") as mock_session:
+                mock_db = MagicMock()
+                mock_session.return_value = mock_db
+                mock_db.execute.side_effect = Exception("Database connection failed")
+
+                response = client.get(
+                    f"/wire-offsets/{test_traceability_no}",
+                    headers={"Authorization": f"Bearer {auth_token}"},
+                )
+                assert response.status_code == 500
+
+    def test_get_wire_offsets_by_traceability_not_found_preserves_abort(
+        self, client, auth_token
+    ):
+        """Test that 404 abort exceptions are properly re-raised."""
+        skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
+        test_traceability_no = "NOTFOUND"
+
+        if skip_auth:
+            # Temporarily restore real view function
+            from app import app
+            from routes.wire_offsets import WireOffsetsByTraceabilityNo
+
+            original_view_func = app.view_functions.get(
+                "wire_offsets.WireOffsetsByTraceabilityNo"
+            )
+            app.view_functions["wire_offsets.WireOffsetsByTraceabilityNo"] = (
+                WireOffsetsByTraceabilityNo().get
+            )
+
+            try:
+                with patch("routes.wire_offsets.SessionLocal") as mock_session:
+                    mock_db = MagicMock()
+                    mock_session.return_value = mock_db
+                    # Mock empty result to trigger 404
+                    mock_db.execute.return_value.fetchall.return_value = []
+
+                    response = client.get(
+                        f"/wire-offsets/{test_traceability_no}",
+                        headers={"Authorization": f"Bearer {auth_token}"},
+                    )
+                    assert response.status_code == 404
+                    data = response.get_json()
+                    assert test_traceability_no in data["message"]
+            finally:
+                if original_view_func:
+                    app.view_functions["wire_offsets.WireOffsetsByTraceabilityNo"] = (
+                        original_view_func
+                    )
+
+    def test_get_wire_set_certs_database_error(self, client, auth_token):
+        """Test GET /wire-set-certs/ handles database errors properly."""
+        skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
+
+        if skip_auth:
+            # Temporarily restore real view function
+            from app import app
+            from routes.wire_offsets import WireSetCerts
+
+            original_view_func = app.view_functions.get("wire_offsets.WireSetCerts")
+            app.view_functions["wire_offsets.WireSetCerts"] = WireSetCerts().get
+
+            try:
+                with patch("routes.wire_offsets.SessionLocal") as mock_session:
+                    mock_db = MagicMock()
+                    mock_session.return_value = mock_db
+                    mock_db.query.side_effect = Exception("Database connection failed")
+
+                    response = client.get(
+                        "/wire-set-certs/",
+                        headers={"Authorization": f"Bearer {auth_token}"},
+                    )
+                    assert response.status_code == 500
+                    data = response.get_json()
+                    assert "Internal server error" in data["message"]
+            finally:
+                if original_view_func:
+                    app.view_functions["wire_offsets.WireSetCerts"] = original_view_func
+
+    def test_get_wire_set_cert_by_serial_success(self, client, auth_token):
+        """Test GET /wire-set-certs/<serial_number> success path."""
+        skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
+        test_serial = "J201"
+
+        if skip_auth:
+            # Temporarily restore real view function
+            from app import app
+            from routes.wire_offsets import WireSetCertBySerial
+
+            original_view_func = app.view_functions.get(
+                "wire_offsets.WireSetCertBySerial"
+            )
+            app.view_functions["wire_offsets.WireSetCertBySerial"] = (
+                WireSetCertBySerial().get
+            )
+
+            try:
+                with patch("routes.wire_offsets.SessionLocal") as mock_session:
+                    mock_db = MagicMock()
+                    mock_session.return_value = mock_db
+
+                    # Create a simple object that acts like a WireSetCert model
+                    class MockWireSetCert:
+                        def __init__(self):
+                            self.id = 1
+                            self.serial_number = "J201"
+                            self.wire_set_group = "J201-J214"
+                            self.asset_id = 12345
+                            self.asset_tag = "TAG001"
+                            self.custom_order_number = "ORD001"
+                            self.service_date = datetime(2024, 1, 15)
+                            self.next_service_date = datetime(2025, 1, 15)
+                            self.certificate_number = "CERT001"
+                            self.wire_roll_cert_number = "ROLL001"
+                            self.created_at = datetime(2024, 1, 1)
+                            self.updated_at = datetime(2024, 1, 1)
+
+                    mock_cert = MockWireSetCert()
+
+                    mock_db.query.return_value.filter.return_value.first.return_value = (
+                        mock_cert
+                    )
+
+                    response = client.get(
+                        f"/wire-set-certs/{test_serial}",
+                        headers={"Authorization": f"Bearer {auth_token}"},
+                    )
+                    assert response.status_code == 200
+                    data = response.get_json()
+                    assert data["serial_number"] == "J201"
+                    assert data["wire_set_group"] == "J201-J214"
+                    assert data["asset_id"] == 12345
+            finally:
+                if original_view_func:
+                    app.view_functions["wire_offsets.WireSetCertBySerial"] = (
+                        original_view_func
+                    )
+
+    def test_get_wire_set_cert_by_serial_not_found(self, client, auth_token):
+        """Test GET /wire-set-certs/<serial_number> when serial not found."""
+        skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
+        test_serial = "NOTFOUND"
+
+        if skip_auth:
+            # Temporarily restore real view function
+            from app import app
+            from routes.wire_offsets import WireSetCertBySerial
+
+            original_view_func = app.view_functions.get(
+                "wire_offsets.WireSetCertBySerial"
+            )
+            app.view_functions["wire_offsets.WireSetCertBySerial"] = (
+                WireSetCertBySerial().get
+            )
+
+            try:
+                with patch("routes.wire_offsets.SessionLocal") as mock_session:
+                    mock_db = MagicMock()
+                    mock_session.return_value = mock_db
+                    # Mock empty result to trigger 404
+                    mock_db.query.return_value.filter.return_value.first.return_value = (
+                        None
+                    )
+
+                    response = client.get(
+                        f"/wire-set-certs/{test_serial}",
+                        headers={"Authorization": f"Bearer {auth_token}"},
+                    )
+                    assert response.status_code == 404
+                    data = response.get_json()
+                    assert test_serial in data["message"]
+            finally:
+                if original_view_func:
+                    app.view_functions["wire_offsets.WireSetCertBySerial"] = (
+                        original_view_func
+                    )
+
+    def test_get_wire_set_cert_by_serial_database_error(self, client, auth_token):
+        """Test GET /wire-set-certs/<serial_number> handles database errors."""
+        skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
+        test_serial = "J201"
+
+        if skip_auth:
+            # Temporarily restore real view function
+            from app import app
+            from routes.wire_offsets import WireSetCertBySerial
+
+            original_view_func = app.view_functions.get(
+                "wire_offsets.WireSetCertBySerial"
+            )
+            app.view_functions["wire_offsets.WireSetCertBySerial"] = (
+                WireSetCertBySerial().get
+            )
+
+            try:
+                with patch("routes.wire_offsets.SessionLocal") as mock_session:
+                    mock_db = MagicMock()
+                    mock_session.return_value = mock_db
+                    mock_db.query.side_effect = Exception("Database connection failed")
+
+                    response = client.get(
+                        f"/wire-set-certs/{test_serial}",
+                        headers={"Authorization": f"Bearer {auth_token}"},
+                    )
+                    assert response.status_code == 500
+                    data = response.get_json()
+                    assert "Internal server error" in data["message"]
+            finally:
+                if original_view_func:
+                    app.view_functions["wire_offsets.WireSetCertBySerial"] = (
+                        original_view_func
+                    )
+
+    def test_unauthenticated_requests_fail(self, client):
+        """Test that all endpoints require authentication."""
+        endpoints = [
+            "/wire-offsets/",
+            "/wire-offsets/123456A",
+            "/wire-set-certs/",
+            "/wire-set-certs/J201",
+        ]
+
+        for endpoint in endpoints:
+            response = client.get(endpoint)
+            assert response.status_code == 401
 
     # TODO: Add tests for authentication failures
     # TODO: Add tests for database error handling

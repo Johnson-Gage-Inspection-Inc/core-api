@@ -1,3 +1,6 @@
+from dataclasses import dataclass, field
+from typing import List
+
 from marshmallow import EXCLUDE, Schema, fields, pre_load
 from qualer_sdk.models.qualer_api_models_asset_service_records_to_asset_service_record_response_model import (
     QualerApiModelsAssetServiceRecordsToAssetServiceRecordResponseModel,
@@ -178,6 +181,32 @@ class WireOffsetSchema(Schema):
     )
 
 
+@dataclass
+class WireSetCertResult:
+    """Data class to hold the result of the refresh operation."""
+
+    status: str
+    message: str = ""
+    records_processed: int = 0
+    records_added: int = 0
+    records_updated: int = 0
+    errors: List[str] = field(default_factory=list)
+
+    def update(self, other: "WireSetCertResult"):
+        """
+        Update this result with another WireSetCertResult.
+
+        Args:
+            other: Another WireSetCertResult to merge into this one
+        """
+        self.status = other.status
+        self.message = other.message
+        self.records_processed += other.records_processed
+        self.records_added += other.records_added
+        self.records_updated += other.records_updated
+        self.errors.extend(other.errors)
+
+
 class WireSetCertSchema(Schema):
     """Schema for wire set certificate mappings"""
 
@@ -275,4 +304,5 @@ class SharePointFileInfoSchema(Schema):
         parent = data.get("parentReference", {})
         data["driveId"] = parent.get("driveId")
         data["path"] = parent.get("path")
+        return data
         return data

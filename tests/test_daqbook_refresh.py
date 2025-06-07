@@ -122,7 +122,7 @@ def test_refresh_daqbook_offsets_upserts(monkeypatch, db_session):
     assert float(stored.reading) == 0.123
 
 
-@pytest.mark.integration  # FIXME: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+@pytest.mark.integration
 def test_refresh_daqbook_offsets_inserts_multiple_unique_daqbooks(
     monkeypatch, db_session
 ):

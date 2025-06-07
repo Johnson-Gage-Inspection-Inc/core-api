@@ -246,29 +246,8 @@ class WireSetCertBySerial(MethodView):
                     message=f"No wire set cert found for serial number: {serial_number}",
                 )
 
-            # Convert to dict format
-            result = {
-                "id": cert.id,
-                "serial_number": cert.serial_number,
-                "wire_set_group": cert.wire_set_group,
-                "asset_id": cert.asset_id,
-                "asset_tag": cert.asset_tag,
-                "custom_order_number": cert.custom_order_number,
-                "service_date": (
-                    cert.service_date.isoformat() if cert.service_date else None
-                ),
-                "next_service_date": (
-                    cert.next_service_date.isoformat()
-                    if cert.next_service_date
-                    else None
-                ),
-                "certificate_number": cert.certificate_number,
-                "wire_roll_cert_number": cert.wire_roll_cert_number,
-                "created_at": cert.created_at.isoformat() if cert.created_at else None,
-                "updated_at": cert.updated_at.isoformat() if cert.updated_at else None,
-            }
-
-            return result
+            # Return the SQLAlchemy object directly - Marshmallow will handle serialization
+            return cert
 
         except Exception as e:
             # Log the error and return 500

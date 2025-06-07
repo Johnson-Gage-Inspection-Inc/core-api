@@ -10,12 +10,14 @@ TODO: This module should handle:
 """
 
 import logging
-from typing import Dict, List, Optional
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
 from db.models import WireSetCert
 from utils.database import SessionLocal
+from utils.schemas import WireSetCertResult, WireSetCertSchema
 from utils.sharepoint_client import SharePointClient
 
 
@@ -37,37 +39,37 @@ class WireSetCertRefresher:
         self.pyro_folder_path = "Shared Documents/Pyro"  # TODO: Verify this path
         self.wiresetcerts_filename = "WireSetCerts.xlsx"
 
-    def refresh_wire_set_certs(self) -> Dict:
+    def refresh_wire_set_certs(self) -> WireSetCertResult:
         """
         Refresh wire set certificate data from SharePoint.
 
         Returns:
             Dict containing refresh operation results
         """
-        result = {
-            "status": "success",
-            "message": "",
-            "records_processed": 0,
-            "records_added": 0,
-            "records_updated": 0,
-            "errors": [],
-        }
+        result = WireSetCertResult(
+            status="success",
+            message="",
+            records_processed=0,
+            records_added=0,
+            records_updated=0,
+            errors=[],
+        )
 
         try:
             # Download the Excel file from SharePoint
             excel_data = self._download_wiresetcerts_file()
 
             if not excel_data:
-                result["status"] = "error"
-                result["message"] = "Failed to download WireSetCerts.xlsx"
+                result.status = "error"
+                result.message = "Failed to download WireSetCerts.xlsx"
                 return result
 
             # Parse the Excel file
             wire_set_mappings = self._parse_wiresetcerts_excel(excel_data)
 
             if not wire_set_mappings:
-                result["status"] = "warning"
-                result["message"] = "No wire set mappings found in file"
+                result.status = "warning"
+                result.message = "No wire set mappings found in file"
                 return result
 
             # Update the database
@@ -78,9 +80,9 @@ class WireSetCertRefresher:
 
         except Exception as e:
             self.logger.error(f"Error during wire set cert refresh: {e}")
-            result["status"] = "error"
-            result["message"] = f"Refresh failed: {str(e)}"
-            result["errors"].append(str(e))
+            result.status = "error"
+            result.message = f"Refresh failed: {str(e)}"
+            result.errors.append(str(e))
 
         return result
 
@@ -138,7 +140,7 @@ class WireSetCertRefresher:
                 f"Successfully loaded Excel file with sheets: {workbook.sheetnames}"
             )
 
-            mappings = []
+            mappings: List[Dict[str, Any]] = []
 
             # Process each sheet in the workbook
             for sheet_name in workbook.sheetnames:
@@ -222,10 +224,10 @@ class WireSetCertRefresher:
                 }
 
                 # Find column indices for each field
-                for field, keywords in column_keywords.items():
+                for field_, keywords in column_keywords.items():
                     for i, header in enumerate(headers):
                         if any(keyword in header for keyword in keywords):
-                            column_mapping[field] = i
+                            column_mapping[field_] = i
                             break
 
                 self.logger.info(f"Column mapping found: {column_mapping}")
@@ -249,58 +251,10 @@ class WireSetCertRefresher:
                         )[0]
 
                         # Extract all fields using column mapping
-                        record = {}
+                        record: Dict[str, Any] = {}
 
-                        for field, col_index in column_mapping.items():
-                            if col_index < len(row_data):
-                                value = row_data[col_index]
-
-                                # Handle different data types
-                                if field in ["service_date", "next_service_date"]:
-                                    # Handle datetime fields
-                                    if value:
-                                        from datetime import datetime
-
-                                        if isinstance(value, datetime):
-                                            record[field] = value
-                                        elif isinstance(value, str):
-                                            try:
-                                                # Try to parse string dates
-                                                record[field] = datetime.strptime(
-                                                    value.strip(), "%Y-%m-%d"
-                                                )
-                                            except ValueError:
-                                                try:
-                                                    record[field] = datetime.strptime(
-                                                        value.strip(), "%m/%d/%Y"
-                                                    )
-                                                except ValueError:
-                                                    record[field] = None
-                                        else:
-                                            record[field] = None
-                                    else:
-                                        record[field] = None
-
-                                elif field == "asset_id":
-                                    # Handle integer field
-                                    if value:
-                                        try:
-                                            record[field] = (
-                                                int(float(str(value).strip()))
-                                                if str(value).strip()
-                                                else None
-                                            )
-                                        except (ValueError, TypeError):
-                                            record[field] = None
-                                    else:
-                                        record[field] = None
-
-                                else:
-                                    # Handle string fields
-                                    if value:
-                                        record[field] = str(value).strip()
-                                    else:
-                                        record[field] = None
+                        for field_, col_index in column_mapping.items():
+                            self.map_field_value(field_, row_data, record, col_index)
 
                         # Skip rows without required fields
                         if not record.get("serial_number") or not record.get(
@@ -338,7 +292,56 @@ class WireSetCertRefresher:
             self.logger.error(f"Error parsing WireSetCerts.xlsx: {e}")
             return []
 
-    def _update_wire_set_certs_table(self, mappings: List[Dict]) -> Dict:
+    def map_field_value(self, field_, row_data, record, col_index):
+        if col_index < len(row_data):
+            value = row_data[col_index]
+
+            # Handle different data types
+            if field_ in ["service_date", "next_service_date"]:
+                # Handle datetime fields
+                if value:
+                    if isinstance(value, datetime):
+                        record[field_] = value
+                    elif isinstance(value, str):
+                        try:
+                            # Try to parse string dates
+                            record[field_] = datetime.strptime(
+                                value.strip(), "%Y-%m-%d"
+                            )
+                        except ValueError:
+                            try:
+                                record[field_] = datetime.strptime(
+                                    value.strip(), "%m/%d/%Y"
+                                )
+                            except ValueError:
+                                record[field_] = None
+                    else:
+                        record[field_] = None
+                else:
+                    record[field_] = None
+
+            elif field_ == "asset_id":
+                # Handle integer field
+                if value:
+                    try:
+                        record[field_] = (
+                            int(float(str(value).strip()))
+                            if str(value).strip()
+                            else None
+                        )
+                    except (ValueError, TypeError):
+                        record[field_] = None
+                else:
+                    record[field_] = None
+
+            else:
+                # Handle string fields
+                if value:
+                    record[field_] = str(value).strip()
+                else:
+                    record[field_] = None
+
+    def _update_wire_set_certs_table(self, mappings: List[Dict]) -> WireSetCertResult:
         """
         Update the wire_set_certs table with new mappings.
 
@@ -348,17 +351,19 @@ class WireSetCertRefresher:
         Returns:
             Dict with update statistics
         """
-        result = {
-            "records_processed": 0,
-            "records_added": 0,
-            "records_updated": 0,
-            "errors": [],
-        }
+        result = WireSetCertResult(
+            status="success",
+            message="",
+            records_processed=0,
+            records_added=0,
+            records_updated=0,
+            errors=[],
+        )
 
         try:
             # Start a transaction
             for mapping in mappings:
-                result["records_processed"] += 1  # Check if record already exists
+                result.records_processed += 1  # Check if record already exists
                 existing = (
                     self.session.query(WireSetCert)
                     .filter_by(serial_number=mapping["serial_number"])
@@ -381,20 +386,20 @@ class WireSetCertRefresher:
                         "wire_roll_cert_number",
                     ]
 
-                    for field in fields_to_check:
-                        new_value = mapping.get(field)
-                        current_value = getattr(existing, field, None)
+                    for field_ in fields_to_check:
+                        new_value = mapping.get(field_)
+                        current_value = getattr(existing, field_, None)
 
                         if new_value != current_value:
-                            setattr(existing, field, new_value)
+                            setattr(existing, field_, new_value)
                             updated = True
                             self.logger.debug(
-                                f"Updated {field} for serial {mapping['serial_number']}: "
+                                f"Updated {field_} for serial {mapping['serial_number']}: "
                                 f"{current_value} -> {new_value}"
                             )
 
                     if updated:
-                        result["records_updated"] += 1
+                        result.records_updated += 1
                         self.logger.info(f"Updated serial {mapping['serial_number']}")
 
                 else:
@@ -411,7 +416,7 @@ class WireSetCertRefresher:
                         wire_roll_cert_number=mapping.get("wire_roll_cert_number"),
                     )
                     self.session.add(new_cert)
-                    result["records_added"] += 1
+                    result.records_added += 1
                     self.logger.info(
                         f"Added new serial {mapping['serial_number']}: {mapping['wire_set_group']}"
                     )
@@ -420,22 +425,22 @@ class WireSetCertRefresher:
             self.session.commit()
 
             self.logger.info(
-                f"Database update completed: "
-                f"{result['records_added']} added, "
-                f"{result['records_updated']} updated, "
-                f"{result['records_processed']} processed"
+                "Database update completed: "
+                f"{result.records_added} added, "
+                f"{result.records_updated} updated, "
+                f"{result.records_processed} processed"
             )
 
         except Exception as e:
             # Rollback on error
             self.session.rollback()
             self.logger.error(f"Error updating wire_set_certs table: {e}")
-            result["errors"].append(str(e))
+            result.errors.append(str(e))
 
         return result
 
 
-def refresh_wire_set_certs() -> Dict:
+def refresh_wire_set_certs() -> WireSetCertResult:
     """
     Convenience function to refresh wire set certificates.
 
@@ -457,4 +462,6 @@ def refresh_wire_set_certs() -> Dict:
 # - get_wire_set_for_serial(serial_number: str) -> Optional[str]
 # - export_wire_set_certs_to_csv() -> str
 # - get_wire_set_for_serial(serial_number: str) -> Optional[str]
+# - export_wire_set_certs_to_csv() -> str
+# - export_wire_set_certs_to_csv() -> str
 # - export_wire_set_certs_to_csv() -> str
