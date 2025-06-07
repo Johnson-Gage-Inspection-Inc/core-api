@@ -1,4 +1,5 @@
 import os
+from typing import Generator
 
 import pytest
 from sqlalchemy import create_engine
@@ -11,7 +12,7 @@ from utils.get_token import get_access_token
 
 
 @pytest.fixture(autouse=True)
-def reset_auth_cache():
+def reset_auth_cache() -> Generator[None, None, None]:
     """Reset auth cache before each test to prevent test interference."""
     utils.auth._openid_config = None
     utils.auth._jwks = None
@@ -22,12 +23,16 @@ def reset_auth_cache():
 
 
 @pytest.fixture(scope="session")
-def auth_token():
+def auth_token() -> str:
+    """Fixture to get an access token for testing."""
     return get_access_token()
 
 
 @pytest.fixture
-def client():
+def client() -> Generator:
+    """Create a test client for the Flask app."""
+
+    # Ensure the Flask app is initialized
     flask_app.config["TESTING"] = True
 
     # Apply mock view bindings if SKIP_AUTH is true
@@ -41,8 +46,9 @@ def client():
 
 
 @pytest.fixture
-def db_session():
+def db_session() -> Generator:
     """Create a test database session."""
+
     # Use in-memory SQLite for testing
     engine = create_engine("sqlite:///:memory:", echo=False)
     Base.metadata.create_all(engine)

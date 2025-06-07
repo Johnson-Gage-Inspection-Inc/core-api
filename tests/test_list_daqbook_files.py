@@ -49,8 +49,7 @@ class TestSearchDaqbookFiles:
     """Test DAQbook file search functionality."""
 
     @patch("utils.list_daqbook_files.SharePointClient")
-    @patch("builtins.print")
-    def test_search_daqbook_files_success(self, mock_print, mock_sharepoint_class):
+    def test_search_daqbook_files_success(self, mock_sharepoint_class):
         """Test successful DAQbook file search."""
         # Mock SharePoint client
         mock_sharepoint = Mock()

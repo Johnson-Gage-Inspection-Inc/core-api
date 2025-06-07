@@ -1,6 +1,14 @@
-from .exceptions import NotModified as NotModified, PreconditionFailed as PreconditionFailed, PreconditionRequired as PreconditionRequired
+from .exceptions import (
+    NotModified as NotModified,
+    PreconditionFailed as PreconditionFailed,
+    PreconditionRequired as PreconditionRequired,
+)
 from .globals import current_api as current_api
-from .utils import deepupdate as deepupdate, get_appcontext as get_appcontext, resolve_schema_instance as resolve_schema_instance
+from .utils import (
+    deepupdate as deepupdate,
+    get_appcontext as get_appcontext,
+    resolve_schema_instance as resolve_schema_instance,
+)
 from _typeshed import Incomplete
 
 IF_NONE_MATCH_HEADER: Incomplete

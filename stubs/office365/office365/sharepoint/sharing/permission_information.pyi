@@ -1,0 +1,9 @@
+from office365.sharepoint.entity import Entity as Entity
+
+class SharingPermissionInformation(Entity):
+    @property
+    def is_default_permission(self) -> bool | None: ...
+    @property
+    def permission_id(self) -> str | None: ...
+    @property
+    def entity_type_name(self): ...

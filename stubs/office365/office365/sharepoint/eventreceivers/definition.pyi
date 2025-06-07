@@ -1,0 +1,9 @@
+from office365.sharepoint.entity import Entity as Entity
+
+class EventReceiverDefinition(Entity):
+    @property
+    def receiver_assembly(self) -> str | None: ...
+    @property
+    def receiver_class(self) -> str | None: ...
+    @property
+    def receiver_url(self) -> str | None: ...

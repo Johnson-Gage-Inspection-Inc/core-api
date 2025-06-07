@@ -1,4 +1,7 @@
-from .throttled_http_client import RetryAfterParser as RetryAfterParser, ThrottledHttpClientBase as ThrottledHttpClientBase
+from .throttled_http_client import (
+    RetryAfterParser as RetryAfterParser,
+    ThrottledHttpClientBase as ThrottledHttpClientBase,
+)
 from .token_cache import TokenCache as TokenCache
 from _typeshed import Incomplete
 from collections import UserDict
@@ -20,21 +23,43 @@ class ManagedIdentity(UserDict):
     def is_system_assigned(cls, unknown): ...
     @classmethod
     def is_user_assigned(cls, unknown): ...
-    def __init__(self, identifier: Incomplete | None = None, id_type: Incomplete | None = None) -> None: ...
+    def __init__(
+        self, identifier: Incomplete | None = None, id_type: Incomplete | None = None
+    ) -> None: ...
 
 class SystemAssignedManagedIdentity(ManagedIdentity):
     def __init__(self) -> None: ...
 
 class UserAssignedManagedIdentity(ManagedIdentity):
-    def __init__(self, *, client_id: Incomplete | None = None, resource_id: Incomplete | None = None, object_id: Incomplete | None = None) -> None: ...
+    def __init__(
+        self,
+        *,
+        client_id: Incomplete | None = None,
+        resource_id: Incomplete | None = None,
+        object_id: Incomplete | None = None,
+    ) -> None: ...
 
 class _ThrottledHttpClient(ThrottledHttpClientBase):
     get: Incomplete
     def __init__(self, *args, **kwargs) -> None: ...
 
 class ManagedIdentityClient:
-    def __init__(self, managed_identity: dict | ManagedIdentity | SystemAssignedManagedIdentity | UserAssignedManagedIdentity, *, http_client, token_cache: Incomplete | None = None, http_cache: Incomplete | None = None) -> None: ...
-    def acquire_token_for_client(self, *, resource: str, claims_challenge: str | None = None): ...
+    def __init__(
+        self,
+        managed_identity: (
+            dict
+            | ManagedIdentity
+            | SystemAssignedManagedIdentity
+            | UserAssignedManagedIdentity
+        ),
+        *,
+        http_client,
+        token_cache: Incomplete | None = None,
+        http_cache: Incomplete | None = None,
+    ) -> None: ...
+    def acquire_token_for_client(
+        self, *, resource: str, claims_challenge: str | None = None
+    ): ...
 
 APP_SERVICE: Incomplete
 AZURE_ARC: Incomplete

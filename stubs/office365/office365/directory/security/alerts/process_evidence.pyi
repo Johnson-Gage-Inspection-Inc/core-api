@@ -1,0 +1,3 @@
+from office365.directory.security.alerts.evidence import AlertEvidence as AlertEvidence
+
+class ProcessEvidence(AlertEvidence): ...

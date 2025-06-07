@@ -1,0 +1,9 @@
+from office365.sharepoint.fields.field import Field as Field
+
+class FieldCalculated(Field):
+    @property
+    def currency_locale_id(self) -> int | None: ...
+    @property
+    def formula(self) -> str | None: ...
+    @formula.setter
+    def formula(self, val: str) -> None: ...

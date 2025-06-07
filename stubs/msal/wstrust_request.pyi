@@ -4,6 +4,14 @@ from _typeshed import Incomplete
 
 logger: Incomplete
 
-def send_request(username, password, cloud_audience_urn, endpoint_address, soap_action, http_client, **kwargs): ...
+def send_request(
+    username,
+    password,
+    cloud_audience_urn,
+    endpoint_address,
+    soap_action,
+    http_client,
+    **kwargs,
+): ...
 def escape_password(password): ...
 def wsu_time_format(datetime_obj): ...

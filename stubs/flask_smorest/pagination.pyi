@@ -36,4 +36,11 @@ class PaginationMixin:
     PAGINATION_ARGUMENTS_PARSER: Incomplete
     PAGINATION_HEADER_NAME: str
     DEFAULT_PAGINATION_PARAMETERS: Incomplete
-    def paginate(self, pager: Incomplete | None = None, *, page: Incomplete | None = None, page_size: Incomplete | None = None, max_page_size: Incomplete | None = None): ...
+    def paginate(
+        self,
+        pager: Incomplete | None = None,
+        *,
+        page: Incomplete | None = None,
+        page_size: Incomplete | None = None,
+        max_page_size: Incomplete | None = None,
+    ): ...

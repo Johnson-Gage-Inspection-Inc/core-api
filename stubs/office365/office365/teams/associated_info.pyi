@@ -1,0 +1,3 @@
+from office365.teams.info import TeamInfo as TeamInfo
+
+class AssociatedTeamInfo(TeamInfo): ...

@@ -1,5 +1,23 @@
 from .timemachine import *
-from .biffh import BaseObject as BaseObject, FDT as FDT, FGE as FGE, FNU as FNU, FTX as FTX, FUN as FUN, XLRDError as XLRDError, XL_CELL_DATE as XL_CELL_DATE, XL_CELL_NUMBER as XL_CELL_NUMBER, XL_CELL_TEXT as XL_CELL_TEXT, XL_FORMAT as XL_FORMAT, XL_FORMAT2 as XL_FORMAT2, fprintf as fprintf, unpack_string as unpack_string, unpack_unicode as unpack_unicode, upkbits as upkbits, upkbitsL as upkbitsL
+from .biffh import (
+    BaseObject as BaseObject,
+    FDT as FDT,
+    FGE as FGE,
+    FNU as FNU,
+    FTX as FTX,
+    FUN as FUN,
+    XLRDError as XLRDError,
+    XL_CELL_DATE as XL_CELL_DATE,
+    XL_CELL_NUMBER as XL_CELL_NUMBER,
+    XL_CELL_TEXT as XL_CELL_TEXT,
+    XL_FORMAT as XL_FORMAT,
+    XL_FORMAT2 as XL_FORMAT2,
+    fprintf as fprintf,
+    unpack_string as unpack_string,
+    unpack_unicode as unpack_unicode,
+    upkbits as upkbits,
+    upkbitsL as upkbitsL,
+)
 from _typeshed import Incomplete
 
 DEBUG: int

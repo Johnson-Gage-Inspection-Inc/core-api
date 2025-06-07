@@ -16,7 +16,18 @@ SUPPORTED_VERSIONS: Incomplete
 builtin_name_from_code: Incomplete
 code_from_builtin_name: Incomplete
 
-def open_workbook_xls(filename: Incomplete | None = None, logfile=..., verbosity: int = 0, use_mmap: bool = True, file_contents: Incomplete | None = None, encoding_override: Incomplete | None = None, formatting_info: bool = False, on_demand: bool = False, ragged_rows: bool = False, ignore_workbook_corruption: bool = False): ...
+def open_workbook_xls(
+    filename: Incomplete | None = None,
+    logfile=...,
+    verbosity: int = 0,
+    use_mmap: bool = True,
+    file_contents: Incomplete | None = None,
+    encoding_override: Incomplete | None = None,
+    formatting_info: bool = False,
+    on_demand: bool = False,
+    ragged_rows: bool = False,
+    ignore_workbook_corruption: bool = False,
+): ...
 
 class Name(BaseObject):
     book: Incomplete
@@ -66,7 +77,12 @@ class Book(BaseObject):
     filestr: Incomplete
     def release_resources(self) -> None: ...
     def __enter__(self): ...
-    def __exit__(self, exc_type: type[BaseException] | None, exc_value: BaseException | None, exc_tb: types.TracebackType | None) -> None: ...
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> None: ...
     name_and_scope_map: Incomplete
     name_map: Incomplete
     raw_user_name: bool
@@ -82,7 +98,19 @@ class Book(BaseObject):
     ragged_rows: Incomplete
     stream_len: Incomplete
     base: int
-    def biff2_8_load(self, filename: Incomplete | None = None, file_contents: Incomplete | None = None, logfile=..., verbosity: int = 0, use_mmap: bool = True, encoding_override: Incomplete | None = None, formatting_info: bool = False, on_demand: bool = False, ragged_rows: bool = False, ignore_workbook_corruption: bool = False) -> None: ...
+    def biff2_8_load(
+        self,
+        filename: Incomplete | None = None,
+        file_contents: Incomplete | None = None,
+        logfile=...,
+        verbosity: int = 0,
+        use_mmap: bool = True,
+        encoding_override: Incomplete | None = None,
+        formatting_info: bool = False,
+        on_demand: bool = False,
+        ragged_rows: bool = False,
+        ignore_workbook_corruption: bool = False,
+    ) -> None: ...
     xfcount: int
     actualfmtcount: int
     def initialise_format_info(self) -> None: ...
@@ -114,6 +142,6 @@ class Book(BaseObject):
     def getbof(self, rqd_stream): ...
 
 def expand_cell_address(inrow, incol): ...
-def colname(colx, _A2Z: str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'): ...
+def colname(colx, _A2Z: str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"): ...
 def display_cell_address(rowx, colx, relrow, relcol): ...
 def unpack_SST_table(datatab, nstrings): ...
