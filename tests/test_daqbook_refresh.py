@@ -6,10 +6,7 @@ import pytest
 from sqlalchemy import text
 
 from db.models import DaqbookOffset as DaqbookOffset
-from utils.daqbook import (
-    get_updated_daqbook_files,
-    refresh_daqbook_offsets,
-)
+from utils.daqbook import get_updated_daqbook_files, refresh_daqbook_offsets
 from utils.sharepoint_client import SharePointClient
 
 # from utils.test_models import StupidDaqbookOffset

@@ -9,12 +9,13 @@ import config  # noqa: F401
 from routes import (
     asset_service_records,
     clients,
-    daqbook,
     daqbook_offsets,
     employees,
     git_ops,
     pyro_assets,
+    refresh_excel_data,
     whoami,
+    wire_offsets,
     work_item_details,
 )
 
@@ -67,12 +68,13 @@ api = Api(app)
 # Register all your blueprints with this, not `app`
 api.register_blueprint(asset_service_records.blp)
 api.register_blueprint(clients.blp)
-api.register_blueprint(daqbook.blp)
 api.register_blueprint(daqbook_offsets.blp)
 api.register_blueprint(employees.blp)
 api.register_blueprint(git_ops.blp)
 api.register_blueprint(pyro_assets.blp)
+api.register_blueprint(refresh_excel_data.blp)
 api.register_blueprint(whoami.blp)
+api.register_blueprint(wire_offsets.blp)
 api.register_blueprint(work_item_details.blp)
 
 
