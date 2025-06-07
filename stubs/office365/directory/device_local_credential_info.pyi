@@ -1,0 +1,9 @@
+from office365.entity import Entity as Entity
+
+class DeviceLocalCredentialInfo(Entity):
+    @property
+    def device_name(self) -> str | None: ...
+    @property
+    def last_backup_datetime(self): ...
+    @property
+    def refresh_datetime(self): ...

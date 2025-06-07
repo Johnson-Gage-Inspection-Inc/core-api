@@ -1,0 +1,3 @@
+from office365.directory.policies.sts import StsPolicy as StsPolicy
+
+class TokenIssuancePolicy(StsPolicy): ...

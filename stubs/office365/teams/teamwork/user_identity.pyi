@@ -1,0 +1,3 @@
+from office365.directory.permissions.identity import Identity as Identity
+
+class TeamworkUserIdentity(Identity): ...

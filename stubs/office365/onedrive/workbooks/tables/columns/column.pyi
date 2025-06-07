@@ -1,0 +1,13 @@
+from office365.entity import Entity as Entity
+from office365.onedrive.workbooks.filter import WorkbookFilter as WorkbookFilter
+from office365.onedrive.workbooks.ranges.range import WorkbookRange as WorkbookRange
+from office365.runtime.paths.resource_path import ResourcePath as ResourcePath
+from office365.runtime.queries.function import FunctionQuery as FunctionQuery
+
+class WorkbookTableColumn(Entity):
+    def header_row_range(self): ...
+    def range(self): ...
+    @property
+    def values(self): ...
+    @property
+    def filter(self): ...

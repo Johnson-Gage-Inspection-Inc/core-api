@@ -1,0 +1,3 @@
+from office365.intune.printing.base import PrinterBase as PrinterBase
+
+class Printer(PrinterBase): ...

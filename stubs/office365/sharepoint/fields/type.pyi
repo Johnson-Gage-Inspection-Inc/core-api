@@ -1,0 +1,36 @@
+class FieldType:
+    def __init__(self) -> None: ...
+    Invalid: int
+    Integer: int
+    Text: int
+    Note: int
+    DateTime: int
+    Counter: int
+    Choice: int
+    Lookup: int
+    Boolean: int
+    Number: int
+    Currency: int
+    URL: int
+    Computed: int
+    Threading: int
+    Guid: int
+    MultiChoice: int
+    GridChoice: int
+    Calculated: int
+    File: int
+    Attachments: int
+    User: int
+    Recurrence: int
+    CrossProjectLink: int
+    ModStat: int
+    Error: int
+    ContentTypeId: int
+    PageSeparator: int
+    ThreadIndex: int
+    WorkflowStatus: int
+    AllDayEvent: int
+    WorkflowEventType: int
+    Geolocation: int
+    OutcomeChoice: int
+    MaxItems: int

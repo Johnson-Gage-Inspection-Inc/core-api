@@ -1,0 +1,9 @@
+from office365.sharepoint.entity import Entity as Entity
+
+class PrimaryCityTime(Entity):
+    @property
+    def location(self) -> str | None: ...
+    @property
+    def time(self) -> str | None: ...
+    @property
+    def utc_offset(self) -> str | None: ...

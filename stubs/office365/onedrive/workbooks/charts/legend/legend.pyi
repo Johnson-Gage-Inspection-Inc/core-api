@@ -1,0 +1,9 @@
+from office365.entity import Entity as Entity
+
+class WorkbookChartLegend(Entity):
+    @property
+    def overlay(self) -> bool | None: ...
+    @property
+    def position(self) -> str | None: ...
+    @property
+    def visible(self) -> bool | None: ...

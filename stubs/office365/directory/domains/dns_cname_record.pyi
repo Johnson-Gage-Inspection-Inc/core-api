@@ -1,0 +1,3 @@
+from office365.directory.domains.dns_record import DomainDnsRecord as DomainDnsRecord
+
+class DomainDnsCnameRecord(DomainDnsRecord): ...

@@ -1,0 +1,9 @@
+from office365.sharepoint.entity import Entity as Entity
+
+class Form(Entity):
+    @property
+    def form_type(self) -> str | None: ...
+    @property
+    def server_relative_url(self) -> str | None: ...
+    @property
+    def resource_path(self): ...

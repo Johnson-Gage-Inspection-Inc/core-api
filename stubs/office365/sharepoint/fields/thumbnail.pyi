@@ -1,0 +1,3 @@
+from office365.sharepoint.fields.field import Field as Field
+
+class FieldThumbnail(Field): ...

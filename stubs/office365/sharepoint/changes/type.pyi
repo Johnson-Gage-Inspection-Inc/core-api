@@ -1,0 +1,25 @@
+class ChangeType:
+    def __init__(self) -> None: ...
+    NoChange: int
+    Add: int
+    Update: int
+    DeleteObject: int
+    Rename: int
+    MoveAway: int
+    MoveInto: int
+    Restore: int
+    RoleAdd: int
+    RoleDelete: int
+    RoleUpdate: int
+    AssignmentAdd: int
+    AssignmentDelete: int
+    MemberAdd: int
+    MemberDelete: int
+    SystemUpdate: int
+    Navigation: int
+    ScopeAdd: int
+    ScopeDelete: int
+    ListContentTypeAdd: int
+    ListContentTypeDelete: int
+    Dirty: int
+    Activity: int
