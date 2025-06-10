@@ -1,5 +1,6 @@
+import re
 from dataclasses import dataclass, field
-from typing import List
+from typing import Any, List, Pattern
 
 from marshmallow import EXCLUDE, Schema, fields, pre_load
 from qualer_sdk.models.qualer_api_models_asset_service_records_to_asset_service_record_response_model import (
@@ -16,7 +17,7 @@ from qualer_sdk.models.qualer_api_models_clients_to_employee_response_model impo
 )
 
 # Cache for generated schemas to prevent infinite recursion
-_schema_cache = {}
+_schema_cache: dict[Any, type[Schema]] = {}
 
 # Basic mapping from swagger type string to Marshmallow field
 type_mapping = {
@@ -29,6 +30,49 @@ type_mapping = {
     # Fallback type
     "object": fields.Raw,
 }
+
+
+class WorkItemNumber(str):
+    """
+    Custom Marshmallow Field for work item numbers.
+    Normalizes by adding '56561-' prefix if missing, then validates format.
+    Allowed formats (after prefix):
+      - 56561-XXXXXX
+      - 56561-XXXXXX.XX
+      - 56561-XXXXXX-YY
+      - 56561-XXXXXX.XX-YY
+      - optionally followed by a revision: R1 , R2,...
+    """
+
+    def __new__(cls, value: str) -> "WorkItemNumber":
+        """Create a new WorkItemNumber instance.
+
+        Args:
+            value (str): The work item number string.
+
+        Raises:
+            TypeError: If value is not a string.
+            ValueError: If value is not a valid work item number.
+
+        Returns:
+            WorkItemNumber: The validated work item number.
+        """
+        WORK_ITEM_PATTERN: Pattern[str] = re.compile(
+            r"^56561-\d{6}(?:\.\d{2})?(?:-\d{2})?(?:R\d{1,2})?$"
+        )
+
+        if not isinstance(value, str):
+            raise TypeError("WorkItemNumber must be created from a string")
+        # Normalize prefix if missing
+        normalized: str = value if value.startswith("56561-") else f"56561-{value}"
+        if not WORK_ITEM_PATTERN.fullmatch(normalized):
+            raise ValueError(
+                f"Invalid WorkItemNumber: {value!r}. "
+                "Expected formats like '56561-123456', '56561-123456.78', "
+                "'56561-123456-90', '56561-123456.78-90', optionally followed by 'R1' or 'R12'."
+            )
+        # Create the str instance
+        return str.__new__(cls, normalized)
 
 
 def generate_schema_from_swagger(model_cls: type) -> type[Schema]:

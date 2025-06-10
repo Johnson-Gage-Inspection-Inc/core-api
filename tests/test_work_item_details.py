@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from routes.work_item_details import get_work_item_details_for_tus
+from utils.schemas import WorkItemNumber
 
 
 # Route-level integration tests with real data
@@ -141,7 +142,8 @@ def test_get_work_item_details_success(mock_apis):
     mock_apis["orders_api"].return_value.get_work_order.return_value = order
 
     # Execute
-    result = get_work_item_details_for_tus("56561-000001-01")
+    wo_number = WorkItemNumber("56561-000001-01")
+    result = get_work_item_details_for_tus(wo_number)
 
     # Verify
     assert result["assetId"] == 456
@@ -165,11 +167,12 @@ def test_get_work_item_details_auto_prefix(mock_apis):
     mock_apis["orders_api"].return_value.get_work_order.return_value = order
 
     # Execute with unprefixed work item number
-    get_work_item_details_for_tus("000001-01")
+    wo_number = WorkItemNumber("000001-01")
+    get_work_item_details_for_tus(wo_number)
 
     # Verify the API was called with the prefixed version
     mock_apis["soi_api"].return_value.get_work_items_0.assert_called_with(
-        work_item_number="56561-000001-01"
+        work_item_number=WorkItemNumber("56561-000001-01")
     )
 
 
@@ -189,4 +192,5 @@ def test_get_work_item_details_error_conditions(mock_apis, work_items, expected_
     mock_apis["soi_api"].return_value.get_work_items_0.return_value = work_items
 
     with pytest.raises(ValueError, match=expected_error):
-        get_work_item_details_for_tus("56561-000001-01")
+        wo_number = WorkItemNumber("56561-000001-01")
+        get_work_item_details_for_tus(wo_number)

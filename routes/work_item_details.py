@@ -13,18 +13,16 @@ from qualer_sdk import (
 
 from utils.auth import require_auth
 from utils.qualer_client import make_qualer_client
-from utils.schemas import WorkItemDetailsQuerySchema, WorkItemDetailsSchema
+from utils.schemas import (
+    WorkItemDetailsQuerySchema,
+    WorkItemDetailsSchema,
+    WorkItemNumber,
+)
 
 blp = Blueprint("work-item-details", __name__, url_prefix="/")
 
 
-def get_work_item_details_for_tus(item_no):
-    pattern = r"^(56561-)?\d{6}(\.\d{2})?(-\d{2})(R\d{1,2})?$"
-    if not re.match(pattern, item_no):
-        raise ValueError("Invalid work item number format.")
-
-    if not item_no.startswith("56561-"):
-        item_no = f"56561-{item_no}"
+def get_work_item_details_for_tus(item_no: WorkItemNumber):
 
     client = make_qualer_client()
 
@@ -85,7 +83,7 @@ class WorkItemDetails(MethodView):
     @blp.doc(security=[{"BearerAuth": []}], tags=["Pyro"])
     @blp.arguments(WorkItemDetailsQuerySchema, location="query", as_kwargs=True)
     @blp.response(200, WorkItemDetailsSchema)
-    def get(self, workItemNumber):
+    def get(self, workItemNumber: WorkItemNumber) -> dict:
         """
         Get detailed TUS (Testing, Upgrading, Servicing) information for a work item.
 
@@ -94,7 +92,7 @@ class WorkItemDetails(MethodView):
         item number must follow a specific format pattern for validation.
 
         **Args**:
-        - workItemNumber (str): The work item number to look up. Must match pattern:
+        - workItemNumber (WorkItemNumber): The work item number to look up. Must match pattern:
                 r"^(56561-)?\\d{6}(\\.\\d{2})?(-\\d{2})(R\\d{1,2})?$"
                 Examples: "123456-01", "56561-123456.01-02", "123456.01-02R1"
 
@@ -131,5 +129,19 @@ class WorkItemDetails(MethodView):
 
         try:
             return get_work_item_details_for_tus(workItemNumber)
+        except ValueError as e:
+            # Handle specific validation errors with user-friendly messages
+            error_msg = str(e)
+            if "Invalid value for `asset_status`" in error_msg:
+                abort(
+                    500,
+                    message="Asset data format error from Qualer API. The asset status format has changed and requires SDK update.",
+                )
+            elif "must be one of" in error_msg:
+                abort(
+                    500, message=f"Data validation error from Qualer API: {error_msg}"
+                )
+            else:
+                abort(500, message=str(e))
         except Exception as e:
             abort(500, message=str(e))
