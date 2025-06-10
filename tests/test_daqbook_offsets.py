@@ -7,7 +7,7 @@ import pandas as pd
 from utils.excel_parser import parse_daqbook_offsets_from_excel
 
 
-def test_excel_parser_outputs_match_expected_csv():
+def test_excel_parser_outputs_match_expected_csv() -> None:
     base_path = Path(__file__).parent / "data"
     excel_path = base_path / "J1_0325.xlsm"
     csv_path = base_path / "J10325_offsets.csv"
@@ -36,7 +36,7 @@ def test_excel_parser_outputs_match_expected_csv():
     print(f"\u2705 {len(expected)} rows validated against expected output")
 
 
-def test_csv_structure_and_point_range():
+def test_csv_structure_and_point_range() -> None:
     csv_path = Path(__file__).parent / "data" / "J10325_offsets.csv"
     df = pd.read_csv(csv_path)
     assert set(df.columns) == {"Temp", "Point", "Reading"}
@@ -57,7 +57,7 @@ def test_csv_structure_and_point_range():
 class TestDaqbookOffsetsAPI:
     """Test daqbook offsets API endpoints."""
 
-    def test_get_all_offsets_success(self, client, auth_token):
+    def test_get_all_offsets_success(self, client, auth_token) -> None:
         skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
 
         if not skip_auth:
@@ -88,7 +88,7 @@ class TestDaqbookOffsetsAPI:
             data = response.get_json()
             assert data == []  # Mock returns empty list
 
-    def test_get_offsets_by_tn_success(self, client, auth_token):
+    def test_get_offsets_by_tn_success(self, client, auth_token) -> None:
         """Test GET /daqbook-offsets/<tn> returns successful response."""
         skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
         test_tn = "J10325"
@@ -116,7 +116,7 @@ class TestDaqbookOffsetsAPI:
             data = response.get_json()
             assert data == []  # Mock returns empty list
 
-    def test_get_all_offsets_no_auth_fails(self, client):
+    def test_get_all_offsets_no_auth_fails(self, client) -> None:
         """Test GET /daqbook-offsets/ fails without authentication."""
         skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
 
@@ -130,7 +130,7 @@ class TestDaqbookOffsetsAPI:
             # Just check that some response was returned
             assert hasattr(response, "status_code")
 
-    def test_get_offsets_by_tn_no_auth_fails(self, client):
+    def test_get_offsets_by_tn_no_auth_fails(self, client) -> None:
         """Test GET /daqbook-offsets/<tn> fails without authentication."""
         skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
 
@@ -147,7 +147,7 @@ class TestDaqbookOffsetsAPI:
     @patch("routes.daqbook_offsets.SessionLocal")
     def test_database_error_handling_all_offsets(
         self, mock_session_local, client, auth_token
-    ):
+    ) -> None:
         """Test database error handling for GET /daqbook-offsets/."""
         skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
         if skip_auth:
@@ -184,7 +184,7 @@ class TestDaqbookOffsetsAPI:
     @patch("routes.daqbook_offsets.SessionLocal")
     def test_database_error_handling_by_tn(
         self, mock_session_local, client, auth_token
-    ):
+    ) -> None:
         """Test database error handling for GET /daqbook-offsets/<tn>."""
         skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
 
@@ -228,7 +228,7 @@ class TestDaqbookOffsetsAPI:
 class TestExcelParser:
     """Test Excel parser utility functions."""
 
-    def test_parse_with_explicit_tn(self):
+    def test_parse_with_explicit_tn(self) -> None:
         """Test Excel parsing with explicitly provided test number."""
         base_path = Path(__file__).parent / "data"
         excel_path = base_path / "J1_0325.xlsm"
@@ -247,7 +247,7 @@ class TestExcelParser:
             assert isinstance(record["Point"], int)
             assert isinstance(record["Delta"], float)
 
-    def test_parse_without_tn(self):
+    def test_parse_without_tn(self) -> None:
         """Test Excel parsing without providing test number (filename extraction)."""
         base_path = Path(__file__).parent / "data"
         excel_path = base_path / "J1_0325.xlsm"
@@ -255,13 +255,13 @@ class TestExcelParser:
         result = parse_daqbook_offsets_from_excel(str(excel_path))
         assert len(result) > 0
 
-    def test_parse_nonexistent_file(self):
+    def test_parse_nonexistent_file(self) -> None:
         """Test Excel parsing with nonexistent file returns empty list."""
         result = parse_daqbook_offsets_from_excel("nonexistent_file.xlsx", "TEST")
         assert result == []
 
     @patch("utils.excel_parser.load_workbook")
-    def test_parse_excel_loading_error(self, mock_load_workbook):
+    def test_parse_excel_loading_error(self, mock_load_workbook) -> None:
         """Test Excel parsing when workbook loading fails."""
         mock_load_workbook.side_effect = Exception("File corrupt")
 
@@ -269,7 +269,7 @@ class TestExcelParser:
         assert result == []
 
     @patch("utils.excel_parser.load_workbook")
-    def test_parse_excel_no_sheets(self, mock_load_workbook):
+    def test_parse_excel_no_sheets(self, mock_load_workbook) -> None:
         """Test Excel parsing when workbook has no sheets."""
         mock_workbook = MagicMock()
         mock_workbook.sheetnames = []
@@ -278,7 +278,7 @@ class TestExcelParser:
         result = parse_daqbook_offsets_from_excel("test.xlsx", "TEST")
         assert result == []
 
-    def test_delta_calculation_accuracy(self):
+    def test_delta_calculation_accuracy(self) -> None:
         """Test that delta calculations are accurate."""
         base_path = Path(__file__).parent / "data"
         excel_path = base_path / "K6_0824.xlsm"
@@ -290,7 +290,7 @@ class TestExcelParser:
             expected_delta = round((record["Reading"] - record["Temp"]) * -1, 2)
             assert record["Delta"] == expected_delta, f"Delta mismatch for {record}"
 
-    def test_point_numbering_logic(self):
+    def test_point_numbering_logic(self) -> None:
         """Test that point numbering follows (block * 6) + channel + 1 logic."""
         base_path = Path(__file__).parent / "data"
         excel_path = base_path / "K6_0824.xlsm"
@@ -298,7 +298,7 @@ class TestExcelParser:
         result = parse_daqbook_offsets_from_excel(str(excel_path), "TEST")
 
         # Group by temperature to check point distribution
-        by_temp = {}
+        by_temp: dict = {}
         for record in result:
             temp = record["Temp"]
             if temp not in by_temp:
@@ -327,7 +327,7 @@ class TestExcelParserEdgeCases:
     @patch("routes.daqbook_offsets.SessionLocal")
     def test_get_all_offsets_data_transformation(
         self, mock_session_local, client, auth_token
-    ):
+    ) -> None:
         """Test that database objects are properly converted to dict format for GET /daqbook-offsets/."""
         skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
 
@@ -420,7 +420,7 @@ class TestExcelParserEdgeCases:
     @patch("routes.daqbook_offsets.SessionLocal")
     def test_data_transformation_with_decimal_objects(
         self, mock_session_local, client, auth_token
-    ):
+    ) -> None:
         """Test data transformation when database returns Decimal objects."""
         from decimal import Decimal
 
@@ -473,7 +473,9 @@ class TestExcelParserEdgeCases:
                 )
 
     @patch("routes.daqbook_offsets.SessionLocal")
-    def test_empty_result_transformation(self, mock_session_local, client, auth_token):
+    def test_empty_result_transformation(
+        self, mock_session_local, client, auth_token
+    ) -> None:
         """Test data transformation when database returns empty result."""
         skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
 

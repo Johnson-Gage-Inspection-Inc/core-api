@@ -11,11 +11,12 @@ git+https://github.com/Johnson-Gage-Inspection-Inc/qualer-sdk-python.git@1f6eee8
 isort
 marshmallow
 msal
+office365
 openpyxl
 pandas
 pre-commit
-xlrd
 psycopg2-binary
+pydantic
 pyjwt
 pytest
 pytest-cov
@@ -23,3 +24,4 @@ pytest-mock
 python-dotenv
 requests
 sqlalchemy
+xlrd

@@ -1,0 +1,11 @@
+class RoleType:
+    None_: int
+    Guest: int
+    Reader: int
+    Contributor: int
+    WebDesigner: int
+    Administrator: int
+    Editor: int
+    Reviewer: int
+    RestrictedReader: int
+    System: int

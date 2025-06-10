@@ -1,0 +1,3 @@
+from office365.onedrive.base_item import BaseItem as BaseItem
+
+class FieldValueSet(BaseItem): ...

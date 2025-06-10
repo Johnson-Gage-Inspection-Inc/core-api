@@ -1,0 +1,2 @@
+class SensitivityLabelAssignmentMethod:
+    standard: str

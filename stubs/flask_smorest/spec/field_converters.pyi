@@ -1,0 +1,3 @@
+from flask_smorest.fields import Upload as Upload
+
+def uploadfield2properties(self, field, **kwargs): ...

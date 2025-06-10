@@ -1,0 +1,3 @@
+from office365.outlook.mail.location import Location as Location
+
+class LocationConstraintItem(Location): ...

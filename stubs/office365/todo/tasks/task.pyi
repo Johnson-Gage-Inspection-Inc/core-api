@@ -1,0 +1,26 @@
+from _typeshed import Incomplete
+from office365.directory.extensions.extension import Extension as Extension
+from office365.entity import Entity as Entity
+from office365.entity_collection import EntityCollection as EntityCollection
+from office365.outlook.mail.item_body import ItemBody as ItemBody
+from office365.runtime.paths.resource_path import ResourcePath as ResourcePath
+from office365.todo.attachments.base import AttachmentBase as AttachmentBase
+from office365.todo.checklist_item import ChecklistItem as ChecklistItem
+from office365.todo.linked_resource import LinkedResource as LinkedResource
+
+class TodoTask(Entity):
+    @property
+    def body(self): ...
+    @property
+    def title(self) -> str | None: ...
+    @property
+    def attachments(self) -> EntityCollection[AttachmentBase]: ...
+    @property
+    def extensions(self) -> EntityCollection[Extension]: ...
+    @property
+    def checklist_items(self) -> EntityCollection[ChecklistItem]: ...
+    @property
+    def linked_resources(self) -> EntityCollection[LinkedResource]: ...
+    @property
+    def entity_type_name(self) -> None: ...
+    def get_property(self, name, default_value: Incomplete | None = None): ...

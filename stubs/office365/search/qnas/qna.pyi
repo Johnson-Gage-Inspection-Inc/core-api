@@ -1,0 +1,3 @@
+from office365.search.answer import SearchAnswer as SearchAnswer
+
+class Qna(SearchAnswer): ...

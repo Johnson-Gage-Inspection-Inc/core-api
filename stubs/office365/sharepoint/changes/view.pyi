@@ -1,0 +1,9 @@
+from office365.sharepoint.changes.change import Change as Change
+
+class ChangeView(Change):
+    @property
+    def view_id(self) -> str | None: ...
+    @property
+    def list_id(self) -> str | None: ...
+    @property
+    def web_id(self) -> str | None: ...

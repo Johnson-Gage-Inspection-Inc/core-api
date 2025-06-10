@@ -1,0 +1,2 @@
+class AlertStatus:
+    unknown: str

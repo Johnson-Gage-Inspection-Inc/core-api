@@ -1,0 +1,16 @@
+class SharingOperationStatusCode:
+    CompletedSuccessfully: int
+    AccessRequestsQueued: int
+    NoResolvedUsers: int
+    AccessDenied: int
+    CrossSiteRequestNotSupported: int
+    UnknownError: int
+    EmailBodyTooLong: int
+    ListUniqueScopesExceeded: int
+    CapabilityDisabled: int
+    ObjectNotSupported: int
+    NestedGroupsNotSupported: int
+    QuotaExceeded: int
+    InvalidValue: int
+    UserDoesNotExist: int
+    TooManyChildItemsWithUniqueScopes: int

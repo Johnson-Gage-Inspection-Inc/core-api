@@ -1,0 +1,13 @@
+from _typeshed import Incomplete
+from office365.runtime.client_value_collection import (
+    ClientValueCollection as ClientValueCollection,
+)
+from office365.sharepoint.entity import Entity as Entity
+from office365.sharepoint.sites.language import Language as Language
+
+class LanguageCollection(Entity):
+    def __init__(self, context, resource_path: Incomplete | None = None) -> None: ...
+    @property
+    def items(self): ...
+    def __len__(self) -> int: ...
+    def set_property(self, name, value, persist_changes: bool = True): ...

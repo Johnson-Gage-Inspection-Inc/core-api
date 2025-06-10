@@ -1,0 +1,3 @@
+from office365.sharepoint.changes.change import Change as Change
+
+class ChangeAppConsentPrincipal(Change): ...

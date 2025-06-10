@@ -1,0 +1,3 @@
+from office365.outlook.mail.folders.folder import MailFolder as MailFolder
+
+class MailSearchFolder(MailFolder): ...

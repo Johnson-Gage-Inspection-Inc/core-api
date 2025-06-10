@@ -1,0 +1,16 @@
+from office365.runtime.client_object import ClientObject as ClientObject
+from office365.runtime.paths.resource_path import ResourcePath as ResourcePath
+from office365.runtime.queries.service_operation import (
+    ServiceOperationQuery as ServiceOperationQuery,
+)
+from office365.sharepoint.userprofiles.user_profile import UserProfile as UserProfile
+
+class ProfileLoader(ClientObject):
+    def __init__(self, context) -> None: ...
+    @staticmethod
+    def get_profile_loader(context): ...
+    @staticmethod
+    def get_owner_user_profile(context): ...
+    def get_user_profile(self): ...
+    @property
+    def entity_type_name(self): ...

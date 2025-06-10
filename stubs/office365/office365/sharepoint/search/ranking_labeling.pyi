@@ -1,0 +1,13 @@
+from office365.runtime.client_result import ClientResult as ClientResult
+from office365.runtime.paths.resource_path import ResourcePath as ResourcePath
+from office365.runtime.queries.service_operation import (
+    ServiceOperationQuery as ServiceOperationQuery,
+)
+from office365.sharepoint.entity import Entity as Entity
+
+class RankingLabeling(Entity):
+    def __init__(self, context) -> None: ...
+    def add_judgment(self, user_query, url, label_id): ...
+    def normalize_result_url(self, url: str) -> ClientResult[str]: ...
+    @property
+    def entity_type_name(self): ...

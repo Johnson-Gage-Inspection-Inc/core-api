@@ -1,0 +1,16 @@
+from office365.runtime.client_result import ClientResult as ClientResult
+from office365.runtime.queries.service_operation import (
+    ServiceOperationQuery as ServiceOperationQuery,
+)
+from office365.sharepoint.entity import Entity as Entity
+from office365.sharepoint.userprofiles.follow_result import FollowResult as FollowResult
+
+class FollowedContent(Entity):
+    def follow_item(self, item): ...
+    def get_followed_status(self, url): ...
+    @property
+    def followed_documents_url(self) -> str | None: ...
+    @property
+    def followed_sites_url(self) -> str | None: ...
+    @property
+    def entity_type_name(self): ...

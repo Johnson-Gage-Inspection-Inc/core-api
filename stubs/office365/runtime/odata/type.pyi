@@ -1,0 +1,19 @@
+from _typeshed import Incomplete
+
+class ODataType:
+    primitive_types: Incomplete
+    name: Incomplete
+    namespace: Incomplete
+    baseType: Incomplete
+    properties: Incomplete
+    methods: Incomplete
+    def __init__(self) -> None: ...
+    @staticmethod
+    def parse_key_value_collection(value): ...
+    @staticmethod
+    def try_parse_datetime(value): ...
+    @staticmethod
+    def resolve_type(client_type): ...
+    @staticmethod
+    def resolve_enum_key(enum_type: type, value: int) -> str: ...
+    def add_property(self, prop_schema) -> None: ...

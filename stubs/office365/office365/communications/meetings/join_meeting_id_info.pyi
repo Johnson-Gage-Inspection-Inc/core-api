@@ -1,0 +1,3 @@
+from office365.communications.meetings.info import MeetingInfo as MeetingInfo
+
+class JoinMeetingIdMeetingInfo(MeetingInfo): ...

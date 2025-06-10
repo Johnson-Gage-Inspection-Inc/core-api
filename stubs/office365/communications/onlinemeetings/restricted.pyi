@@ -1,0 +1,3 @@
+from office365.runtime.client_value import ClientValue as ClientValue
+
+class OnlineMeetingRestricted(ClientValue): ...

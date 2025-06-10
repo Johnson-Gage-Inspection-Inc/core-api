@@ -1,0 +1,11 @@
+class SPBuiltInFieldId:
+    Author: str
+    Created: str
+    FSObjType: str
+    FileDirRef: str
+    FileLeafRef: str
+    FileType: str
+    FirstName: str
+    FormData: str
+    FormURN: str
+    fRecurrence: str

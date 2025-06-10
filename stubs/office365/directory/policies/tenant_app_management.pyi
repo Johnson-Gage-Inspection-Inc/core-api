@@ -1,0 +1,3 @@
+from office365.directory.policies.base import PolicyBase as PolicyBase
+
+class TenantAppManagementPolicy(PolicyBase): ...

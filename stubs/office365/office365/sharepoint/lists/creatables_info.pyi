@@ -1,0 +1,16 @@
+from _typeshed import Incomplete
+from office365.sharepoint.entity import Entity as Entity
+from office365.sharepoint.lists.creatable_item_info import (
+    CreatableItemInfoCollection as CreatableItemInfoCollection,
+)
+
+class CreatablesInfo(Entity):
+    @property
+    def can_create_folders(self) -> bool | None: ...
+    @property
+    def can_create_items(self) -> bool | None: ...
+    @property
+    def can_upload_files(self) -> bool | None: ...
+    @property
+    def creatables_collection(self): ...
+    def get_property(self, name, default_value: Incomplete | None = None): ...

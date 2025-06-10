@@ -1,0 +1,13 @@
+from office365.entity import Entity as Entity
+from office365.onedrive.termstore.sets.collection import SetCollection as SetCollection
+from office365.runtime.paths.resource_path import ResourcePath as ResourcePath
+
+class Group(Entity):
+    @property
+    def display_name(self) -> str | None: ...
+    @property
+    def parent_site_id(self) -> str | None: ...
+    @property
+    def sets(self) -> SetCollection: ...
+    @property
+    def entity_type_name(self) -> None: ...

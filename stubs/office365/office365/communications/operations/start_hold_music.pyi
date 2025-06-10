@@ -1,0 +1,3 @@
+from office365.communications.operations.comms import CommsOperation as CommsOperation
+
+class StartHoldMusicOperation(CommsOperation): ...

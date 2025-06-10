@@ -1,5 +1,6 @@
+import re
 from dataclasses import dataclass, field
-from typing import List
+from typing import Any, Dict, List, Pattern
 
 from marshmallow import EXCLUDE, Schema, fields, pre_load
 from qualer_sdk.models.qualer_api_models_asset_service_records_to_asset_service_record_response_model import (
@@ -16,7 +17,7 @@ from qualer_sdk.models.qualer_api_models_clients_to_employee_response_model impo
 )
 
 # Cache for generated schemas to prevent infinite recursion
-_schema_cache = {}
+_schema_cache: dict[Any, type[Schema]] = {}
 
 # Basic mapping from swagger type string to Marshmallow field
 type_mapping = {
@@ -31,7 +32,50 @@ type_mapping = {
 }
 
 
-def generate_schema_from_swagger(model_cls: type) -> type[Schema]:
+class WorkItemNumber(str):
+    """
+    Custom Marshmallow Field for work item numbers.
+    Normalizes by adding '56561-' prefix if missing, then validates format.
+    Allowed formats (after prefix):
+      - 56561-XXXXXX
+      - 56561-XXXXXX.XX
+      - 56561-XXXXXX-YY
+      - 56561-XXXXXX.XX-YY
+      - optionally followed by a revision: R1 , R2,...
+    """
+
+    def __new__(cls, value: str) -> "WorkItemNumber":
+        """Create a new WorkItemNumber instance.
+
+        Args:
+            value (str): The work item number string.
+
+        Raises:
+            TypeError: If value is not a string.
+            ValueError: If value is not a valid work item number.
+
+        Returns:
+            WorkItemNumber: The validated work item number.
+        """
+        WORK_ITEM_PATTERN: Pattern[str] = re.compile(
+            r"^56561-\d{6}(?:\.\d{2})?(?:-\d{2})?(?:R\d{1,2})?$"
+        )
+
+        if not isinstance(value, str):
+            raise TypeError("WorkItemNumber must be created from a string")
+        # Normalize prefix if missing
+        normalized: str = value if value.startswith("56561-") else f"56561-{value}"
+        if not WORK_ITEM_PATTERN.fullmatch(normalized):
+            raise ValueError(
+                f"Invalid WorkItemNumber: {value!r}. "
+                "Expected formats like '56561-123456', '56561-123456.78', "
+                "'56561-123456-90', '56561-123456.78-90', optionally followed by 'R1' or 'R12'."
+            )
+        # Create the str instance
+        return str.__new__(cls, normalized)
+
+
+def generate_schema_from_swagger(model_cls: type[Schema]) -> type[Schema]:
     """
     Generate a Marshmallow schema class from a Qualer SDK model class.
     This function creates a schema class dynamically based on the model's
@@ -61,9 +105,11 @@ def generate_schema_from_swagger(model_cls: type) -> type[Schema]:
             schema_fields[attr_name] = marshmallow_field(
                 allow_none=True
             )  # Create schema class with fields first
-    schema_class = type(f"{model_name}Schema", (Schema,), schema_fields)
+    schema_class: type[Schema] = type(f"{model_name}Schema", (Schema,), schema_fields)
 
-    def dump_override(self, obj, *, many=None, **kwargs):
+    def dump_override(
+        self, obj: object, *, many=None, **kwargs: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Override dump to handle SDK model objects"""
 
         # Use schema's many setting if dump's many parameter is None
@@ -192,7 +238,7 @@ class WireSetCertResult:
     records_updated: int = 0
     errors: List[str] = field(default_factory=list)
 
-    def update(self, other: "WireSetCertResult"):
+    def update(self, other: "WireSetCertResult") -> None:
         """
         Update this result with another WireSetCertResult.
 
@@ -231,7 +277,7 @@ class WireSetCertSchema(Schema):
     updated_at = fields.DateTime(dump_only=True)
 
     @pre_load
-    def normalize_dates(self, data, **kwargs):
+    def normalize_dates(self, data: dict, **kwargs: dict) -> dict:
         for fld in ("service_date", "next_service_date"):
             val = data.get(fld)
             # pandas.Timestamp or numpy datetime64
@@ -309,12 +355,12 @@ class SharePointFileInfoSchema(Schema):
     path = fields.String(required=True)
 
     @pre_load
-    def flatten_nested_fields(self, data, **kwargs):
+    def flatten_nested_fields(
+        self, data: Dict[str, Any], **kwargs: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Extract nested fields from `file` and `parentReference`."""
         data["mimeType"] = data.get("file", {}).get("mimeType")
         parent = data.get("parentReference", {})
         data["driveId"] = parent.get("driveId")
         data["path"] = parent.get("path")
-        return data
-        return data
         return data

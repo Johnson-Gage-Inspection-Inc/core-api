@@ -1,0 +1,19 @@
+from _typeshed import Incomplete
+from office365.runtime.paths.resource_path import ResourcePath as ResourcePath
+from office365.runtime.paths.v3.entity import EntityPath as EntityPath
+from office365.runtime.queries.service_operation import (
+    ServiceOperationQuery as ServiceOperationQuery,
+)
+from office365.sharepoint.entity import Entity as Entity
+from office365.sharepoint.principal.users.user import User as User
+
+class CheckedOutFile(Entity):
+    def takeover_checkout(self): ...
+    @property
+    def checked_out_by_id(self) -> int | None: ...
+    @property
+    def checked_out_by(self): ...
+    @property
+    def property_ref_name(self): ...
+    def get_property(self, name, default_value: Incomplete | None = None): ...
+    def set_property(self, name, value, persist_changes: bool = True): ...
