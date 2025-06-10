@@ -6,15 +6,6 @@ repos:
         language: python
         language_version: python3
 
-  - repo: local
-    hooks:
-      - id: isort-local
-        name: isort
-        entry: isort .
-        language: system
-        types: [python]
-
-
   - repo: https://github.com/myint/autoflake
     rev: v2.2.0
     hooks:
