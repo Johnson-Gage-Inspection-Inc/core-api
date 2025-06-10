@@ -3,7 +3,8 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from qualer_sdk.models import (
+from qualer_sdk.api_response import ApiResponse
+from qualer_sdk.models.qualer_api_models_asset_service_records_to_asset_service_record_response_model import (
     QualerApiModelsAssetServiceRecordsToAssetServiceRecordResponseModel,
 )
 
@@ -130,11 +131,10 @@ def test_asset_service_record_endpoint_not_found(
         # Normal testing mode with SDK mocks
         mock_asset_service_records_api = MagicMock()
 
-        # Create a mock exception that simulates 404
-        mock_exception = Exception("Not found")
-        mock_exception.status = 404
+        # Create a mock ApiResponse that simulates 404
+        mock_404_response = ApiResponse(status_code=404)
         mock_asset_service_records_api.get_asset_service_records_by_asset.side_effect = (
-            mock_exception
+            mock_404_response
         )
         mock_asset_service_records_api_class.return_value = (
             mock_asset_service_records_api

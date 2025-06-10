@@ -139,9 +139,9 @@ def test_get_work_item_details_success(mock_apis: Dict[str, Any]) -> None:
     mock_apis["soi_api"].return_value.get_work_items_0.return_value = [work_item]
 
     asset = _create_mock_asset()
-    mock_apis["assets_api"].return_value.get_asset.return_value = asset
+    mock_apis["assets_api"].return_value.get_asset_get2.return_value = asset
 
-    mock_apis["attr_api"].return_value.get_asset_attributes.return_value = {
+    mock_apis["attr_api"].return_value.get_asset_attributes_get2.return_value = {
         "key": "value"
     }
 
@@ -163,12 +163,12 @@ def test_get_work_item_details_auto_prefix(mock_apis: Dict[str, Any]) -> None:
     """Test that work item numbers are automatically prefixed with '56561-'"""
     # Setup mocks
     work_item = _create_mock_work_item()
-    mock_apis["soi_api"].return_value.get_work_items_0.return_value = [work_item]
+    mock_apis["soi_api"].return_value.get_work_items.return_value = [work_item]
 
     asset = _create_mock_asset()
-    mock_apis["assets_api"].return_value.get_asset.return_value = asset
+    mock_apis["assets_api"].return_value.get_asset_get2.return_value = asset
 
-    mock_apis["attr_api"].return_value.get_asset_attributes.return_value = {}
+    mock_apis["attr_api"].return_value.get_asset_attributes_get2.return_value = {}
 
     order = _create_mock_order()
     mock_apis["orders_api"].return_value.get_work_order.return_value = order
@@ -312,7 +312,7 @@ def test_work_item_details_asset_api_validation_error(
             mock_soi_api.return_value.get_work_items_0.return_value = [work_item]
 
             # Simulate SDK validation error when getting asset details
-            mock_assets_api.return_value.get_asset.side_effect = ValueError(
+            mock_assets_api.return_value.get_asset_get2.side_effect = ValueError(
                 "Invalid value for `asset_status` (Active), must be one of ['0', '1', '2', '3', '4']"
             )
 
@@ -361,9 +361,9 @@ def test_work_item_details_service_order_api_validation_error(
             mock_soi_api.return_value.get_work_items_0.return_value = [work_item]
 
             asset = _create_mock_asset()
-            mock_assets_api.return_value.get_asset.return_value = asset
+            mock_assets_api.return_value.get_asset_get2.return_value = asset
 
-            mock_attr_api.return_value.get_asset_attributes.return_value = {}
+            mock_attr_api.return_value.get_asset_attributes_get2.return_value = {}
 
             # Simulate SDK validation error when getting service order details
             mock_orders_api.return_value.get_work_order.side_effect = ValueError(
@@ -413,13 +413,13 @@ def test_work_item_details_asset_attributes_api_validation_error(
             mock_soi_api.return_value.get_work_items_0.return_value = [work_item]
 
             asset = _create_mock_asset()
-            mock_assets_api.return_value.get_asset.return_value = asset
+            mock_assets_api.return_value.get_asset_get2.return_value = asset
 
             order = _create_mock_order()
             mock_orders_api.return_value.get_work_order.return_value = order
 
             # Simulate SDK validation error when getting asset attributes
-            mock_attr_api.return_value.get_asset_attributes.side_effect = ValueError(
+            mock_attr_api.return_value.get_asset_attributes_get2.side_effect = ValueError(
                 "Invalid value for `asset_status` (2), must be one of ['0', '1', '3', '4', '5']"
             )
 
@@ -528,13 +528,13 @@ def test_work_item_details_threadpool_validation_error(
 
             # Mock successful asset and order retrieval
             asset = _create_mock_asset()
-            mock_assets_api.return_value.get_asset.return_value = asset
+            mock_assets_api.return_value.get_asset_get2.return_value = asset
 
             order = _create_mock_order()
             mock_orders_api.return_value.get_work_order.return_value = order
 
             # Mock asset attributes API to raise the validation error that bubbles up
-            mock_attr_api.return_value.get_asset_attributes.side_effect = ValueError(
+            mock_attr_api.return_value.get_asset_attributes_get2.side_effect = ValueError(
                 "Invalid value for `asset_status` (Active), must be one of ['0', '1', '2', '3', '4']"
             )
 
@@ -606,7 +606,7 @@ def test_work_item_details_realistic_production_errors(
                     with patch(
                         "routes.work_item_details.ClientAssetsApi"
                     ) as mock_assets_api:
-                        mock_assets_api.return_value.get_asset.side_effect = ValueError(
+                        mock_assets_api.return_value.get_asset_get2.side_effect = ValueError(
                             scenario["error"]
                         )
 
@@ -629,8 +629,8 @@ def test_work_item_details_realistic_production_errors(
 
                         # Mock successful asset and attributes
                         asset = _create_mock_asset()
-                        mock_assets_api.return_value.get_asset.return_value = asset
-                        mock_attr_api.return_value.get_asset_attributes.return_value = (
+                        mock_assets_api.return_value.get_asset_get2.return_value = asset
+                        mock_attr_api.return_value.get_asset_attributes_get2.return_value = (
                             {}
                         )
 
@@ -658,12 +658,12 @@ def test_work_item_details_realistic_production_errors(
 
                         # Mock successful asset and service order
                         asset = _create_mock_asset()
-                        mock_assets_api.return_value.get_asset.return_value = asset
+                        mock_assets_api.return_value.get_asset_get2.return_value = asset
                         order = _create_mock_order()
                         mock_orders_api.return_value.get_work_order.return_value = order
 
                         # Error in attributes API
-                        mock_attr_api.return_value.get_asset_attributes.side_effect = (
+                        mock_attr_api.return_value.get_asset_attributes_get2.side_effect = (
                             ValueError(scenario["error"])
                         )
 

@@ -16,20 +16,7 @@ from qualer_sdk.models.qualer_api_models_clients_to_employee_response_model impo
     QualerApiModelsClientsToEmployeeResponseModel,
 )
 
-# Cache for generated schemas to prevent infinite recursion
-_schema_cache: dict[Any, type[Schema]] = {}
-
-# Basic mapping from swagger type string to Marshmallow field
-type_mapping = {
-    "str": fields.String,
-    "int": fields.Integer,
-    "float": fields.Float,
-    "bool": fields.Boolean,
-    "datetime": fields.String,
-    "date": fields.Date,
-    # Fallback type
-    "object": fields.Raw,
-}
+from utils.pydantic_to_marshmallow import pydantic_to_marshmallow
 
 
 class WorkItemNumber(str):
@@ -75,82 +62,14 @@ class WorkItemNumber(str):
         return str.__new__(cls, normalized)
 
 
-def generate_schema_from_swagger(model_cls: type[Schema]) -> type[Schema]:
-    """
-    Generate a Marshmallow schema class from a Qualer SDK model class.
-    This function creates a schema class dynamically based on the model's
-    swagger_types mapping, allowing it to handle both single objects and lists
-    of objects.
-
-    Args:
-        model_cls (type): The Qualer SDK model class to generate the schema from.
-    Returns:
-        type[Schema]: A Marshmallow schema class that can serialize/deserialize
-                      instances of the given model class.
-    """
-    model_name = model_cls.__name__
-
-    # Return cached schema if already generated
-    if model_name in _schema_cache:
-        return _schema_cache[model_name]
-
-    schema_fields = {}
-    for attr_name, swagger_type in model_cls.swagger_types.items():
-        # Handle list types
-        if swagger_type.startswith("list["):
-            schema_fields[attr_name] = fields.List(fields.Raw(), allow_none=True)
-        # Handle all other types using type_mapping or fallback to Raw
-        else:
-            marshmallow_field = type_mapping.get(swagger_type, fields.Raw)
-            schema_fields[attr_name] = marshmallow_field(
-                allow_none=True
-            )  # Create schema class with fields first
-    schema_class: type[Schema] = type(f"{model_name}Schema", (Schema,), schema_fields)
-
-    def dump_override(
-        self, obj: object, *, many=None, **kwargs: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """Override dump to handle SDK model objects"""
-
-        # Use schema's many setting if dump's many parameter is None
-        if many is None:
-            many = getattr(self, "many", False)
-
-        if many:
-            # Handle list of objects
-            converted_objects = []
-            for item in obj:
-                if hasattr(item, "to_dict") and callable(getattr(item, "to_dict")):
-                    converted_objects.append(item.to_dict())
-                else:
-                    converted_objects.append(item)
-            return super(schema_class, self).dump(
-                converted_objects, many=True, **kwargs
-            )
-        else:
-            # Handle single object
-            if hasattr(obj, "to_dict") and callable(getattr(obj, "to_dict")):
-                obj = obj.to_dict()
-            return super(schema_class, self).dump(obj, many=False, **kwargs)
-
-    # Add the dump method after schema_class is defined
-    schema_class.dump = dump_override
-    # Cache and return the schema class
-    _schema_cache[model_name] = schema_class
-
-    return schema_class
-
-
-AssetToAssetSchema = generate_schema_from_swagger(
-    QualerApiModelsAssetToAssetResponseModel
-)
-EmployeeResponseSchema = generate_schema_from_swagger(
+AssetToAssetSchema = pydantic_to_marshmallow(QualerApiModelsAssetToAssetResponseModel)
+EmployeeResponseSchema = pydantic_to_marshmallow(
     QualerApiModelsClientsToEmployeeResponseModel
 )
-ClientCompanyResponseSchema = generate_schema_from_swagger(
+ClientCompanyResponseSchema = pydantic_to_marshmallow(
     QualerApiModelsClientsToClientCompanyResponseModel
 )
-AssetServiceRecordResponseSchema = generate_schema_from_swagger(
+AssetServiceRecordResponseSchema = pydantic_to_marshmallow(
     QualerApiModelsAssetServiceRecordsToAssetServiceRecordResponseModel
 )
 

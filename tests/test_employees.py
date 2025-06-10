@@ -3,7 +3,9 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from qualer_sdk.models import QualerApiModelsClientsToEmployeeResponseModel
+from qualer_sdk.models.qualer_api_models_clients_to_employee_response_model import (
+    QualerApiModelsClientsToEmployeeResponseModel,
+)
 
 
 @pytest.mark.skipif(
@@ -52,7 +54,7 @@ def test_employees_endpoint_mocked(mock_qualer_client, client, auth_token):
     }
 
     mock_employees_api = MagicMock()
-    mock_employees_api.get_employees.return_value = [mock_employee]
+    mock_employees_api.get_employees_get2.return_value = [mock_employee]
 
     mock_client = MagicMock()
     mock_qualer_client.return_value = mock_client

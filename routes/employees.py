@@ -1,8 +1,10 @@
 # routes/employees.py
 from flask.views import MethodView
 from flask_smorest import Blueprint
-from qualer_sdk import EmployeesApi
-from qualer_sdk.models import QualerApiModelsClientsToEmployeeResponseModel
+from qualer_sdk.api import EmployeesApi
+from qualer_sdk.models.qualer_api_models_clients_to_employee_response_model import (
+    QualerApiModelsClientsToEmployeeResponseModel,
+)
 
 from utils.auth import require_auth
 from utils.qualer_client import make_qualer_client
@@ -55,7 +57,7 @@ class Employees(MethodView):
         client = make_qualer_client()
 
         employees_api = EmployeesApi(client)
-        employees = employees_api.get_employees()
+        employees = employees_api.get_employees_get2()
         assert isinstance(employees, list), "Expected a list of employees"
         Employee = QualerApiModelsClientsToEmployeeResponseModel
         assert all(isinstance(e, Employee) for e in employees)

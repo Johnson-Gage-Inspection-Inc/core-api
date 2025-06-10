@@ -3,7 +3,9 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from qualer_sdk.models import QualerApiModelsClientsToClientCompanyResponseModel
+from qualer_sdk.models.qualer_api_models_clients_to_client_company_response_model import (
+    QualerApiModelsClientsToClientCompanyResponseModel,
+)
 
 
 @pytest.mark.skipif(
@@ -86,7 +88,7 @@ def test_clients_endpoint_mocked(
     }
 
     mock_clients_api = MagicMock()
-    mock_clients_api.get_all.return_value = [mock_client_company]
+    mock_clients_api.get_all_get2.return_value = [mock_client_company]
     mock_clients_api_class.return_value = mock_clients_api
 
     mock_client = MagicMock()
@@ -112,7 +114,7 @@ def test_clients_endpoint_empty_response(
 ):
     """Test clients endpoint when no clients are returned"""
     mock_clients_api = MagicMock()
-    mock_clients_api.get_all.return_value = []
+    mock_clients_api.get_all_get2.return_value = []
     mock_clients_api_class.return_value = mock_clients_api
 
     mock_client = MagicMock()
@@ -133,7 +135,7 @@ def test_clients_endpoint_api_error(
 ):
     """Test clients endpoint when the Qualer API throws an error"""
     mock_clients_api = MagicMock()
-    mock_clients_api.get_all.side_effect = Exception("Qualer API Error")
+    mock_clients_api.get_all_get2.side_effect = Exception("Qualer API Error")
     mock_clients_api_class.return_value = mock_clients_api
 
     mock_client = MagicMock()
