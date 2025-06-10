@@ -10,7 +10,7 @@ class TokenAcquisitionError(Exception):
     """Exception raised when token acquisition fails."""
 
 
-def get_access_token():
+def get_access_token() -> str:
     # Import config to load environment variables from both files
     if __name__ == "__main__":
         # If running as script, add parent directory to path

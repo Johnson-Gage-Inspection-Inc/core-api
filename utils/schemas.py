@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass, field
-from typing import Any, List, Pattern
+from typing import Any, Dict, List, Pattern
 
 from marshmallow import EXCLUDE, Schema, fields, pre_load
 from qualer_sdk.models.qualer_api_models_asset_service_records_to_asset_service_record_response_model import (
@@ -75,7 +75,7 @@ class WorkItemNumber(str):
         return str.__new__(cls, normalized)
 
 
-def generate_schema_from_swagger(model_cls: type) -> type[Schema]:
+def generate_schema_from_swagger(model_cls: type[Schema]) -> type[Schema]:
     """
     Generate a Marshmallow schema class from a Qualer SDK model class.
     This function creates a schema class dynamically based on the model's
@@ -105,9 +105,11 @@ def generate_schema_from_swagger(model_cls: type) -> type[Schema]:
             schema_fields[attr_name] = marshmallow_field(
                 allow_none=True
             )  # Create schema class with fields first
-    schema_class = type(f"{model_name}Schema", (Schema,), schema_fields)
+    schema_class: type[Schema] = type(f"{model_name}Schema", (Schema,), schema_fields)
 
-    def dump_override(self, obj: object, *, many=None, **kwargs: dict) -> dict:
+    def dump_override(
+        self, obj: object, *, many=None, **kwargs: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Override dump to handle SDK model objects"""
 
         # Use schema's many setting if dump's many parameter is None
@@ -353,7 +355,9 @@ class SharePointFileInfoSchema(Schema):
     path = fields.String(required=True)
 
     @pre_load
-    def flatten_nested_fields(self, data: dict, **kwargs: dict) -> dict:
+    def flatten_nested_fields(
+        self, data: Dict[str, Any], **kwargs: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Extract nested fields from `file` and `parentReference`."""
         data["mimeType"] = data.get("file", {}).get("mimeType")
         parent = data.get("parentReference", {})

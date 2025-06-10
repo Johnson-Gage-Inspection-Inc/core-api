@@ -1,14 +1,21 @@
 # routes/work_item_details.py
-import re
+
 from concurrent.futures import ThreadPoolExecutor
+from typing import Any, Dict
 
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from qualer_sdk import (
+from qualer_sdk.api import (
     ClientAssetAttributesApi,
     ClientAssetsApi,
     ServiceOrderItemsApi,
     ServiceOrdersApi,
+)
+from qualer_sdk.models import (
+    QualerApiModelsAssetAttributesToAssetAttributesResponse,
+    QualerApiModelsAssetToAssetResponseModel,
+    QualerApiModelsServiceOrdersToClientOrderItemResponseModel,
+    QualerApiModelsServiceOrdersToClientOrderResponseModel,
 )
 
 from utils.auth import require_auth
@@ -22,12 +29,14 @@ from utils.schemas import (
 blp = Blueprint("work-item-details", __name__, url_prefix="/")
 
 
-def get_work_item_details_for_tus(item_no: WorkItemNumber):
+def get_work_item_details_for_tus(item_no: WorkItemNumber) -> Dict[str, Any]:
 
     client = make_qualer_client()
 
-    soi_api = ServiceOrderItemsApi(client)
-    work_items = soi_api.get_work_items_0(work_item_number=item_no)
+    soi_api = ServiceOrderItemsApi(client)  # type: ignore
+    work_items: list[QualerApiModelsServiceOrdersToClientOrderItemResponseModel] = (
+        soi_api.get_work_items_0(work_item_number=item_no)  # type: ignore
+    )
 
     if len(work_items) == 0:
         raise ValueError("No work items found for the given work item number.")
@@ -45,18 +54,27 @@ def get_work_item_details_for_tus(item_no: WorkItemNumber):
 
     with ThreadPoolExecutor() as executor:
         future_client_asset = executor.submit(
-            ClientAssetsApi(client).get_asset, asset_id=asset_id
+            ClientAssetsApi(client).get_asset,  # type: ignore
+            asset_id=asset_id,
         )
         future_attributes = executor.submit(
-            ClientAssetAttributesApi(client).get_asset_attributes, asset_id=asset_id
+            ClientAssetAttributesApi(client).get_asset_attributes,  # type: ignore
+            asset_id=asset_id,
         )
         future_service_order = executor.submit(
-            ServiceOrdersApi(client).get_work_order, service_order_id=service_order_id
+            ServiceOrdersApi(client).get_work_order,  # type: ignore
+            service_order_id=service_order_id,
         )
 
-        client_asset = future_client_asset.result()
-        client_asset_attributes = future_attributes.result()
-        service_order = future_service_order.result()
+        client_asset: QualerApiModelsAssetToAssetResponseModel = (
+            future_client_asset.result()
+        )
+        client_asset_attributes: list[
+            QualerApiModelsAssetAttributesToAssetAttributesResponse
+        ] = future_attributes.result()
+        service_order: QualerApiModelsServiceOrdersToClientOrderResponseModel = (
+            future_service_order.result()
+        )
 
     return {
         "clientCompanyId": client_company_id,
@@ -79,11 +97,11 @@ def get_work_item_details_for_tus(item_no: WorkItemNumber):
 
 @blp.route("/work-item-details")
 class WorkItemDetails(MethodView):
-    @require_auth
-    @blp.doc(security=[{"BearerAuth": []}], tags=["Pyro"])
-    @blp.arguments(WorkItemDetailsQuerySchema, location="query", as_kwargs=True)
-    @blp.response(200, WorkItemDetailsSchema)
-    def get(self, workItemNumber: WorkItemNumber) -> dict:
+    @require_auth  # type: ignore
+    @blp.doc(security=[{"BearerAuth": []}], tags=["Pyro"])  # type: ignore
+    @blp.arguments(WorkItemDetailsQuerySchema, location="query", as_kwargs=True)  # type: ignore
+    @blp.response(200, WorkItemDetailsSchema)  # type: ignore
+    def get(self, workItemNumber: WorkItemNumber) -> Dict[str, Any]:
         """
         Get detailed TUS (Testing, Upgrading, Servicing) information for a work item.
 
