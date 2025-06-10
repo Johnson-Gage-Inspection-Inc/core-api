@@ -108,7 +108,7 @@ class ClientApplication:
         scopes: List[str],
         account: Account | None,
         authority: Incomplete | None = None,
-        force_refresh: boolean | None = False,
+        force_refresh: bool | None = False,
         claims_challenge: Incomplete | None = None,
         auth_scheme: Incomplete | None = None,
         **kwargs,
