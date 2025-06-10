@@ -63,7 +63,7 @@ def generate_schema_from_swagger(model_cls: type) -> type[Schema]:
             )  # Create schema class with fields first
     schema_class = type(f"{model_name}Schema", (Schema,), schema_fields)
 
-    def dump_override(self, obj, *, many=None, **kwargs):
+    def dump_override(self, obj: object, *, many=None, **kwargs: dict) -> dict:
         """Override dump to handle SDK model objects"""
 
         # Use schema's many setting if dump's many parameter is None
@@ -192,7 +192,7 @@ class WireSetCertResult:
     records_updated: int = 0
     errors: List[str] = field(default_factory=list)
 
-    def update(self, other: "WireSetCertResult"):
+    def update(self, other: "WireSetCertResult") -> None:
         """
         Update this result with another WireSetCertResult.
 
@@ -231,7 +231,7 @@ class WireSetCertSchema(Schema):
     updated_at = fields.DateTime(dump_only=True)
 
     @pre_load
-    def normalize_dates(self, data, **kwargs):
+    def normalize_dates(self, data: dict, **kwargs: dict) -> dict:
         for fld in ("service_date", "next_service_date"):
             val = data.get(fld)
             # pandas.Timestamp or numpy datetime64
@@ -309,12 +309,10 @@ class SharePointFileInfoSchema(Schema):
     path = fields.String(required=True)
 
     @pre_load
-    def flatten_nested_fields(self, data, **kwargs):
+    def flatten_nested_fields(self, data: dict, **kwargs: dict) -> dict:
         """Extract nested fields from `file` and `parentReference`."""
         data["mimeType"] = data.get("file", {}).get("mimeType")
         parent = data.get("parentReference", {})
         data["driveId"] = parent.get("driveId")
         data["path"] = parent.get("path")
-        return data
-        return data
         return data
