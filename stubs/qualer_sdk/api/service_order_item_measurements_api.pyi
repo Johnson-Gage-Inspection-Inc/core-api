@@ -1,0 +1,36 @@
+from _typeshed import Incomplete
+from datetime import datetime
+from pydantic import Field as Field, StrictInt as StrictInt, conlist as conlist, validate_arguments
+from qualer_sdk.api_client import ApiClient as ApiClient
+from qualer_sdk.api_response import ApiResponse as ApiResponse
+from qualer_sdk.exceptions import ApiTypeError as ApiTypeError, ApiValueError as ApiValueError
+from qualer_sdk.models.qualer_api_models_measurements_from_create_measurement_form_model import QualerApiModelsMeasurementsFromCreateMeasurementFormModel as QualerApiModelsMeasurementsFromCreateMeasurementFormModel
+from qualer_sdk.models.qualer_api_models_measurements_from_create_measurement_tool_model import QualerApiModelsMeasurementsFromCreateMeasurementToolModel as QualerApiModelsMeasurementsFromCreateMeasurementToolModel
+from qualer_sdk.models.qualer_api_models_measurements_from_update_measurement_form_model import QualerApiModelsMeasurementsFromUpdateMeasurementFormModel as QualerApiModelsMeasurementsFromUpdateMeasurementFormModel
+from qualer_sdk.models.qualer_api_models_measurements_to_measurement_record_response_model import QualerApiModelsMeasurementsToMeasurementRecordResponseModel as QualerApiModelsMeasurementsToMeasurementRecordResponseModel
+from qualer_sdk.models.qualer_api_models_measurements_to_update_measurement_form_response_model import QualerApiModelsMeasurementsToUpdateMeasurementFormResponseModel as QualerApiModelsMeasurementsToUpdateMeasurementFormResponseModel
+from typing_extensions import Annotated
+
+class ServiceOrderItemMeasurementsApi:
+    api_client: Incomplete
+    def __init__(self, api_client: Incomplete | None = None) -> None: ...
+    @validate_arguments
+    def add_auxiliary_tools(self, work_item_id: StrictInt, models: None, **kwargs) -> object: ...
+    @validate_arguments
+    def add_auxiliary_tools_with_http_info(self, work_item_id: StrictInt, models: None, **kwargs) -> ApiResponse: ...
+    @validate_arguments
+    def create_measurement_form(self, work_item_id: Annotated[StrictInt, None], model: Annotated[QualerApiModelsMeasurementsFromCreateMeasurementFormModel, None], **kwargs) -> object: ...
+    @validate_arguments
+    def create_measurement_form_with_http_info(self, work_item_id: Annotated[StrictInt, None], model: Annotated[QualerApiModelsMeasurementsFromCreateMeasurementFormModel, None], **kwargs) -> ApiResponse: ...
+    @validate_arguments
+    def get_measurement_form(self, work_item_id: Annotated[StrictInt, None], **kwargs) -> QualerApiModelsMeasurementsToUpdateMeasurementFormResponseModel: ...
+    @validate_arguments
+    def get_measurement_form_with_http_info(self, work_item_id: Annotated[StrictInt, None], **kwargs) -> ApiResponse: ...
+    @validate_arguments
+    def get_measurements_by_asset_get2(self, asset_id: StrictInt, var_from: datetime | None = None, to: datetime | None = None, **kwargs) -> list[QualerApiModelsMeasurementsToMeasurementRecordResponseModel]: ...
+    @validate_arguments
+    def get_measurements_by_asset_get2_with_http_info(self, asset_id: StrictInt, var_from: datetime | None = None, to: datetime | None = None, **kwargs) -> ApiResponse: ...
+    @validate_arguments
+    def update_measurement_form(self, work_item_id: Annotated[StrictInt, None], model: Annotated[QualerApiModelsMeasurementsFromUpdateMeasurementFormModel, None], **kwargs) -> object: ...
+    @validate_arguments
+    def update_measurement_form_with_http_info(self, work_item_id: Annotated[StrictInt, None], model: Annotated[QualerApiModelsMeasurementsFromUpdateMeasurementFormModel, None], **kwargs) -> ApiResponse: ...
