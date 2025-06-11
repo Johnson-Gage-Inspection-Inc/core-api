@@ -1,0 +1,67 @@
+from _typeshed import Incomplete
+from pydantic import StrictInt as StrictInt, StrictStr as StrictStr, validate_arguments
+from qualer_sdk.api_client import ApiClient as ApiClient
+from qualer_sdk.api_response import ApiResponse as ApiResponse
+from qualer_sdk.exceptions import (
+    ApiTypeError as ApiTypeError,
+    ApiValueError as ApiValueError,
+)
+from qualer_sdk.models.qualer_api_models_clients_from_send_employee_email_model import (
+    QualerApiModelsClientsFromSendEmployeeEmailModel as QualerApiModelsClientsFromSendEmployeeEmailModel,
+)
+from qualer_sdk.models.qualer_api_models_clients_from_sponsored_employee_model import (
+    QualerApiModelsClientsFromSponsoredEmployeeModel as QualerApiModelsClientsFromSponsoredEmployeeModel,
+)
+from qualer_sdk.models.qualer_api_models_clients_to_employee_response_model import (
+    QualerApiModelsClientsToEmployeeResponseModel as QualerApiModelsClientsToEmployeeResponseModel,
+)
+
+class ClientEmployeesApi:
+    api_client: Incomplete
+    def __init__(self, api_client: Incomplete | None = None) -> None: ...
+    @validate_arguments
+    def create_employee(
+        self, model: QualerApiModelsClientsFromSponsoredEmployeeModel, **kwargs
+    ) -> object: ...
+    @validate_arguments
+    def create_employee_with_http_info(
+        self, model: QualerApiModelsClientsFromSponsoredEmployeeModel, **kwargs
+    ) -> ApiResponse: ...
+    @validate_arguments
+    def get_employee(
+        self,
+        employee_id2: StrictStr,
+        employee_id: StrictStr | None = None,
+        model_employee_id: StrictInt | None = None,
+        **kwargs,
+    ) -> QualerApiModelsClientsToEmployeeResponseModel: ...
+    @validate_arguments
+    def get_employee_with_http_info(
+        self,
+        employee_id2: StrictStr,
+        employee_id: StrictStr | None = None,
+        model_employee_id: StrictInt | None = None,
+        **kwargs,
+    ) -> ApiResponse: ...
+    @validate_arguments
+    def get_employees(
+        self, client_company_id: StrictInt, **kwargs
+    ) -> list[QualerApiModelsClientsToEmployeeResponseModel]: ...
+    @validate_arguments
+    def get_employees_with_http_info(
+        self, client_company_id: StrictInt, **kwargs
+    ) -> ApiResponse: ...
+    @validate_arguments
+    def send_employee_email(
+        self,
+        employee_id: StrictInt,
+        model: QualerApiModelsClientsFromSendEmployeeEmailModel,
+        **kwargs,
+    ) -> object: ...
+    @validate_arguments
+    def send_employee_email_with_http_info(
+        self,
+        employee_id: StrictInt,
+        model: QualerApiModelsClientsFromSendEmployeeEmailModel,
+        **kwargs,
+    ) -> ApiResponse: ...

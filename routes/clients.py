@@ -1,7 +1,12 @@
 # routes/clients.py
+from typing import List
+
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from qualer_sdk import ClientsApi
+from qualer_sdk.api import ClientsApi
+from qualer_sdk.models.qualer_api_models_clients_to_client_company_response_model import (
+    QualerApiModelsClientsToClientCompanyResponseModel,
+)
 
 from utils.auth import require_auth
 from utils.qualer_client import make_qualer_client
@@ -15,7 +20,7 @@ class Clients(MethodView):
     @require_auth
     @blp.doc(security=[{"BearerAuth": []}], tags=["Qualer"])
     @blp.response(200, ClientCompanyResponseSchema(many=True))
-    def get(self):
+    def get(self) -> List[QualerApiModelsClientsToClientCompanyResponseModel]:
         """
         Retrieve all client companies from Qualer.
 
@@ -41,6 +46,6 @@ class Clients(MethodView):
         try:
             client = make_qualer_client()
             api = ClientsApi(client)
-            return api.get_all()
+            return api.get_all_get2()
         except Exception as e:
             abort(500, message=f"Error fetching clients: {str(e)}")

@@ -1,7 +1,7 @@
 # routes/pyro_assets.py
 from flask.views import MethodView
 from flask_smorest import Blueprint
-from qualer_sdk import AssetsApi
+from qualer_sdk.api import AssetsApi
 
 from utils.auth import require_auth
 from utils.qualer_client import make_qualer_client

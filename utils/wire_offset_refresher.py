@@ -65,7 +65,7 @@ def refresh_wire_offsets(
             # Filter for wire certificate files
             updated_files = []
             for file_info in all_files:
-                filename = file_info.get("name", "")
+                filename = file_info.name
                 if wirecert_filename_pattern.match(filename):
                     updated_files.append(file_info)
 

@@ -1,0 +1,68 @@
+from _typeshed import Incomplete
+from pydantic import StrictInt as StrictInt, validate_arguments
+from qualer_sdk.api_client import ApiClient as ApiClient
+from qualer_sdk.api_response import ApiResponse as ApiResponse
+from qualer_sdk.exceptions import (
+    ApiTypeError as ApiTypeError,
+    ApiValueError as ApiValueError,
+)
+from qualer_sdk.models.qualer_api_models_service_orders_from_add_payment_model import (
+    QualerApiModelsServiceOrdersFromAddPaymentModel as QualerApiModelsServiceOrdersFromAddPaymentModel,
+)
+from qualer_sdk.models.qualer_api_models_service_orders_from_update_payment_status_model import (
+    QualerApiModelsServiceOrdersFromUpdatePaymentStatusModel as QualerApiModelsServiceOrdersFromUpdatePaymentStatusModel,
+)
+from qualer_sdk.models.qualer_api_models_service_orders_to_created_work_order_payment_response import (
+    QualerApiModelsServiceOrdersToCreatedWorkOrderPaymentResponse as QualerApiModelsServiceOrdersToCreatedWorkOrderPaymentResponse,
+)
+from qualer_sdk.models.qualer_api_models_service_orders_to_payment_response_model import (
+    QualerApiModelsServiceOrdersToPaymentResponseModel as QualerApiModelsServiceOrdersToPaymentResponseModel,
+)
+
+class ServiceOrderPaymentsApi:
+    api_client: Incomplete
+    def __init__(self, api_client: Incomplete | None = None) -> None: ...
+    @validate_arguments
+    def change_work_order_payment_status(
+        self,
+        service_order_id: StrictInt,
+        model: QualerApiModelsServiceOrdersFromUpdatePaymentStatusModel,
+        **kwargs,
+    ) -> object: ...
+    @validate_arguments
+    def change_work_order_payment_status_with_http_info(
+        self,
+        service_order_id: StrictInt,
+        model: QualerApiModelsServiceOrdersFromUpdatePaymentStatusModel,
+        **kwargs,
+    ) -> ApiResponse: ...
+    @validate_arguments
+    def create_work_order_payment(
+        self,
+        service_order_id: StrictInt,
+        model: QualerApiModelsServiceOrdersFromAddPaymentModel,
+        **kwargs,
+    ) -> QualerApiModelsServiceOrdersToCreatedWorkOrderPaymentResponse: ...
+    @validate_arguments
+    def create_work_order_payment_with_http_info(
+        self,
+        service_order_id: StrictInt,
+        model: QualerApiModelsServiceOrdersFromAddPaymentModel,
+        **kwargs,
+    ) -> ApiResponse: ...
+    @validate_arguments
+    def get_all_work_order_payments(
+        self, service_order_id: StrictInt, **kwargs
+    ) -> list[QualerApiModelsServiceOrdersToPaymentResponseModel]: ...
+    @validate_arguments
+    def get_all_work_order_payments_with_http_info(
+        self, service_order_id: StrictInt, **kwargs
+    ) -> ApiResponse: ...
+    @validate_arguments
+    def get_work_order_payment(
+        self, service_order_payment_id: StrictInt, **kwargs
+    ) -> QualerApiModelsServiceOrdersToPaymentResponseModel: ...
+    @validate_arguments
+    def get_work_order_payment_with_http_info(
+        self, service_order_payment_id: StrictInt, **kwargs
+    ) -> ApiResponse: ...

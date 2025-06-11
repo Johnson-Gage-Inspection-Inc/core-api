@@ -11,10 +11,16 @@ from qualer_sdk.api import (
     ServiceOrderItemsApi,
     ServiceOrdersApi,
 )
-from qualer_sdk.models import (
+from qualer_sdk.models.qualer_api_models_asset_attributes_to_asset_attributes_response import (
     QualerApiModelsAssetAttributesToAssetAttributesResponse,
+)
+from qualer_sdk.models.qualer_api_models_asset_to_asset_response_model import (
     QualerApiModelsAssetToAssetResponseModel,
+)
+from qualer_sdk.models.qualer_api_models_service_orders_to_client_order_item_response_model import (
     QualerApiModelsServiceOrdersToClientOrderItemResponseModel,
+)
+from qualer_sdk.models.qualer_api_models_service_orders_to_client_order_response_model import (
     QualerApiModelsServiceOrdersToClientOrderResponseModel,
 )
 
@@ -35,7 +41,7 @@ def get_work_item_details_for_tus(item_no: WorkItemNumber) -> Dict[str, Any]:
 
     soi_api = ServiceOrderItemsApi(client)  # type: ignore
     work_items: list[QualerApiModelsServiceOrdersToClientOrderItemResponseModel] = (
-        soi_api.get_work_items_0(work_item_number=item_no)  # type: ignore
+        soi_api.get_work_items(work_item_number=item_no)  # type: ignore
     )
 
     if len(work_items) == 0:
@@ -54,15 +60,15 @@ def get_work_item_details_for_tus(item_no: WorkItemNumber) -> Dict[str, Any]:
 
     with ThreadPoolExecutor() as executor:
         future_client_asset = executor.submit(
-            ClientAssetsApi(client).get_asset,  # type: ignore
+            ClientAssetsApi(client).get_asset_get2,
             asset_id=asset_id,
         )
         future_attributes = executor.submit(
-            ClientAssetAttributesApi(client).get_asset_attributes,  # type: ignore
+            ClientAssetAttributesApi(client).get_asset_attributes_get2,
             asset_id=asset_id,
         )
         future_service_order = executor.submit(
-            ServiceOrdersApi(client).get_work_order,  # type: ignore
+            ServiceOrdersApi(client).get_work_order,
             service_order_id=service_order_id,
         )
 

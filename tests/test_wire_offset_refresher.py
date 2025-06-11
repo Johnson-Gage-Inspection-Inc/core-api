@@ -49,11 +49,19 @@ class TestRefreshWireOffsets:
         mock_pattern.match.side_effect = lambda x: x.endswith(".xls")
 
         with patch("utils.wire_offset_refresher.SharePointClient") as mock_sp_client:
+            # Create mock objects with .name attribute instead of dictionaries
+            mock_file_1 = Mock()
+            mock_file_1.name = "072513A.xls"
+            mock_file_2 = Mock()
+            mock_file_2.name = "other_file.pdf"
+            mock_file_3 = Mock()
+            mock_file_3.name = "072513B.xls"
+
             mock_sp_instance = mock_sp_client.return_value
             mock_sp_instance.list_files_in_pyro_standards_folder.return_value = [
-                {"name": "072513A.xls"},
-                {"name": "other_file.pdf"},
-                {"name": "072513B.xls"},
+                mock_file_1,
+                mock_file_2,
+                mock_file_3,
             ]
 
             result = refresh_wire_offsets(session=mock_session)

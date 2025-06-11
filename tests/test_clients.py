@@ -3,7 +3,9 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from qualer_sdk.models import QualerApiModelsClientsToClientCompanyResponseModel
+from qualer_sdk.models.qualer_api_models_clients_to_client_company_response_model import (
+    QualerApiModelsClientsToClientCompanyResponseModel,
+)
 
 
 @pytest.mark.skipif(
@@ -18,9 +20,8 @@ def test_clients_endpoint_basic(client, auth_token):
     assert isinstance(data, list)
     for client_company in data:
         assert isinstance(client_company, dict)
-        assert client_company != {}
-        # Check for expected fields based on the API spec
-        assert "company_id" in client_company or "id" in client_company
+        assert client_company != {}  # Check for expected fields based on the API spec
+        assert "CompanyId" in client_company  # Updated to PascalCase for v3.0 SDK
 
 
 def test_clients_endpoint_without_auth(client):
@@ -77,16 +78,27 @@ def test_clients_endpoint_mocked(
         spec=QualerApiModelsClientsToClientCompanyResponseModel
     )
     mock_client_company.to_dict.return_value = {
-        "company_id": 123,
-        "company_name": "Test Company Inc.",
-        "account_number_text": "ACC-001",
-        "legacy_id": "LEG-123",
-        "modified_date_utc": "2023-01-01T00:00:00Z",
-        "created_date_utc": "2023-01-01T00:00:00Z",
+        "CompanyId": 123,  # Updated to PascalCase for v3.0 SDK
+        "CompanyName": "Test Company Inc.",
+        "AccountNumberText": "ACC-001",
+        "LegacyId": "LEG-123",
+        "UpdatedOnUtc": None,  # Let the conversion function handle datetime fields
+        "AccountNumber": None,
+        "CurrencyId": None,
+        "ClientStatus": None,
+        "CompanyDescription": None,
+        "DomainName": None,
+        "CustomClientName": None,
+        "AccountRepresentativeEmployeeId": None,
+        "AccountRepresentativeSiteId": None,
+        "AccountManagerEmployeeId": None,
+        "BillingAddress": None,
+        "ShippingAddress": None,
+        "Attributes": None,
     }
 
     mock_clients_api = MagicMock()
-    mock_clients_api.get_all.return_value = [mock_client_company]
+    mock_clients_api.get_all_get2.return_value = [mock_client_company]
     mock_clients_api_class.return_value = mock_clients_api
 
     mock_client = MagicMock()
@@ -100,9 +112,9 @@ def test_clients_endpoint_mocked(
     assert len(data) == 1
 
     client_company = data[0]
-    assert client_company["company_id"] == 123
-    assert client_company["company_name"] == "Test Company Inc."
-    assert client_company["account_number_text"] == "ACC-001"
+    assert client_company["CompanyId"] == 123  # Updated to PascalCase for v3.0 SDK
+    assert client_company["CompanyName"] == "Test Company Inc."
+    assert client_company["AccountNumberText"] == "ACC-001"
 
 
 @patch("routes.clients.ClientsApi")
@@ -112,7 +124,7 @@ def test_clients_endpoint_empty_response(
 ):
     """Test clients endpoint when no clients are returned"""
     mock_clients_api = MagicMock()
-    mock_clients_api.get_all.return_value = []
+    mock_clients_api.get_all_get2.return_value = []
     mock_clients_api_class.return_value = mock_clients_api
 
     mock_client = MagicMock()
@@ -133,7 +145,7 @@ def test_clients_endpoint_api_error(
 ):
     """Test clients endpoint when the Qualer API throws an error"""
     mock_clients_api = MagicMock()
-    mock_clients_api.get_all.side_effect = Exception("Qualer API Error")
+    mock_clients_api.get_all_get2.side_effect = Exception("Qualer API Error")
     mock_clients_api_class.return_value = mock_clients_api
 
     mock_client = MagicMock()

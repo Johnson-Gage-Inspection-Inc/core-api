@@ -1,11 +1,13 @@
 # tests/test_asset_service_records.py
 import os
+from datetime import datetime as dt
 from unittest.mock import MagicMock, patch
 
 import pytest
-from qualer_sdk.models import (
+from qualer_sdk.models.qualer_api_models_asset_service_records_to_asset_service_record_response_model import (
     QualerApiModelsAssetServiceRecordsToAssetServiceRecordResponseModel,
 )
+from qualer_sdk.rest import ApiException
 
 
 @pytest.mark.skipif(
@@ -46,34 +48,43 @@ def test_asset_service_record_endpoint_mocked(
     mock_asset_service_record1 = MagicMock(
         QualerApiModelsAssetServiceRecordsToAssetServiceRecordResponseModel
     )
+
     mock_asset_service_record1.to_dict.return_value = {
-        "asset_service_record_id": 1001,
-        "asset_id": 12345,
-        "service_date": "2023-01-01T00:00:00Z",
-        "result_status": "Pass",
-        "serial_number": "SN123456",
-        "asset_name": "Test Asset",
-        "service_type": "Calibration",
-        "technician_name": "John Doe",
-        "created_date_utc": "2023-01-01T00:00:00Z",
-        "modified_date_utc": "2023-01-01T00:00:00Z",
+        "AssetServiceRecordId": 1001,
+        "AssetId": 12345,
+        "ServiceDate": dt.fromisoformat("2023-01-01T00:00:00Z"),
+        "ResultStatus": "Pass",
+        "SerialNumber": "SN123456",
+        "AssetName": "Test Asset",
+        "ServiceType": "Calibration",
+        "TechnicianName": "John Doe",
+        "CreatedDateUtc": dt.fromisoformat("2023-01-01T00:00:00Z"),
+        "ModifiedDateUtc": dt.fromisoformat("2023-01-01T00:00:00Z"),
     }
+    # Add model_dump method for compatibility with new schema serialization
+    mock_asset_service_record1.model_dump.return_value = (
+        mock_asset_service_record1.to_dict.return_value
+    )
 
     mock_asset_service_record2 = MagicMock(
         QualerApiModelsAssetServiceRecordsToAssetServiceRecordResponseModel
     )
     mock_asset_service_record2.to_dict.return_value = {
-        "asset_service_record_id": 1002,
-        "asset_id": 12345,
-        "service_date": "2023-06-15T09:30:00Z",
-        "result_status": "Pass",
-        "serial_number": "SN123456",
-        "asset_name": "Test Asset",
-        "service_type": "Inspection",
-        "technician_name": "Jane Smith",
-        "created_date_utc": "2023-06-15T09:30:00Z",
-        "modified_date_utc": "2023-06-15T09:30:00Z",
+        "AssetServiceRecordId": 1002,
+        "AssetId": 12345,
+        "ServiceDate": "2023-06-15T09:30:00Z",
+        "ResultStatus": "Pass",
+        "SerialNumber": "SN123456",
+        "AssetName": "Test Asset",
+        "ServiceType": "Inspection",
+        "TechnicianName": "Jane Smith",
+        "CreatedDateUtc": "2023-06-15T09:30:00Z",
+        "ModifiedDateUtc": "2023-06-15T09:30:00Z",
     }
+    # Add model_dump method for compatibility with new schema serialization
+    mock_asset_service_record2.model_dump.return_value = (
+        mock_asset_service_record2.to_dict.return_value
+    )
 
     mock_asset_service_records = [
         mock_asset_service_record1,
@@ -102,12 +113,12 @@ def test_asset_service_record_endpoint_mocked(
     # The exact fields may vary based on the Qualer SDK object structure
 
     # Check first record
-    assert data[0]["asset_service_record_id"] == 1001
-    assert data[0]["asset_id"] == 12345
+    assert data[0]["AssetServiceRecordId"] == 1001
+    assert data[0]["AssetId"] == 12345
 
     # Check second record
-    assert data[1]["asset_service_record_id"] == 1002
-    assert data[1]["asset_id"] == 12345
+    assert data[1]["AssetServiceRecordId"] == 1002
+    assert data[1]["AssetId"] == 12345
 
 
 @patch("routes.asset_service_records.AssetServiceRecordsApi")
@@ -126,15 +137,12 @@ def test_asset_service_record_endpoint_not_found(
 
         assert response.status_code == 404
         assert "Asset service records not found" in response.get_data(as_text=True)
-    else:
-        # Normal testing mode with SDK mocks
+    else:  # Normal testing mode with SDK mocks
         mock_asset_service_records_api = MagicMock()
 
-        # Create a mock exception that simulates 404
-        mock_exception = Exception("Not found")
-        mock_exception.status = 404
-        mock_asset_service_records_api.get_asset_service_records_by_asset.side_effect = (
-            mock_exception
+        # Create a mock ApiException that simulates 404
+        mock_asset_service_records_api.get_asset_service_records_by_asset.side_effect = ApiException(
+            status=404, reason="Not Found"
         )
         mock_asset_service_records_api_class.return_value = (
             mock_asset_service_records_api
@@ -176,12 +184,10 @@ def test_asset_service_record_endpoint_api_error(
             asset_service_record_view = AssetServiceRecord()
             app.view_functions["asset-service-records.AssetServiceRecord"] = (
                 asset_service_record_view.get
-            )
-
-            # Now the SDK patches will work
+            )  # Now the SDK patches will work
             mock_asset_service_records_api = MagicMock()
-            mock_asset_service_records_api.get_asset_service_records_by_asset.side_effect = Exception(
-                "Qualer API Error"
+            mock_asset_service_records_api.get_asset_service_records_by_asset.side_effect = ApiException(
+                status=500, reason="Internal Server Error"
             )
             mock_asset_service_records_api_class.return_value = (
                 mock_asset_service_records_api
@@ -206,11 +212,10 @@ def test_asset_service_record_endpoint_api_error(
                 app.view_functions["asset-service-records.AssetServiceRecord"] = (
                     mock_function
                 )
-    else:
-        # Normal testing mode
+    else:  # Normal testing mode
         mock_asset_service_records_api = MagicMock()
-        mock_asset_service_records_api.get_asset_service_records_by_asset.side_effect = Exception(
-            "Qualer API Error"
+        mock_asset_service_records_api.get_asset_service_records_by_asset.side_effect = ApiException(
+            status=500, reason="Internal Server Error"
         )
         mock_asset_service_records_api_class.return_value = (
             mock_asset_service_records_api
@@ -241,13 +246,12 @@ def test_asset_service_record_endpoint_with_auth_skip_mode(client):
         assert response.status_code == 200
         data = response.get_json()
         assert isinstance(data, list)
-        assert len(data) == 2
-        # Verify first record
-        assert data[0]["asset_service_record_id"] == 1001
-        assert data[0]["asset_id"] == 12345
+        assert len(data) == 2  # Verify first record
+        assert data[0]["AssetServiceRecordId"] == 1001
+        assert data[0]["AssetId"] == 12345
 
         # Verify second record
-        assert data[1]["asset_service_record_id"] == 1002
+        assert data[1]["AssetServiceRecordId"] == 1002
     else:
         # In normal mode, this would require a real auth token, so skip
         pytest.skip("Test only runs in SKIP_AUTH mode")

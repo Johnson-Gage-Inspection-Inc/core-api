@@ -1,0 +1,118 @@
+from _typeshed import Incomplete
+from pydantic import StrictInt as StrictInt, StrictStr as StrictStr, validate_arguments
+from qualer_sdk.api_client import ApiClient as ApiClient
+from qualer_sdk.api_response import ApiResponse as ApiResponse
+from qualer_sdk.exceptions import (
+    ApiTypeError as ApiTypeError,
+    ApiValueError as ApiValueError,
+)
+from qualer_sdk.models.qualer_api_models_asset_to_asset_response_model import (
+    QualerApiModelsAssetToAssetResponseModel as QualerApiModelsAssetToAssetResponseModel,
+)
+from qualer_sdk.models.qualer_api_models_asset_to_client_asset_counters_response_model import (
+    QualerApiModelsAssetToClientAssetCountersResponseModel as QualerApiModelsAssetToClientAssetCountersResponseModel,
+)
+from qualer_sdk.models.qualer_api_models_asset_to_client_asset_manager_response_model import (
+    QualerApiModelsAssetToClientAssetManagerResponseModel as QualerApiModelsAssetToClientAssetManagerResponseModel,
+)
+from qualer_sdk.models.qualer_api_models_clients_from_asset_model import (
+    QualerApiModelsClientsFromAssetModel as QualerApiModelsClientsFromAssetModel,
+)
+
+class ClientAssetsApi:
+    api_client: Incomplete
+    def __init__(self, api_client: Incomplete | None = None) -> None: ...
+    @validate_arguments
+    def create_asset(
+        self, model: QualerApiModelsClientsFromAssetModel, **kwargs
+    ) -> object: ...
+    @validate_arguments
+    def create_asset_with_http_info(
+        self, model: QualerApiModelsClientsFromAssetModel, **kwargs
+    ) -> ApiResponse: ...
+    @validate_arguments
+    def get_all_assets_get2(
+        self,
+        query_equipment_id: StrictStr | None = None,
+        query_serial_number: StrictStr | None = None,
+        query_asset_tag: StrictStr | None = None,
+        query_barcode: StrictStr | None = None,
+        query_legacy_id: StrictStr | None = None,
+        **kwargs,
+    ) -> list[QualerApiModelsAssetToAssetResponseModel]: ...
+    @validate_arguments
+    def get_all_assets_get2_with_http_info(
+        self,
+        query_equipment_id: StrictStr | None = None,
+        query_serial_number: StrictStr | None = None,
+        query_asset_tag: StrictStr | None = None,
+        query_barcode: StrictStr | None = None,
+        query_legacy_id: StrictStr | None = None,
+        **kwargs,
+    ) -> ApiResponse: ...
+    @validate_arguments
+    def get_asset_counters(
+        self, client_company_id: StrictInt, **kwargs
+    ) -> QualerApiModelsAssetToClientAssetCountersResponseModel: ...
+    @validate_arguments
+    def get_asset_counters_with_http_info(
+        self, client_company_id: StrictInt, **kwargs
+    ) -> ApiResponse: ...
+    @validate_arguments
+    def get_asset_get2(
+        self,
+        asset_id2: StrictStr,
+        asset_id: StrictStr | None = None,
+        model_asset_id: StrictInt | None = None,
+        **kwargs,
+    ) -> QualerApiModelsAssetToAssetResponseModel: ...
+    @validate_arguments
+    def get_asset_get2_with_http_info(
+        self,
+        asset_id2: StrictStr,
+        asset_id: StrictStr | None = None,
+        model_asset_id: StrictInt | None = None,
+        **kwargs,
+    ) -> ApiResponse: ...
+    @validate_arguments
+    def get_asset_manager_list_get2(
+        self,
+        client_company_id: StrictInt,
+        query_filter_type: StrictStr | None = None,
+        query_search_string: StrictStr | None = None,
+        query_page: StrictInt | None = None,
+        query_page_size: StrictInt | None = None,
+        **kwargs,
+    ) -> list[QualerApiModelsAssetToClientAssetManagerResponseModel]: ...
+    @validate_arguments
+    def get_asset_manager_list_get2_with_http_info(
+        self,
+        client_company_id: StrictInt,
+        query_filter_type: StrictStr | None = None,
+        query_search_string: StrictStr | None = None,
+        query_page: StrictInt | None = None,
+        query_page_size: StrictInt | None = None,
+        **kwargs,
+    ) -> ApiResponse: ...
+    @validate_arguments
+    def get_assets(
+        self,
+        client_company_id: StrictInt,
+        query_equipment_id: StrictStr | None = None,
+        query_serial_number: StrictStr | None = None,
+        query_asset_tag: StrictStr | None = None,
+        query_barcode: StrictStr | None = None,
+        query_legacy_id: StrictStr | None = None,
+        **kwargs,
+    ) -> list[QualerApiModelsAssetToAssetResponseModel]: ...
+    @validate_arguments
+    def get_assets_with_http_info(
+        self,
+        client_company_id: StrictInt,
+        query_equipment_id: StrictStr | None = None,
+        query_serial_number: StrictStr | None = None,
+        query_asset_tag: StrictStr | None = None,
+        query_barcode: StrictStr | None = None,
+        query_legacy_id: StrictStr | None = None,
+        **kwargs,
+    ) -> ApiResponse: ...

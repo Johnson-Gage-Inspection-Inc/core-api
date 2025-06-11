@@ -2,7 +2,8 @@
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from marshmallow import Schema, fields
-from qualer_sdk import AssetServiceRecordsApi
+from qualer_sdk.api import AssetServiceRecordsApi
+from qualer_sdk.rest import ApiException
 
 from utils.auth import require_auth
 from utils.qualer_client import make_qualer_client
@@ -62,12 +63,16 @@ class AssetServiceRecord(MethodView):
             client = make_qualer_client()
             api = AssetServiceRecordsApi(client)
             return api.get_asset_service_records_by_asset(asset_id=assetId)
-        except Exception as e:
-            # Check if it's a 404 error (asset not found)
-            if hasattr(e, "status") and e.status == 404:
+        except ApiException as e:
+            if e.status == 404:
                 abort(
                     404,
                     message=f"Asset with ID '{assetId}' not found or has no service records",
                 )
             else:
                 abort(500, message=f"Error fetching asset service records: {str(e)}")
+        except Exception as e:
+            abort(
+                500,
+                message=f"Unexpected error fetching asset service records: {str(e)}",
+            )

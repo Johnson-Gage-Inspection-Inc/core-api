@@ -1,5 +1,6 @@
 import re
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any, Dict, List, Pattern
 
 from marshmallow import EXCLUDE, Schema, fields, pre_load
@@ -16,20 +17,7 @@ from qualer_sdk.models.qualer_api_models_clients_to_employee_response_model impo
     QualerApiModelsClientsToEmployeeResponseModel,
 )
 
-# Cache for generated schemas to prevent infinite recursion
-_schema_cache: dict[Any, type[Schema]] = {}
-
-# Basic mapping from swagger type string to Marshmallow field
-type_mapping = {
-    "str": fields.String,
-    "int": fields.Integer,
-    "float": fields.Float,
-    "bool": fields.Boolean,
-    "datetime": fields.String,
-    "date": fields.Date,
-    # Fallback type
-    "object": fields.Raw,
-}
+from utils.pydantic_to_marshmallow import pydantic_to_marshmallow
 
 
 class WorkItemNumber(str):
@@ -75,82 +63,14 @@ class WorkItemNumber(str):
         return str.__new__(cls, normalized)
 
 
-def generate_schema_from_swagger(model_cls: type[Schema]) -> type[Schema]:
-    """
-    Generate a Marshmallow schema class from a Qualer SDK model class.
-    This function creates a schema class dynamically based on the model's
-    swagger_types mapping, allowing it to handle both single objects and lists
-    of objects.
-
-    Args:
-        model_cls (type): The Qualer SDK model class to generate the schema from.
-    Returns:
-        type[Schema]: A Marshmallow schema class that can serialize/deserialize
-                      instances of the given model class.
-    """
-    model_name = model_cls.__name__
-
-    # Return cached schema if already generated
-    if model_name in _schema_cache:
-        return _schema_cache[model_name]
-
-    schema_fields = {}
-    for attr_name, swagger_type in model_cls.swagger_types.items():
-        # Handle list types
-        if swagger_type.startswith("list["):
-            schema_fields[attr_name] = fields.List(fields.Raw(), allow_none=True)
-        # Handle all other types using type_mapping or fallback to Raw
-        else:
-            marshmallow_field = type_mapping.get(swagger_type, fields.Raw)
-            schema_fields[attr_name] = marshmallow_field(
-                allow_none=True
-            )  # Create schema class with fields first
-    schema_class: type[Schema] = type(f"{model_name}Schema", (Schema,), schema_fields)
-
-    def dump_override(
-        self, obj: object, *, many=None, **kwargs: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """Override dump to handle SDK model objects"""
-
-        # Use schema's many setting if dump's many parameter is None
-        if many is None:
-            many = getattr(self, "many", False)
-
-        if many:
-            # Handle list of objects
-            converted_objects = []
-            for item in obj:
-                if hasattr(item, "to_dict") and callable(getattr(item, "to_dict")):
-                    converted_objects.append(item.to_dict())
-                else:
-                    converted_objects.append(item)
-            return super(schema_class, self).dump(
-                converted_objects, many=True, **kwargs
-            )
-        else:
-            # Handle single object
-            if hasattr(obj, "to_dict") and callable(getattr(obj, "to_dict")):
-                obj = obj.to_dict()
-            return super(schema_class, self).dump(obj, many=False, **kwargs)
-
-    # Add the dump method after schema_class is defined
-    schema_class.dump = dump_override
-    # Cache and return the schema class
-    _schema_cache[model_name] = schema_class
-
-    return schema_class
-
-
-AssetToAssetSchema = generate_schema_from_swagger(
-    QualerApiModelsAssetToAssetResponseModel
-)
-EmployeeResponseSchema = generate_schema_from_swagger(
+AssetToAssetSchema = pydantic_to_marshmallow(QualerApiModelsAssetToAssetResponseModel)
+EmployeeResponseSchema = pydantic_to_marshmallow(
     QualerApiModelsClientsToEmployeeResponseModel
 )
-ClientCompanyResponseSchema = generate_schema_from_swagger(
+ClientCompanyResponseSchema = pydantic_to_marshmallow(
     QualerApiModelsClientsToClientCompanyResponseModel
 )
-AssetServiceRecordResponseSchema = generate_schema_from_swagger(
+AssetServiceRecordResponseSchema = pydantic_to_marshmallow(
     QualerApiModelsAssetServiceRecordsToAssetServiceRecordResponseModel
 )
 
@@ -288,51 +208,22 @@ class WireSetCertSchema(Schema):
 
 
 # SharePoint Integration Schemas
-class SharePointFileReferenceSchema(Schema):
-    """Schema for SharePoint file reference responses."""
+@dataclass
+class SharePointFileInfo:
+    """
+    Dataclass representing SharePoint file metadata.
+    This is the actual data structure used throughout the application.
+    """
 
-    id = fields.String(allow_none=True, metadata={"description": "SharePoint file ID"})
-    name = fields.String(allow_none=True, metadata={"description": "File name"})
-    webUrl = fields.String(
-        allow_none=True, metadata={"description": "SharePoint web URL for the file"}
-    )
-    downloadUrl = fields.String(
-        allow_none=True, metadata={"description": "Temporary download URL"}
-    )
-    size = fields.Integer(
-        allow_none=True, metadata={"description": "File size in bytes"}
-    )
-    lastModified = fields.String(
-        allow_none=True, metadata={"description": "Last modified timestamp"}
-    )
-    mimeType = fields.String(
-        allow_none=True, metadata={"description": "MIME type of the file"}
-    )
-    driveId = fields.String(
-        allow_none=True, metadata={"description": "SharePoint drive ID"}
-    )
-    path = fields.String(
-        allow_none=True, metadata={"description": "File path within the drive"}
-    )
-
-
-class SharePointFileSearchQuerySchema(Schema):
-    """Schema for SharePoint file search requests."""
-
-    query = fields.String(
-        required=True,
-        metadata={"description": "Search query for finding files in SharePoint"},
-    )
-
-
-class SharePointFolderContentsQuerySchema(Schema):
-    """Schema for SharePoint folder listing requests."""
-
-    folderPath = fields.String(
-        required=False,
-        load_default="",
-        metadata={"description": "Path to folder within the drive (empty for root)"},
-    )
+    id: str
+    name: str
+    webUrl: str
+    size: int
+    lastModifiedDateTime: str
+    downloadUrl: str
+    mimeType: str
+    driveId: str
+    path: str
 
 
 class SharePointFileInfoSchema(Schema):
@@ -364,3 +255,81 @@ class SharePointFileInfoSchema(Schema):
         data["driveId"] = parent.get("driveId")
         data["path"] = parent.get("path")
         return data
+
+
+class SharePointFileSearchQuerySchema(Schema):
+    """Schema for SharePoint file search requests."""
+
+    query = fields.String(
+        required=True,
+        metadata={"description": "Search query for finding files in SharePoint"},
+    )
+
+
+class SharePointFolderContentsQuerySchema(Schema):
+    """Schema for SharePoint folder listing requests."""
+
+    folderPath = fields.String(
+        required=False,
+        load_default="",
+        metadata={"description": "Path to folder within the drive (empty for root)"},
+    )
+
+
+@dataclass
+class FileCategory:
+    """
+    Represents a file category with its update status and files.
+    """
+
+    has_updates: bool
+    files: List[SharePointFileInfo]
+
+
+@dataclass
+class FileCategoryUpdateResultSet:
+    """
+    Represents the result set of file category updates.
+    """
+
+    wiresetcerts: FileCategory
+    wireoffsets: FileCategory
+    daqbookoffsets: FileCategory
+    last_checked: datetime
+
+
+@dataclass
+class RefreshCategoryResult:
+    """
+    Represents the result of refreshing a single category.
+    """
+
+    status: str
+    message: str = ""
+    files_processed: int = 0
+    skipped: str = ""
+
+
+@dataclass
+class RefreshSummary:
+    """
+    Summary statistics for a unified refresh operation.
+    """
+
+    total_categories: int
+    categories_with_updates: int
+    total_files_processed: int
+
+
+@dataclass
+class UnifiedRefreshResult:
+    """
+    Complete result of a unified refresh operation.
+    """
+
+    categories_checked: List[str]
+    categories_updated: List[str]
+    results: Dict[str, Any]  # Category name -> RefreshCategoryResult or dict
+    summary: RefreshSummary
+    last_checked: datetime
+    summary_line: str = ""

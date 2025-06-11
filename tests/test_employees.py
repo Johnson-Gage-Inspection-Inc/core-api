@@ -3,7 +3,9 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from qualer_sdk.models import QualerApiModelsClientsToEmployeeResponseModel
+from qualer_sdk.models.qualer_api_models_clients_to_employee_response_model import (
+    QualerApiModelsClientsToEmployeeResponseModel,
+)
 
 
 @pytest.mark.skipif(
@@ -16,13 +18,17 @@ def test_employees_endpoint_basic(client, auth_token):
         "/employees", headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert response.status_code == 200
+
     data = response.get_json()
     assert isinstance(data, list)
     for employee in data:
+        assert not all(
+            v is None for v in employee.values()
+        ), "Employee data should not be empty"
         assert isinstance(employee, dict)
         assert employee != {}
-        assert "employee_id" in employee
-        assert employee.get("is_deleted") is False
+        assert "EmployeeId" in employee
+        assert employee.get("IsDeleted") is False
 
 
 @patch("utils.qualer_client.make_qualer_client")
@@ -32,27 +38,29 @@ def test_employees_endpoint_mocked(mock_qualer_client, client, auth_token):
     mock_employee = MagicMock(spec=QualerApiModelsClientsToEmployeeResponseModel)
     mock_employee.is_deleted = False
     mock_employee.to_dict.return_value = {
-        "employee_id": 123,
-        "first_name": "John",
-        "last_name": "Doe",
-        "company_id": 1,
-        "login_email": "john.doe@test.com",
-        "departments": [],
-        "subscription_email": None,
-        "subscription_phone": None,
-        "office_phone": None,
-        "is_locked": False,
-        "image_url": None,
-        "alias": None,
-        "title": "Developer",
-        "is_deleted": False,
-        "last_seen_date_utc": None,
-        "culture_name": "en-US",
-        "culture_ui_name": "en-US",
+        "EmployeeId": 123,
+        "FirstName": "John",
+        "LastName": "Doe",
+        "CompanyId": 1,
+        "LoginEmail": "john.doe@test.com",
+        "Departments": [],
+        "SubscriptionEmail": None,
+        "SubscriptionPhone": None,
+        "OfficePhone": None,
+        "IsLocked": False,
+        "ImageUrl": None,
+        "Alias": None,
+        "Title": "Developer",
+        "IsDeleted": False,
+        "LastSeenDateUtc": None,
+        "CultureName": "en-US",
+        "CultureUiName": "en-US",
     }
+    # Add model_dump method for compatibility with new schema serialization
+    mock_employee.model_dump.return_value = mock_employee.to_dict.return_value
 
     mock_employees_api = MagicMock()
-    mock_employees_api.get_employees.return_value = [mock_employee]
+    mock_employees_api.get_employees_get2.return_value = [mock_employee]
 
     mock_client = MagicMock()
     mock_qualer_client.return_value = mock_client
@@ -67,9 +75,8 @@ def test_employees_endpoint_mocked(mock_qualer_client, client, auth_token):
     data = response.get_json()
     assert isinstance(data, list)
     assert len(data) == 1
-
     employee = data[0]
-    assert employee["employee_id"] == 123
-    assert employee["first_name"] == "John"
-    assert employee["last_name"] == "Doe"
-    assert employee["is_deleted"] is False
+    assert employee["EmployeeId"] == 123
+    assert employee["FirstName"] == "John"
+    assert employee["LastName"] == "Doe"
+    assert employee["IsDeleted"] is False

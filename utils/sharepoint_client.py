@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 import requests
 
 from utils.constants import daqbook_filename_pattern, wirecert_filename_pattern
-from utils.schemas import SharePointFileInfoSchema
+from utils.schemas import SharePointFileInfo
 
 # For testing purposes, allow mocking of request extraction
 try:
@@ -193,7 +193,7 @@ class SharePointClient:
 
     def get_file_reference(
         self, file_identifier: str, drive_id: str, by_path: bool = True
-    ) -> Dict[str, Any]:
+    ) -> SharePointFileInfo:
         """Get comprehensive file reference with metadata and download URL.
 
         Args:
@@ -215,18 +215,17 @@ class SharePointClient:
         download_url = (
             self.get_file_download_url(file_id, drive_id) if file_id else None
         )  # Build comprehensive reference
-        return {
-            "id": file_info.get("id"),
-            "name": file_info.get("name"),
-            "webUrl": file_info.get("webUrl"),
-            "downloadUrl": download_url,
-            "size": file_info.get("size"),
-            "lastModifiedDateTime": file_info.get("lastModifiedDateTime"),
-            "createdDateTime": file_info.get("createdDateTime"),
-            "mimeType": file_info.get("file", {}).get("mimeType"),
-            "driveId": drive_id,
-            "path": file_identifier if by_path else None,
-        }
+        return SharePointFileInfo(
+            id=file_info.get("id"),
+            name=file_info.get("name"),
+            webUrl=file_info.get("webUrl"),
+            downloadUrl=download_url,
+            size=file_info.get("size"),
+            lastModifiedDateTime=file_info.get("lastModifiedDateTime"),
+            mimeType=file_info.get("file", {}).get("mimeType"),
+            driveId=drive_id,
+            path=file_identifier if by_path else None,
+        )
 
     def download_file_content(self, file_id: str, drive_id: str) -> bytes:
         """Download file content as bytes.
@@ -246,7 +245,7 @@ class SharePointClient:
         response.raise_for_status()
         return response.content
 
-    def get_wiresetcerts_file(self) -> Dict[str, Any]:
+    def get_wiresetcerts_file(self) -> SharePointFileInfo:
         """Get WireSetCerts.xlsx file reference from Pyro drive.
 
         This is an internal method that uses the hardcoded drive ID.
@@ -262,10 +261,12 @@ class SharePointClient:
                 "SHAREPOINT_DRIVE_ID not configured"
             )  # Try to get the file by direct path in Shared Documents/Pyro folder
         file_path = "Shared Documents/Pyro/WireSetCerts.xlsx"
-        file_ref = self.get_file_reference(file_path, self.drive_id, by_path=True)
+        file_ref: SharePointFileInfo = self.get_file_reference(
+            file_path, self.drive_id, by_path=True
+        )
 
         # If file not found by path, try searching for it
-        if not file_ref.get("id"):
+        if not file_ref.id:
             search_results = self.search_files("WireSetCerts.xlsx", self.drive_id)
             if search_results:
                 # Use the first matching file
@@ -282,7 +283,7 @@ class SharePointClient:
         return file_ref
 
     @staticmethod
-    def list_files_in_pyro_standards_folder() -> List[SharePointFileInfoSchema]:
+    def list_files_in_pyro_standards_folder() -> List[SharePointFileInfo]:
         """
         List all files in the SharePoint Pyro_Standards folder.
 
@@ -312,7 +313,7 @@ class SharePointClient:
                 if "folder" in item:
                     continue
 
-                file_list.append(SharePointFileInfoSchema().load(item))
+                file_list.append(SharePointFileInfo().load(item))
 
             return file_list
 
