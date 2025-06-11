@@ -48,7 +48,7 @@ class TestExtractTnFromFilename:
 class TestSearchDaqbookFiles:
     """Test DAQbook file search functionality."""
 
-    @patch("utils.list_daqbook_files.SharePointClient")
+    @patch("utils.list_daqbook_files.Office365SharePointClient")
     def test_search_daqbook_files_success(self, mock_sharepoint_class):
         """Test successful DAQbook file search."""
         # Mock SharePoint client
@@ -79,7 +79,7 @@ class TestSearchDaqbookFiles:
         # Verify SharePoint client was called for each pattern
         assert mock_sharepoint.search_files.call_count == 7
 
-    @patch("utils.list_daqbook_files.SharePointClient")
+    @patch("utils.list_daqbook_files.Office365SharePointClient")
     @patch("builtins.print")
     def test_search_daqbook_files_no_drive_id(self, mock_print, mock_sharepoint_class):
         """Test DAQbook file search when no drive ID is configured."""
@@ -93,7 +93,7 @@ class TestSearchDaqbookFiles:
         assert result == []
         mock_print.assert_any_call("❌ SharePoint drive ID not configured")
 
-    @patch("utils.list_daqbook_files.SharePointClient")
+    @patch("utils.list_daqbook_files.Office365SharePointClient")
     @patch("builtins.print")
     def test_search_daqbook_files_search_exception(
         self, mock_print, mock_sharepoint_class
@@ -111,7 +111,7 @@ class TestSearchDaqbookFiles:
         # Should print error for each pattern
         assert mock_print.call_count >= 7  # At least one error message per pattern
 
-    @patch("utils.list_daqbook_files.SharePointClient")
+    @patch("utils.list_daqbook_files.Office365SharePointClient")
     @patch("builtins.print")
     def test_search_daqbook_files_filters_correctly(
         self, mock_print, mock_sharepoint_class

@@ -10,6 +10,7 @@ and populates the wire_offsets table with all historical data.
 import logging
 from typing import Any, Dict, List
 
+from office365.sharepoint.files.file import File
 from sqlalchemy import text
 
 # Import config first to load environment variables
@@ -22,27 +23,31 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def get_all_wire_certificate_files() -> List[Dict[str, Any]]:
+def get_all_wire_certificate_files() -> List[File]:
     """
     Fetch all wire certificate files from SharePoint Pyro Standards folder.
 
     Returns:
-        List of file metadata dictionaries for all .xls and .xlsx files
+        List of File objects for all .xls and .xlsx files
     """
     try:
         # Get all Excel files from the Pyro Standards folder
         logger.info("Fetching all Excel files from SharePoint Pyro Standards folder...")
-        from utils.sharepoint_client import list_pyro_standards_excel_files
+        from integrations.sharepoint import list_pyro_standards_excel_files
 
         all_excel_files = list_pyro_standards_excel_files()
 
         # Filter for wire certificate files (.xls and .xlsx)
         wire_cert_files = []
         for file_info in all_excel_files:
-            filename = file_info.get("name", "").lower()
+            filename = file_info.name
+            if not filename:
+                logger.warning("Found file with no name, skipping...")
+                continue
+            filename = filename.lower()
             if filename.endswith((".xls", ".xlsx")):
                 wire_cert_files.append(file_info)
-                logger.info(f"Found wire certificate file: {file_info.get('name')}")
+                logger.info(f"Found wire certificate file: {file_info.name}")
 
         logger.info(f"Found {len(wire_cert_files)} wire certificate files total")
         return wire_cert_files
@@ -63,9 +68,12 @@ def initialize_wire_offsets_table() -> Dict[str, Any]:
 
     try:
         # Check current state of the table
-        count_before = session.execute(
-            text("SELECT COUNT(*) FROM public.wire_offsets")
-        ).scalar()
+
+        count_before: int = (
+            session.execute(text("SELECT COUNT(*) FROM public.wire_offsets")).scalar()
+            or 0
+        )
+
         logger.info(f"Records in wire_offsets before initialization: {count_before}")
 
         if count_before > 0:
@@ -108,15 +116,19 @@ def initialize_wire_offsets_table() -> Dict[str, Any]:
         result = refresh_wire_offsets(updated_files=wire_cert_files, session=session)
 
         # Check final state
-        count_after = session.execute(
-            text("SELECT COUNT(*) FROM public.wire_offsets")
-        ).scalar()
+        count_after: int = (
+            session.execute(text("SELECT COUNT(*) FROM public.wire_offsets")).scalar()
+            or 0
+        )
         logger.info(f"Records in wire_offsets after initialization: {count_after}")
 
         # Check view state
-        view_count = session.execute(
-            text("SELECT COUNT(*) FROM public.wire_offsets_current")
-        ).scalar()
+        view_count: int = (
+            session.execute(
+                text("SELECT COUNT(*) FROM public.wire_offsets_current")
+            ).scalar()
+            or 0
+        )
         logger.info(f"Records in wire_offsets_current view: {view_count}")
 
         # Get some sample records to verify data quality

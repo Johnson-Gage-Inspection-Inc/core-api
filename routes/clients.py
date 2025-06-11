@@ -3,13 +3,12 @@ from typing import List
 
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from qualer_sdk.api.clients.get_all_get_2 import sync_detailed
+from qualer_sdk.api.clients.get_all_get_2 import sync as get_clients
 from qualer_sdk.models.qualer_api_models_clients_to_client_company_response_model import (
     QualerApiModelsClientsToClientCompanyResponseModel,
 )
 
 from utils.auth import require_auth
-from utils.qualer_client import make_qualer_client
 from utils.schemas import ClientCompanyResponseSchema
 
 blp = Blueprint("clients", __name__, url_prefix="/")
@@ -44,9 +43,7 @@ class Clients(MethodView):
         **Response**: Array of client company objects with comprehensive company information
         """
         try:
-            client = make_qualer_client()
-            clients = sync_detailed(
-                client=client,
+            clients = get_clients(
                 _request_timeout=60,  # Set a timeout for the request
             )
             return clients

@@ -8,17 +8,18 @@ import logging
 import os
 from typing import Any, Dict, List, Optional
 
+from office365.sharepoint.files.file import File
 from sqlalchemy.orm import Session
 
 from db.models import WireOffset
+from integrations.sharepoint.client import get_pyro_standards_files
 from utils.constants import wirecert_filename_pattern
 from utils.database import SessionLocal
-from utils.sharepoint_client import SharePointClient
 from utils.wire_offset_parser import parse_wire_offsets_from_excel
 
 
 def refresh_wire_offsets(
-    updated_files: Optional[List[Dict[str, Any]]] = None,
+    updated_files: Optional[List[File]] = None,
     session: Optional[Session] = None,
 ) -> Dict[str, Any]:
     """
@@ -55,19 +56,17 @@ def refresh_wire_offsets(
     if not use_provided_session:
         session = SessionLocal()
 
-    try:
-        # If no files provided, get updated files from SharePoint
-        if updated_files is None:
+    try:  # If no files provided or empty list, get updated files from SharePoint
+        if updated_files is None or len(updated_files) == 0:
             logger.info("No files provided, fetching updated wire certificate files")
-            sharepoint_client = SharePointClient()
-            all_files = sharepoint_client.list_files_in_pyro_standards_folder()
+            all_files = get_pyro_standards_files()
 
             # Filter for wire certificate files
             updated_files = []
-            for file_info in all_files:
-                filename = file_info.name
+            for file_obj in all_files:
+                filename = file_obj.name
                 if wirecert_filename_pattern.match(filename):
-                    updated_files.append(file_info)
+                    updated_files.append(file_obj)
 
         result["files_found"] = len(updated_files)
 
@@ -76,25 +75,45 @@ def refresh_wire_offsets(
             logger.info(result["message"])
             return result
 
-        logger.info(f"Processing {len(updated_files)} wire certificate files")
-
-        # Process each file
+        logger.info(
+            f"Processing {len(updated_files)} wire certificate files"
+        )  # Process each file
         for file_info in updated_files:
+            filename = "unknown"  # Initialize filename for error handling
             try:
-                filename = file_info.get("name", "")
+                # file_info is always a File object per type annotation
+                filename = file_info.name
+                file_obj = file_info
+
                 logger.info(f"Processing wire certificate file: {filename}")
 
-                # Download the file
-                file_path = SharePointClient.download_file_from_sharepoint(file_info)
-                if not file_path or not os.path.exists(file_path):
-                    error_msg = f"Failed to download file: {filename}"
+                if not file_obj:
+                    error_msg = f"No file object available for: {filename}"
                     logger.error(error_msg)
                     result["errors"].append(error_msg)
                     continue
 
+                # Download file content as bytes using native SDK
+                try:
+                    file_content = file_obj.get_content().value
+                except Exception as download_error:
+                    error_msg = f"Failed to download file {filename}: {download_error}"
+                    logger.error(error_msg)
+                    result["errors"].append(error_msg)
+                    continue
+
+                # Create temporary file for the parser (which expects a file path)
+                import tempfile
+
+                temp_dir = tempfile.gettempdir()
+                temp_file_path = os.path.join(temp_dir, filename)
+
+                with open(temp_file_path, "wb") as temp_file:
+                    temp_file.write(file_content)
+
                 # Parse wire offset data from the Excel file
                 try:
-                    offset_data = parse_wire_offsets_from_excel(file_path)
+                    offset_data = parse_wire_offsets_from_excel(temp_file_path)
                     logger.info(
                         f"Parsed {len(offset_data)} offset records from {filename}"
                     )
@@ -113,13 +132,16 @@ def refresh_wire_offsets(
                             # Wire offset parser returns: {"TraceabilityNo", "NominalTemp", "CorrectionFactor"}
                             # Create new wire offset record using proper schema (append-only table)
 
+                            # Get modified_by from file_info
+                            modified_by = file_info.modified_by
+
                             wire_offset = WireOffset(
                                 traceability_no=data.get(
                                     "TraceabilityNo", traceability_no
                                 ),
                                 nominal_temp=data["NominalTemp"],
                                 correction_factor=data["CorrectionFactor"],
-                                updated_by=file_info.get("modified_by", "SharePoint"),
+                                updated_by=modified_by,
                             )
 
                             session.add(wire_offset)
@@ -147,12 +169,14 @@ def refresh_wire_offsets(
                     continue
 
                 finally:
-                    # Clean up downloaded file
+                    # Clean up temporary file
                     try:
-                        if file_path and os.path.exists(file_path):
-                            os.remove(file_path)
+                        if temp_file_path and os.path.exists(temp_file_path):
+                            os.remove(temp_file_path)
                     except Exception as e:
-                        logger.warning(f"Could not clean up temp file {file_path}: {e}")
+                        logger.warning(
+                            f"Could not clean up temp file {temp_file_path}: {e}"
+                        )
 
             except Exception as e:
                 error_msg = f"Error processing file {filename}: {e}"

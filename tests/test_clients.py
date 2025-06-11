@@ -67,7 +67,6 @@ def test_clients_endpoint_without_auth(client):
         assert resp.text == "Unauthorized"
 
 
-@patch("routes.clients.ClientsApi")
 @patch("utils.qualer_client.make_qualer_client")
 def test_clients_endpoint_mocked(
     mock_qualer_client, mock_clients_api_class, client, auth_token
@@ -117,7 +116,6 @@ def test_clients_endpoint_mocked(
     assert client_company["AccountNumberText"] == "ACC-001"
 
 
-@patch("routes.clients.ClientsApi")
 @patch("utils.qualer_client.make_qualer_client")
 def test_clients_endpoint_empty_response(
     mock_qualer_client, mock_clients_api_class, client, auth_token
@@ -138,7 +136,6 @@ def test_clients_endpoint_empty_response(
     assert len(data) == 0
 
 
-@patch("routes.clients.ClientsApi")
 @patch("utils.qualer_client.make_qualer_client")
 def test_clients_endpoint_api_error(
     mock_qualer_client, mock_clients_api_class, client, auth_token

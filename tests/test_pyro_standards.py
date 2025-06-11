@@ -3,11 +3,11 @@
 
 import hashlib
 import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
-from utils.sharepoint_client import get_pyro_standards_excel_file
+from integrations.sharepoint import get_pyro_standards_excel_file
 
 
 class TestPyroStandardsSharePointClient:
@@ -46,18 +46,11 @@ class TestPyroStandardsSharePointClient:
             result_hash == expected_hash
         ), "File name hash does not match expected value."
 
-    @patch("utils.sharepoint_client.SharePointClient")
-    def test_get_pyro_standards_excel_file_not_found(self, mock_client_class):
+    @patch("integrations.sharepoint.client.get_pyro_standards_files")
+    def test_get_pyro_standards_excel_file_not_found(self, mock_get_files):
         """Test error when file is not found."""
-        mock_client = MagicMock()
-        mock_client.drive_id = "test-drive-id"
-        mock_client_class.return_value = mock_client
-
-        # Make direct path fail
-        mock_client.get_file_reference.side_effect = Exception("Path not found")
-
-        # Make search return empty results
-        mock_client.search_files.return_value = []
+        # Make the function return empty list (no files found)
+        mock_get_files.return_value = []
 
         with pytest.raises(ValueError, match="file not found"):
             get_pyro_standards_excel_file("NonExistent.xlsx")

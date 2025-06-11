@@ -17,6 +17,7 @@ from qualer_sdk.models.qualer_api_models_clients_to_employee_response_model impo
     QualerApiModelsClientsToEmployeeResponseModel,
 )
 
+from integrations.sharepoint.schemas import File
 from utils.pydantic_to_marshmallow import pydantic_to_marshmallow
 
 
@@ -207,75 +208,6 @@ class WireSetCertSchema(Schema):
         return data
 
 
-# SharePoint Integration Schemas
-@dataclass
-class SharePointFileInfo:
-    """
-    Dataclass representing SharePoint file metadata.
-    This is the actual data structure used throughout the application.
-    """
-
-    id: str
-    name: str
-    webUrl: str
-    size: int
-    lastModifiedDateTime: str
-    downloadUrl: str
-    mimeType: str
-    driveId: str
-    path: str
-
-
-class SharePointFileInfoSchema(Schema):
-    """Schema for SharePoint file metadata from the Graph API."""
-
-    class Meta:
-        unknown = EXCLUDE  # Ignore extra fields not defined below
-
-    # Top-level fields
-    id = fields.String(required=True)
-    name = fields.String(required=True)
-    webUrl = fields.String(required=True)
-    size = fields.Integer(required=True)
-    lastModifiedDateTime = fields.String(required=True)
-    downloadUrl = fields.String(required=True, data_key="@microsoft.graph.downloadUrl")
-
-    # Flattened from nested objects via @pre_load
-    mimeType = fields.String(required=True)
-    driveId = fields.String(required=True)
-    path = fields.String(required=True)
-
-    @pre_load
-    def flatten_nested_fields(
-        self, data: Dict[str, Any], **kwargs: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """Extract nested fields from `file` and `parentReference`."""
-        data["mimeType"] = data.get("file", {}).get("mimeType")
-        parent = data.get("parentReference", {})
-        data["driveId"] = parent.get("driveId")
-        data["path"] = parent.get("path")
-        return data
-
-
-class SharePointFileSearchQuerySchema(Schema):
-    """Schema for SharePoint file search requests."""
-
-    query = fields.String(
-        required=True,
-        metadata={"description": "Search query for finding files in SharePoint"},
-    )
-
-
-class SharePointFolderContentsQuerySchema(Schema):
-    """Schema for SharePoint folder listing requests."""
-
-    folderPath = fields.String(
-        required=False,
-        load_default="",
-        metadata={"description": "Path to folder within the drive (empty for root)"},
-    )
-
-
 @dataclass
 class FileCategory:
     """
@@ -283,7 +215,7 @@ class FileCategory:
     """
 
     has_updates: bool
-    files: List[SharePointFileInfo]
+    files: List[File]
 
 
 @dataclass

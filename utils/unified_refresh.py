@@ -9,9 +9,13 @@ This module handles:
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+from integrations.sharepoint.client import (
+    get_pyro_standards_files,
+    get_wiresetcerts_file,
+)
 from utils.constants import daqbook_filename_pattern, wirecert_filename_pattern
 from utils.daqbook import refresh_daqbook_offsets
 from utils.schemas import (
@@ -20,7 +24,6 @@ from utils.schemas import (
     RefreshSummary,
     UnifiedRefreshResult,
 )
-from utils.sharepoint_client import SharePointClient
 from utils.wire_offset_refresher import refresh_wire_offsets
 from utils.wire_set_cert_refresher import refresh_wire_set_certs
 
@@ -38,7 +41,13 @@ def get_file_categories_with_updates(
         FileCategoryUpdateResultSet with categories and their update status
     """
     if last_checked is None:
-        last_checked = datetime.utcnow() - timedelta(hours=24)
+        last_checked = datetime.now(timezone.utc) - timedelta(hours=24)
+
+    # Normalize last_checked to timezone-naive for consistent comparison
+    # since we're normalizing file timestamps to timezone-naive as well
+    last_checked_normalized = (
+        last_checked.replace(tzinfo=None) if last_checked.tzinfo else last_checked
+    )
 
     logger = logging.getLogger(__name__)
     logger.info(f"Checking for file updates since: {last_checked}")
@@ -51,31 +60,19 @@ def get_file_categories_with_updates(
     )
 
     try:
-        # Get all files from SharePoint
-        sharepoint_client = SharePointClient()
-
         # Check WireSetCerts.xlsx file
         try:
-            wiresetcerts_file = sharepoint_client.get_wiresetcerts_file()
+            wiresetcerts_file = get_wiresetcerts_file()
             if wiresetcerts_file:
-                file_modified = wiresetcerts_file.lastModifiedDateTime
+                file_modified = wiresetcerts_file.time_last_modified
                 if file_modified:
-                    # Parse ISO format datetime
-                    if isinstance(file_modified, str):
-                        try:
-                            modified_dt = datetime.fromisoformat(
-                                file_modified.replace("Z", "+00:00")
-                            ).replace(tzinfo=None)
-                        except ValueError:
-                            # Handle different datetime formats
-                            from dateutil import parser
-
-                            modified_dt = parser.parse(file_modified).replace(
-                                tzinfo=None
-                            )
-                    else:
-                        modified_dt = file_modified
-                    if modified_dt > last_checked:
+                    # The native SDK already returns a datetime object
+                    modified_dt = (
+                        file_modified.replace(tzinfo=None)
+                        if file_modified.tzinfo
+                        else file_modified
+                    )
+                    if modified_dt > last_checked_normalized:
                         result.wiresetcerts.has_updates = True
                         result.wiresetcerts.files.append(wiresetcerts_file)
                         logger.info("WireSetCerts.xlsx has updates")
@@ -84,49 +81,35 @@ def get_file_categories_with_updates(
 
         # Check files in Pyro_Standards folder for wire offsets and DAQbook files
         try:
-            pyro_files = sharepoint_client.list_files_in_pyro_standards_folder()
+            pyro_files = get_pyro_standards_files()
 
-            for file_info in pyro_files:
-                filename = file_info.name
-                file_modified = file_info.lastModifiedDateTime
+            for file_obj in pyro_files:
+                filename = file_obj.name
+                file_modified = file_obj.time_last_modified
 
                 if not file_modified:
                     continue
 
-                # Parse modification datetime
-                try:
-                    if isinstance(file_modified, str):
-                        try:
-                            modified_dt = datetime.fromisoformat(
-                                file_modified.replace("Z", "+00:00")
-                            ).replace(tzinfo=None)
-                        except ValueError:
-                            from dateutil import parser
-
-                            modified_dt = parser.parse(file_modified).replace(
-                                tzinfo=None
-                            )
-                    else:
-                        modified_dt = file_modified
-                except Exception as e:
-                    logger.warning(
-                        f"Could not parse modification time for {filename}: {e}"
-                    )
-                    continue
+                # The native SDK already returns a datetime object
+                modified_dt = (
+                    file_modified.replace(tzinfo=None)
+                    if file_modified.tzinfo
+                    else file_modified
+                )
 
                 # Check if file was modified since last check
-                if modified_dt <= last_checked:
+                if modified_dt <= last_checked_normalized:
                     continue
 
                 # Categorize file by pattern
                 if daqbook_filename_pattern.match(filename):
                     result.daqbookoffsets.has_updates = True
-                    result.daqbookoffsets.files.append(file_info)
+                    result.daqbookoffsets.files.append(file_obj)
                     logger.info(f"DAQbook file has updates: {filename}")
 
                 elif wirecert_filename_pattern.match(filename):
                     result.wireoffsets.has_updates = True
-                    result.wireoffsets.files.append(file_info)
+                    result.wireoffsets.files.append(file_obj)
                     logger.info(f"Wire certificate file has updates: {filename}")
 
         except Exception as e:

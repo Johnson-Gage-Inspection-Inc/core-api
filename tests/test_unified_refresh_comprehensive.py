@@ -3,14 +3,13 @@
 Comprehensive tests for the unified refresh system.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
 from utils.schemas import (
     FileCategory,
     FileCategoryUpdateResultSet,
     RefreshSummary,
-    SharePointFileInfo,
     UnifiedRefreshResult,
 )
 from utils.unified_refresh import (
@@ -25,27 +24,21 @@ class TestGetFileCategoriesWithUpdates:
 
     def test_no_updates_within_timeframe(self):
         """Test when no files have been updated recently."""
-        old_datetime = datetime.now() - timedelta(days=2)
+        old_datetime = datetime.now(timezone.utc) - timedelta(days=2)
 
-        with patch("utils.unified_refresh.SharePointClient") as mock_client:
-            mock_instance = MagicMock()
-            mock_client.return_value = mock_instance
+        with patch(
+            "utils.unified_refresh.get_wiresetcerts_file"
+        ) as mock_get_wiresetcerts:
+            with patch(
+                "utils.unified_refresh.get_pyro_standards_files"
+            ) as mock_get_pyro_files:
+                # Mock WireSetCerts.xlsx as old
+                mock_wiresetcerts_file = MagicMock()
+                mock_wiresetcerts_file.time_last_modified = old_datetime
+                mock_get_wiresetcerts.return_value = mock_wiresetcerts_file
 
-            # Mock WireSetCerts.xlsx as old
-            mock_instance.get_wiresetcerts_file.return_value = SharePointFileInfo(
-                name="WireSetCerts.xlsx",
-                lastModifiedDateTime=old_datetime.isoformat(),
-                id="test-id",
-                webUrl="https://example.com/wiresetcerts.xlsx",
-                size=12345,
-                downloadUrl="https://example.com/download",
-                mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                driveId="test-drive-id",
-                path="/Pyro_Standards/WireSetCerts.xlsx",
-            )
-
-            # Mock empty Pyro_Standards folder
-            mock_instance.list_files_in_pyro_standards_folder.return_value = []
+                # Mock empty Pyro_Standards folder
+                mock_get_pyro_files.return_value = []
 
             result: FileCategoryUpdateResultSet = get_file_categories_with_updates()
 
@@ -58,264 +51,208 @@ class TestGetFileCategoriesWithUpdates:
 
     def test_wiresetcerts_has_updates(self):
         """Test when WireSetCerts.xlsx has been updated."""
-        recent_datetime = datetime.now() - timedelta(hours=1)
+        recent_datetime = datetime.now(timezone.utc) - timedelta(hours=1)
 
-        with patch("utils.unified_refresh.SharePointClient") as mock_client:
-            mock_instance = MagicMock()
-            mock_client.return_value = mock_instance
+        with patch(
+            "utils.unified_refresh.get_wiresetcerts_file"
+        ) as mock_get_wiresetcerts:
+            with patch(
+                "utils.unified_refresh.get_pyro_standards_files"
+            ) as mock_get_pyro_files:
+                # Mock WireSetCerts.xlsx as recently updated
+                mock_wiresetcerts_file = MagicMock()
+                mock_wiresetcerts_file.time_last_modified = recent_datetime
+                mock_get_wiresetcerts.return_value = mock_wiresetcerts_file
 
-            # Mock WireSetCerts.xlsx as recently updated
-            mock_instance.get_wiresetcerts_file.return_value = SharePointFileInfo(
-                name="WireSetCerts.xlsx",
-                lastModifiedDateTime=recent_datetime.isoformat(),
-                id="test-id",
-                webUrl="https://example.com/wiresetcerts.xlsx",
-                size=12345,
-                downloadUrl="https://example.com/download",
-                mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                driveId="test-drive-id",
-                path="/Pyro_Standards/WireSetCerts.xlsx",
-            )
+                # Mock empty Pyro_Standards folder
+                mock_get_pyro_files.return_value = []
 
-            # Mock empty Pyro_Standards folder
-            mock_instance.list_files_in_pyro_standards_folder.return_value = []
+                result = get_file_categories_with_updates()
 
-            result = get_file_categories_with_updates()
-
-            assert result.wiresetcerts.has_updates
-            assert len(result.wiresetcerts.files) == 1
-            assert result.wiresetcerts.files[0].name == "WireSetCerts.xlsx"
+                assert result.wiresetcerts.has_updates
+                assert len(result.wiresetcerts.files) == 1
 
     def test_daqbook_file_updates(self):
         """Test when DAQbook files have been updated."""
-        recent_datetime = datetime.now() - timedelta(hours=1)
+        recent_datetime = datetime.now(timezone.utc) - timedelta(hours=1)
 
-        with patch("utils.unified_refresh.SharePointClient") as mock_client:
-            mock_instance = MagicMock()
-            mock_client.return_value = mock_instance  # Mock old WireSetCerts.xlsx
-            mock_wiresetcerts_file = MagicMock()
-            mock_wiresetcerts_file.name = "WireSetCerts.xlsx"
-            mock_wiresetcerts_file.lastModifiedDateTime = (
-                datetime.now() - timedelta(days=2)
-            ).isoformat()
-            mock_wiresetcerts_file.id = "test-id"
-            mock_instance.get_wiresetcerts_file.return_value = (
-                mock_wiresetcerts_file  # Mock DAQbook files in Pyro_Standards
-            )
-            mock_daqbook_file1 = SharePointFileInfo(
-                id="daqbook-id-1",
-                name="J1_0124.xlsm",
-                webUrl="https://example.com/file1",
-                size=12345,
-                lastModifiedDateTime=recent_datetime.isoformat(),
-                downloadUrl="https://example.com/download1",
-                mimeType="application/vnd.ms-excel.sheet.macroEnabled.12",
-                driveId="test-drive",
-                path="/Pyro_Standards/J1_0124.xlsm",
-            )
+        with patch(
+            "utils.unified_refresh.get_wiresetcerts_file"
+        ) as mock_get_wiresetcerts:
+            with patch(
+                "utils.unified_refresh.get_pyro_standards_files"
+            ) as mock_get_pyro_files:
+                # Mock old WireSetCerts.xlsx
+                mock_wiresetcerts_file = MagicMock()
+                mock_wiresetcerts_file.time_last_modified = datetime.now(
+                    timezone.utc
+                ) - timedelta(days=2)
+                mock_get_wiresetcerts.return_value = mock_wiresetcerts_file
 
-            mock_daqbook_file2 = SharePointFileInfo(
-                id="daqbook-id-2",
-                name="K5_0224.xlsm",
-                webUrl="https://example.com/file2",
-                size=54321,
-                lastModifiedDateTime=recent_datetime.isoformat(),
-                downloadUrl="https://example.com/download2",
-                mimeType="application/vnd.ms-excel.sheet.macroEnabled.12",
-                driveId="test-drive",
-                path="/Pyro_Standards/K5_0224.xlsm",
-            )
+                # Mock DAQbook files in Pyro_Standards
+                mock_daqbook_file1 = MagicMock()
+                mock_daqbook_file1.name = "J1_0124.xlsm"
+                mock_daqbook_file1.time_last_modified = recent_datetime
 
-            mock_instance.list_files_in_pyro_standards_folder.return_value = [
-                mock_daqbook_file1,
-                mock_daqbook_file2,
-            ]
+                mock_daqbook_file2 = MagicMock()
+                mock_daqbook_file2.name = "K5_0224.xlsm"
+                mock_daqbook_file2.time_last_modified = recent_datetime
 
-            result: FileCategoryUpdateResultSet = get_file_categories_with_updates()
+                mock_get_pyro_files.return_value = [
+                    mock_daqbook_file1,
+                    mock_daqbook_file2,
+                ]
 
-            assert result.daqbookoffsets.has_updates
-            assert len(result.daqbookoffsets.files) == 2
-            assert (file := result.daqbookoffsets.files[0])
-            assert isinstance(file, SharePointFileInfo)
-            assert file.name == "J1_0124.xlsm"
+                result: FileCategoryUpdateResultSet = get_file_categories_with_updates()
+
+                assert result.daqbookoffsets.has_updates
+                assert len(result.daqbookoffsets.files) == 2
+                assert result.daqbookoffsets.files[0].name == "J1_0124.xlsm"
 
     def test_wire_certificate_file_updates(self):
         """Test when wire certificate files have been updated."""
-        recent_datetime = datetime.now() - timedelta(hours=1)
+        recent_datetime = datetime.now(timezone.utc) - timedelta(hours=1)
 
-        with patch("utils.unified_refresh.SharePointClient") as mock_client:
-            mock_instance = MagicMock()
-            mock_client.return_value = mock_instance
-            # Mock old WireSetCerts.xlsx
-            mock_wiresetcerts_file = MagicMock()
-            mock_wiresetcerts_file.name = "WireSetCerts.xlsx"
-            mock_wiresetcerts_file.lastModifiedDateTime = (
-                datetime.now() - timedelta(days=2)
-            ).isoformat()
-            mock_wiresetcerts_file.id = "test-id"
-            mock_instance.get_wiresetcerts_file.return_value = mock_wiresetcerts_file
+        with patch(
+            "utils.unified_refresh.get_wiresetcerts_file"
+        ) as mock_get_wiresetcerts:
+            with patch(
+                "utils.unified_refresh.get_pyro_standards_files"
+            ) as mock_get_pyro_files:
+                # Mock old WireSetCerts.xlsx
+                mock_wiresetcerts_file = MagicMock()
+                mock_wiresetcerts_file.time_last_modified = datetime.now(
+                    timezone.utc
+                ) - timedelta(days=2)
+                mock_get_wiresetcerts.return_value = mock_wiresetcerts_file
 
-            # Mock wire certificate files in Pyro_Standards
-            mock_wire_file1 = MagicMock()
-            mock_wire_file1.name = "123456A.xls"
-            mock_wire_file1.lastModifiedDateTime = recent_datetime.isoformat()
-            mock_wire_file1.id = "wire-id-1"
+                # Mock wire certificate files in Pyro_Standards
+                mock_wire_file1 = MagicMock()
+                mock_wire_file1.name = "123456A.xls"
+                mock_wire_file1.time_last_modified = recent_datetime
 
-            mock_wire_file2 = MagicMock()
-            mock_wire_file2.name = "789012B.xls"
-            mock_wire_file2.lastModifiedDateTime = recent_datetime.isoformat()
-            mock_wire_file2.id = "wire-id-2"
-            mock_instance.list_files_in_pyro_standards_folder.return_value = [
-                mock_wire_file1,
-                mock_wire_file2,
-            ]
+                mock_wire_file2 = MagicMock()
+                mock_wire_file2.name = "789012B.xls"
+                mock_wire_file2.time_last_modified = recent_datetime
 
-            result = get_file_categories_with_updates()
+                mock_get_pyro_files.return_value = [
+                    mock_wire_file1,
+                    mock_wire_file2,
+                ]
 
-            assert result.wireoffsets.has_updates
-            assert len(result.wireoffsets.files) == 2
-            assert result.wireoffsets.files[0].name == "123456A.xls"
+                result = get_file_categories_with_updates()
+
+                assert result.wireoffsets.has_updates
+                assert len(result.wireoffsets.files) == 2
+                assert result.wireoffsets.files[0].name == "123456A.xls"
 
     def test_error_handling_sharepoint_failure(self):
         """Test error handling when SharePoint client fails."""
-        with patch("utils.unified_refresh.SharePointClient") as mock_client:
-            mock_instance = MagicMock()
-            mock_client.return_value = mock_instance
+        with patch(
+            "utils.unified_refresh.get_wiresetcerts_file"
+        ) as mock_get_wiresetcerts:
+            with patch(
+                "utils.unified_refresh.get_pyro_standards_files"
+            ) as mock_get_pyro_files:
+                # Mock SharePoint failure
+                mock_get_wiresetcerts.side_effect = Exception(
+                    "SharePoint connection failed"
+                )
+                mock_get_pyro_files.side_effect = Exception(
+                    "SharePoint connection failed"
+                )
 
-            # Mock SharePoint failure
-            mock_instance.get_wiresetcerts_file.side_effect = Exception(
-                "SharePoint connection failed"
-            )
-            mock_instance.list_files_in_pyro_standards_folder.side_effect = Exception(
-                "SharePoint connection failed"
-            )
+                result = get_file_categories_with_updates()
 
-            result = get_file_categories_with_updates()
-
-            # Should return empty results but not crash
-            assert not result.wiresetcerts.has_updates
-            assert not result.wireoffsets.has_updates
-            assert not result.daqbookoffsets.has_updates
+                # Should return empty results but not crash
+                assert not result.wiresetcerts.has_updates
+                assert not result.wireoffsets.has_updates
+                assert not result.daqbookoffsets.has_updates
 
     def test_custom_last_checked_datetime(self):
         """Test using a custom last_checked datetime."""
-        custom_datetime = datetime.now() - timedelta(hours=6)
-        file_datetime = datetime.now() - timedelta(hours=3)  # After custom datetime
+        custom_datetime = datetime.now(timezone.utc) - timedelta(hours=6)
+        file_datetime = datetime.now(timezone.utc) - timedelta(
+            hours=3
+        )  # After custom datetime
 
-        with patch("utils.unified_refresh.SharePointClient") as mock_client:
-            mock_instance = MagicMock()
-            mock_client.return_value = mock_instance
+        with patch(
+            "utils.unified_refresh.get_wiresetcerts_file"
+        ) as mock_get_wiresetcerts:
+            with patch(
+                "utils.unified_refresh.get_pyro_standards_files"
+            ) as mock_get_pyro_files:
+                mock_wiresetcerts_file = MagicMock()
+                mock_wiresetcerts_file.time_last_modified = file_datetime
+                mock_get_wiresetcerts.return_value = mock_wiresetcerts_file
 
-            mock_instance.get_wiresetcerts_file.return_value = SharePointFileInfo(
-                name="WireSetCerts.xlsx",
-                lastModifiedDateTime=file_datetime.isoformat(),
-                id="test-id",
-                webUrl="https://example.com/wiresetcerts.xlsx",
-                size=12345,
-                downloadUrl="https://example.com/download",
-                mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                driveId="test-drive-id",
-                path="/Pyro_Standards/WireSetCerts.xlsx",
-            )
+                mock_get_pyro_files.return_value = []
 
-            mock_instance.list_files_in_pyro_standards_folder.return_value = []
+                result = get_file_categories_with_updates(last_checked=custom_datetime)
 
-            result = get_file_categories_with_updates(last_checked=custom_datetime)
-
-            assert result.wiresetcerts.has_updates
-            assert result.last_checked == custom_datetime
+                assert result.wiresetcerts.has_updates
+                assert result.last_checked == custom_datetime
 
     def test_datetime_parsing_with_z_suffix(self):
         """Test datetime parsing when SharePoint returns Z suffix."""
-        recent_datetime = datetime.now() - timedelta(hours=1)
+        recent_datetime = datetime.now(timezone.utc) - timedelta(hours=1)
 
-        with patch("utils.unified_refresh.SharePointClient") as mock_client:
-            mock_instance = MagicMock()
-            mock_client.return_value = mock_instance
+        with patch(
+            "utils.unified_refresh.get_wiresetcerts_file"
+        ) as mock_get_wiresetcerts:
+            with patch(
+                "utils.unified_refresh.get_pyro_standards_files"
+            ) as mock_get_pyro_files:
+                # Mock file with recent timestamp
+                mock_wiresetcerts_file = MagicMock()
+                mock_wiresetcerts_file.time_last_modified = recent_datetime
+                mock_get_wiresetcerts.return_value = mock_wiresetcerts_file
 
-            # Mock datetime with Z suffix (common SharePoint format)
-            mock_instance.get_wiresetcerts_file.return_value = SharePointFileInfo(
-                name="WireSetCerts.xlsx",
-                lastModifiedDateTime=recent_datetime.isoformat() + "Z",
-                id="test-id",
-                webUrl="https://example.com/wiresetcerts.xlsx",
-                size=12345,
-                downloadUrl="https://example.com/download",
-                mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                driveId="test-drive-id",
-                path="/Pyro_Standards/WireSetCerts.xlsx",
-            )
+                mock_get_pyro_files.return_value = []
 
-            mock_instance.list_files_in_pyro_standards_folder.return_value = []
+                result = get_file_categories_with_updates()
 
-            result = get_file_categories_with_updates()
-
-            # Should successfully parse the datetime
-            assert result.wiresetcerts.has_updates
+                # Should successfully parse the datetime
+                assert result.wiresetcerts.has_updates
 
     def test_invalid_filename_patterns_ignored(self):
         """Test that files not matching patterns are ignored."""
-        recent_datetime = datetime.now() - timedelta(hours=1)
+        recent_datetime = datetime.now(timezone.utc) - timedelta(hours=1)
 
-        with patch("utils.unified_refresh.SharePointClient") as mock_client:
-            mock_instance = MagicMock()
-            mock_client.return_value = mock_instance
+        with patch(
+            "utils.unified_refresh.get_wiresetcerts_file"
+        ) as mock_get_wiresetcerts:
+            with patch(
+                "utils.unified_refresh.get_pyro_standards_files"
+            ) as mock_get_pyro_files:
+                mock_wiresetcerts_file = MagicMock()
+                mock_wiresetcerts_file.time_last_modified = recent_datetime
+                mock_get_wiresetcerts.return_value = mock_wiresetcerts_file
 
-            mock_instance.get_wiresetcerts_file.return_value = SharePointFileInfo(
-                name="WireSetCerts.xlsx",
-                lastModifiedDateTime=recent_datetime.isoformat(),
-                id="test-id",
-                webUrl="https://example.com/wiresetcerts.xlsx",
-                size=12345,
-                downloadUrl="https://example.com/download",
-                mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                driveId="test-drive-id",
-                path="/Pyro_Standards/WireSetCerts.xlsx",
-            )
+                # Mock files that don't match expected patterns
+                mock_random_file = MagicMock()
+                mock_random_file.name = "random_file.txt"
+                mock_random_file.time_last_modified = recent_datetime
 
-            # Mock files that don't match expected patterns
-            # TODO: Create at least one SharePointFileInfo fixture for testing, to DRY this up
-            mock_instance.list_files_in_pyro_standards_folder.return_value = [
-                SharePointFileInfo(
-                    name="random_file.txt",
-                    lastModifiedDateTime=recent_datetime.isoformat(),
-                    id="random-id",
-                    webUrl="https://example.com/random_file.txt",
-                    size=12345,
-                    downloadUrl="https://example.com/download",
-                    mimeType="text/plain",
-                    driveId="test-drive-id",
-                    path="/Pyro_Standards/random_file.txt",
-                ),
-                SharePointFileInfo(
-                    name="invalid.xlsx",
-                    lastModifiedDateTime=recent_datetime.isoformat(),
-                    id="invalid-id",
-                    webUrl="https://example.com/invalid.xlsx",
-                    size=12345,
-                    downloadUrl="https://example.com/download",
-                    mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    driveId="test-drive-id",
-                    path="/Pyro_Standards/invalid.xlsx",
-                ),
-                SharePointFileInfo(
-                    name="J99_0124.xlsm",  # Invalid DAQbook pattern (J99 not valid)
-                    lastModifiedDateTime=recent_datetime.isoformat(),
-                    id="invalid-daqbook-id",
-                    webUrl="https://example.com/J99_0124.xlsm",
-                    size=12345,
-                    downloadUrl="https://example.com/download",
-                    mimeType="application/vnd.ms-excel.sheet.macroEnabled.12",
-                    driveId="test-drive-id",
-                    path="/Pyro_Standards/J99_0124.xlsm",
-                ),
-            ]
+                mock_invalid_file = MagicMock()
+                mock_invalid_file.name = "invalid.xlsx"
+                mock_invalid_file.time_last_modified = recent_datetime
 
-            result = get_file_categories_with_updates()
+                mock_invalid_daqbook = MagicMock()
+                mock_invalid_daqbook.name = "J99_0124.xlsm"  # Invalid DAQbook pattern
+                mock_invalid_daqbook.time_last_modified = recent_datetime
 
-            # Should not detect any updates for invalid patterns
-            assert not result.wireoffsets.has_updates
-            assert not result.daqbookoffsets.has_updates
+                mock_get_pyro_files.return_value = [
+                    mock_random_file,
+                    mock_invalid_file,
+                    mock_invalid_daqbook,
+                ]
+
+                result = get_file_categories_with_updates()
+
+                # Should not detect any updates for invalid patterns
+                assert not result.wireoffsets.has_updates
+                assert not result.daqbookoffsets.has_updates
 
 
 class TestRefreshAllUpdatedCategories:
@@ -330,7 +267,7 @@ class TestRefreshAllUpdatedCategories:
                 wiresetcerts=FileCategory(has_updates=False, files=[]),
                 wireoffsets=FileCategory(has_updates=False, files=[]),
                 daqbookoffsets=FileCategory(has_updates=False, files=[]),
-                last_checked=datetime.now(),
+                last_checked=datetime.now(timezone.utc),
             )
 
             with patch("utils.unified_refresh.log_refresh_result") as mock_log:
@@ -347,26 +284,17 @@ class TestRefreshAllUpdatedCategories:
         with patch(
             "utils.unified_refresh.get_file_categories_with_updates"
         ) as mock_updates:
+            mock_file = MagicMock()
+            mock_file.name = "WireSetCerts.xlsx"
+
             mock_updates.return_value = FileCategoryUpdateResultSet(
                 wiresetcerts=FileCategory(
                     has_updates=True,
-                    files=[
-                        SharePointFileInfo(
-                            name="WireSetCerts.xlsx",
-                            id="test-id",
-                            webUrl="https://example.com/WireSetCerts.xlsx",
-                            size=12345,
-                            lastModifiedDateTime=datetime.now().isoformat(),
-                            downloadUrl="https://example.com/download",
-                            mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                            driveId="test-drive-id",
-                            path="/Pyro_Standards/WireSetCerts.xlsx",
-                        )
-                    ],
+                    files=[mock_file],
                 ),
                 wireoffsets=FileCategory(has_updates=False, files=[]),
                 daqbookoffsets=FileCategory(has_updates=False, files=[]),
-                last_checked=datetime.now(),
+                last_checked=datetime.now(timezone.utc),
             )
 
             with patch("utils.unified_refresh.refresh_wire_set_certs") as mock_refresh:
@@ -389,26 +317,17 @@ class TestRefreshAllUpdatedCategories:
         with patch(
             "utils.unified_refresh.get_file_categories_with_updates"
         ) as mock_updates:
+            mock_file = MagicMock()
+            mock_file.name = "WireSetCerts.xlsx"
+
             mock_updates.return_value = FileCategoryUpdateResultSet(
                 wiresetcerts=FileCategory(
                     has_updates=True,
-                    files=[
-                        SharePointFileInfo(
-                            name="WireSetCerts.xlsx",
-                            id="test-id",
-                            webUrl="https://example.com/WireSetCerts.xlsx",
-                            size=12345,
-                            lastModifiedDateTime=datetime.now().isoformat(),
-                            downloadUrl="https://example.com/download",
-                            mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                            driveId="test-drive-id",
-                            path="/Pyro_Standards/WireSetCerts.xlsx",
-                        )
-                    ],
+                    files=[mock_file],
                 ),
                 wireoffsets=FileCategory(has_updates=False, files=[]),
                 daqbookoffsets=FileCategory(has_updates=False, files=[]),
-                last_checked=datetime.now(),
+                last_checked=datetime.now(timezone.utc),
             )
 
             with patch("utils.unified_refresh.refresh_wire_set_certs") as mock_refresh:
@@ -429,26 +348,17 @@ class TestRefreshAllUpdatedCategories:
         with patch(
             "utils.unified_refresh.get_file_categories_with_updates"
         ) as mock_updates:
+            mock_file = MagicMock()
+            mock_file.name = "J1_0124.xlsm"
+
             mock_updates.return_value = FileCategoryUpdateResultSet(
                 wiresetcerts=FileCategory(has_updates=False, files=[]),
                 wireoffsets=FileCategory(has_updates=False, files=[]),
                 daqbookoffsets=FileCategory(
                     has_updates=True,
-                    files=[
-                        SharePointFileInfo(
-                            name="J1_0124.xlsm",
-                            id="test-id",
-                            webUrl="https://example.com/J1_0124.xlsm",
-                            size=12345,
-                            lastModifiedDateTime=datetime.now().isoformat(),
-                            downloadUrl="https://example.com/download",
-                            mimeType="application/vnd.ms-excel.sheet.macroEnabled.12",
-                            driveId="test-drive-id",
-                            path="/Pyro_Standards/J1_0124.xlsm",
-                        )
-                    ],
+                    files=[mock_file],
                 ),
-                last_checked=datetime.now(),
+                last_checked=datetime.now(timezone.utc),
             )
 
             with patch("utils.unified_refresh.refresh_daqbook_offsets") as mock_refresh:
@@ -470,26 +380,17 @@ class TestRefreshAllUpdatedCategories:
         with patch(
             "utils.unified_refresh.get_file_categories_with_updates"
         ) as mock_updates:
+            mock_file = MagicMock()
+            mock_file.name = "123456A.xls"
+
             mock_updates.return_value = FileCategoryUpdateResultSet(
                 wiresetcerts=FileCategory(has_updates=False, files=[]),
                 wireoffsets=FileCategory(
                     has_updates=True,
-                    files=[
-                        SharePointFileInfo(
-                            name="123456A.xls",
-                            id="test-id",
-                            webUrl="https://example.com/123456A.xls",
-                            size=12345,
-                            lastModifiedDateTime=datetime.now().isoformat(),
-                            downloadUrl="https://example.com/download",
-                            mimeType="application/vnd.ms-excel",
-                            driveId="test-drive-id",
-                            path="/Pyro_Standards/123456A.xls",
-                        )
-                    ],
+                    files=[mock_file],
                 ),
                 daqbookoffsets=FileCategory(has_updates=False, files=[]),
-                last_checked=datetime.now(),
+                last_checked=datetime.now(timezone.utc),
             )
 
             with patch("utils.unified_refresh.refresh_wire_offsets") as mock_refresh:
@@ -515,56 +416,29 @@ class TestRefreshAllUpdatedCategories:
         with patch(
             "utils.unified_refresh.get_file_categories_with_updates"
         ) as mock_updates:
+            mock_wiresetcerts_file = MagicMock()
+            mock_wiresetcerts_file.name = "WireSetCerts.xlsx"
+
+            mock_wire_file = MagicMock()
+            mock_wire_file.name = "123456A.xls"
+
+            mock_daqbook_file = MagicMock()
+            mock_daqbook_file.name = "J1_0124.xlsm"
+
             mock_updates.return_value = FileCategoryUpdateResultSet(
                 wiresetcerts=FileCategory(
                     has_updates=True,
-                    files=[
-                        SharePointFileInfo(
-                            name="WireSetCerts.xlsx",
-                            id="test-id",
-                            webUrl="https://example.com/WireSetCerts.xlsx",
-                            size=12345,
-                            lastModifiedDateTime=datetime.now().isoformat(),
-                            downloadUrl="https://example.com/download",
-                            mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                            driveId="test-drive-id",
-                            path="/Pyro_Standards/WireSetCerts.xlsx",
-                        )
-                    ],
+                    files=[mock_wiresetcerts_file],
                 ),
                 wireoffsets=FileCategory(
                     has_updates=True,
-                    files=[
-                        SharePointFileInfo(
-                            name="123456A.xls",
-                            id="test-id",
-                            webUrl="https://example.com/123456A.xls",
-                            size=12345,
-                            lastModifiedDateTime=datetime.now().isoformat(),
-                            downloadUrl="https://example.com/download",
-                            mimeType="application/vnd.ms-excel",
-                            driveId="test-drive-id",
-                            path="/Pyro_Standards/123456A.xls",
-                        )
-                    ],
+                    files=[mock_wire_file],
                 ),
                 daqbookoffsets=FileCategory(
                     has_updates=True,
-                    files=[
-                        SharePointFileInfo(
-                            name="J1_0124.xlsm",
-                            id="test-id",
-                            webUrl="https://example.com/J1_0124.xlsm",
-                            size=12345,
-                            lastModifiedDateTime=datetime.now().isoformat(),
-                            downloadUrl="https://example.com/download",
-                            mimeType="application/vnd.ms-excel.sheet.macroEnabled.12",
-                            driveId="test-drive-id",
-                            path="/Pyro_Standards/J1_0124.xlsm",
-                        )
-                    ],
+                    files=[mock_daqbook_file],
                 ),
-                last_checked=datetime.now(),
+                last_checked=datetime.now(timezone.utc),
             )
 
             with patch(
@@ -604,41 +478,23 @@ class TestRefreshAllUpdatedCategories:
         with patch(
             "utils.unified_refresh.get_file_categories_with_updates"
         ) as mock_updates:
+            mock_wiresetcerts_file = MagicMock()
+            mock_wiresetcerts_file.name = "WireSetCerts.xlsx"
+
+            mock_wire_file = MagicMock()
+            mock_wire_file.name = "123456A.xls"
+
             mock_updates.return_value = FileCategoryUpdateResultSet(
                 wiresetcerts=FileCategory(
                     has_updates=True,
-                    files=[
-                        SharePointFileInfo(
-                            name="WireSetCerts.xlsx",
-                            id="test-id",
-                            webUrl="https://example.com/WireSetCerts.xlsx",
-                            size=12345,
-                            lastModifiedDateTime=datetime.now().isoformat(),
-                            downloadUrl="https://example.com/download",
-                            mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                            driveId="test-drive-id",
-                            path="/Pyro_Standards/WireSetCerts.xlsx",
-                        )
-                    ],
+                    files=[mock_wiresetcerts_file],
                 ),
                 wireoffsets=FileCategory(
                     has_updates=True,
-                    files=[
-                        SharePointFileInfo(
-                            name="123456A.xls",
-                            id="test-id",
-                            webUrl="https://example.com/123456A.xls",
-                            size=12345,
-                            lastModifiedDateTime=datetime.now().isoformat(),
-                            downloadUrl="https://example.com/download",
-                            mimeType="application/vnd.ms-excel",
-                            driveId="test-drive-id",
-                            path="/Pyro_Standards/123456A.xls",
-                        )
-                    ],
+                    files=[mock_wire_file],
                 ),
                 daqbookoffsets=FileCategory(has_updates=False, files=[]),
-                last_checked=datetime.now(),
+                last_checked=datetime.now(timezone.utc),
             )
 
             with patch(
@@ -684,7 +540,7 @@ class TestLogRefreshResult:
                 categories_with_updates=2,
                 total_files_processed=5,
             ),
-            last_checked=datetime.now(),
+            last_checked=datetime.now(timezone.utc),
             summary_line="Updated wiresetcerts, daqbookoffsets — 5 files total",
         )
         with patch("utils.database.SessionLocal") as mock_session_local:
@@ -715,7 +571,7 @@ class TestLogRefreshResult:
                 categories_with_updates=1,
                 total_files_processed=1,
             ),
-            last_checked=datetime.now(),
+            last_checked=datetime.now(timezone.utc),
             summary_line="Updated wiresetcerts — 1 files total",
         )
 
@@ -738,7 +594,7 @@ class TestLogRefreshResult:
                 categories_with_updates=0,
                 total_files_processed=0,
             ),
-            last_checked=datetime.now(),
+            last_checked=datetime.now(timezone.utc),
             summary_line="No categories needed updates",
         )
 
@@ -812,5 +668,4 @@ class TestRefreshLogModel:
 
         repr_str = repr(log_entry)
         assert "RefreshLog" in repr_str
-        assert "wiresetcerts" in repr_str
         assert "wiresetcerts" in repr_str

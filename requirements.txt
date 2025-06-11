@@ -11,7 +11,7 @@ git+https://github.com/Johnson-Gage-Inspection-Inc/qualer-sdk-python.git@v3.0b0#
 isort
 marshmallow
 msal
-office365
+Office365-REST-Python-Client==2.6.2
 openpyxl
 pandas
 pre-commit

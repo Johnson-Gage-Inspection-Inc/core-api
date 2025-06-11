@@ -10,11 +10,7 @@ import re
 from typing import Any, Dict, List
 
 import openpyxl
-
-try:
-    import xlrd
-except ImportError:
-    xlrd = None
+import xlrd
 
 
 def _parse_temperature_cell(cell_value: Any) -> float:
