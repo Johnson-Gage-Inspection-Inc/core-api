@@ -1,6 +1,14 @@
 from datetime import datetime
-from pydantic import BaseModel, StrictBool as StrictBool, StrictFloat as StrictFloat, StrictInt as StrictInt, StrictStr as StrictStr
-from qualer_sdk.models.qualer_api_models_address_to_address_response_model import QualerApiModelsAddressToAddressResponseModel as QualerApiModelsAddressToAddressResponseModel
+from pydantic import (
+    BaseModel,
+    StrictBool as StrictBool,
+    StrictFloat as StrictFloat,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+)
+from qualer_sdk.models.qualer_api_models_address_to_address_response_model import (
+    QualerApiModelsAddressToAddressResponseModel as QualerApiModelsAddressToAddressResponseModel,
+)
 
 class QualerApiModelsServiceOrdersToClientOrderResponseModel(BaseModel):
     service_order_id: StrictInt | None
@@ -113,13 +121,19 @@ class QualerApiModelsServiceOrdersToClientOrderResponseModel(BaseModel):
     order_notes: StrictStr | None
     billing_address: QualerApiModelsAddressToAddressResponseModel | None
     shipping_address: QualerApiModelsAddressToAddressResponseModel | None
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerApiModelsServiceOrdersToClientOrderResponseModel: ...
+    def from_json(
+        cls, json_str: str
+    ) -> QualerApiModelsServiceOrdersToClientOrderResponseModel: ...
     def to_dict(self): ...
     @classmethod
-    def from_dict(cls, obj: dict) -> QualerApiModelsServiceOrdersToClientOrderResponseModel: ...
+    def from_dict(
+        cls, obj: dict
+    ) -> QualerApiModelsServiceOrdersToClientOrderResponseModel: ...

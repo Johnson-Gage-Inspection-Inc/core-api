@@ -1,6 +1,14 @@
 from datetime import datetime
-from pydantic import BaseModel, StrictFloat as StrictFloat, StrictInt as StrictInt, StrictStr as StrictStr, conlist as conlist
-from qualer_sdk.models.qualer_api_models_asset_to_asset_maintenance_plan_response import QualerApiModelsAssetToAssetMaintenancePlanResponse as QualerApiModelsAssetToAssetMaintenancePlanResponse
+from pydantic import (
+    BaseModel,
+    StrictFloat as StrictFloat,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+    conlist as conlist,
+)
+from qualer_sdk.models.qualer_api_models_asset_to_asset_maintenance_plan_response import (
+    QualerApiModelsAssetToAssetMaintenancePlanResponse as QualerApiModelsAssetToAssetMaintenancePlanResponse,
+)
 
 class QualerApiModelsAssetToAssetMaintenancePlanModel(BaseModel):
     maintenance_plans: None | None
@@ -53,13 +61,19 @@ class QualerApiModelsAssetToAssetMaintenancePlanModel(BaseModel):
     composite_parent_id: StrictInt | None
     composite_child_count: StrictInt | None
     def asset_status_validate_enum(cls, value): ...
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerApiModelsAssetToAssetMaintenancePlanModel: ...
+    def from_json(
+        cls, json_str: str
+    ) -> QualerApiModelsAssetToAssetMaintenancePlanModel: ...
     def to_dict(self): ...
     @classmethod
-    def from_dict(cls, obj: dict) -> QualerApiModelsAssetToAssetMaintenancePlanModel: ...
+    def from_dict(
+        cls, obj: dict
+    ) -> QualerApiModelsAssetToAssetMaintenancePlanModel: ...

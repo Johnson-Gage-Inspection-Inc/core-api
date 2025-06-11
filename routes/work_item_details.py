@@ -41,7 +41,7 @@ def get_work_item_details_for_tus(item_no: WorkItemNumber) -> Dict[str, Any]:
 
     soi_api = ServiceOrderItemsApi(client)  # type: ignore
     work_items: list[QualerApiModelsServiceOrdersToClientOrderItemResponseModel] = (
-        soi_api.get_work_items_0(work_item_number=item_no)  # type: ignore
+        soi_api.get_work_items(work_item_number=item_no)  # type: ignore
     )
 
     if len(work_items) == 0:

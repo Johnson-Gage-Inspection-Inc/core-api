@@ -1,7 +1,15 @@
 from datetime import datetime
-from pydantic import BaseModel, StrictBool as StrictBool, StrictFloat as StrictFloat, StrictInt as StrictInt, StrictStr as StrictStr
+from pydantic import (
+    BaseModel,
+    StrictBool as StrictBool,
+    StrictFloat as StrictFloat,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+)
 
-class QualerWebMvcAreasApiModelsServiceOrdersFromServiceOrderPartRepairUpdateModel(BaseModel):
+class QualerWebMvcAreasApiModelsServiceOrdersFromServiceOrderPartRepairUpdateModel(
+    BaseModel
+):
     service_order_item_part_id: StrictInt | None
     name: StrictStr | None
     description: StrictStr | None
@@ -17,13 +25,23 @@ class QualerWebMvcAreasApiModelsServiceOrdersFromServiceOrderPartRepairUpdateMod
     free_quantity: StrictInt | None
     created_by_id: StrictInt | None
     service_order_charge_type: StrictStr | None
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerWebMvcAreasApiModelsServiceOrdersFromServiceOrderPartRepairUpdateModel: ...
+    def from_json(
+        cls, json_str: str
+    ) -> (
+        QualerWebMvcAreasApiModelsServiceOrdersFromServiceOrderPartRepairUpdateModel
+    ): ...
     def to_dict(self): ...
     @classmethod
-    def from_dict(cls, obj: dict) -> QualerWebMvcAreasApiModelsServiceOrdersFromServiceOrderPartRepairUpdateModel: ...
+    def from_dict(
+        cls, obj: dict
+    ) -> (
+        QualerWebMvcAreasApiModelsServiceOrdersFromServiceOrderPartRepairUpdateModel
+    ): ...

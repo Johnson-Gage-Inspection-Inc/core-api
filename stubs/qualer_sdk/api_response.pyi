@@ -1,11 +1,17 @@
 from _typeshed import Incomplete
 from typing import Generic, Mapping, TypeVar
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 class ApiResponse(Generic[T]):
     status_code: Incomplete
     data: Incomplete
     headers: Incomplete
     raw_data: Incomplete
-    def __init__(self, status_code: int, data: T | None = None, headers: Mapping[str, str] | None = None, raw_data: bytes | None = None) -> None: ...
+    def __init__(
+        self,
+        status_code: int,
+        data: T | None = None,
+        headers: Mapping[str, str] | None = None,
+        raw_data: bytes | None = None,
+    ) -> None: ...

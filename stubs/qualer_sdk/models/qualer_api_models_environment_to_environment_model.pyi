@@ -1,4 +1,9 @@
-from pydantic import BaseModel, StrictFloat as StrictFloat, StrictInt as StrictInt, StrictStr as StrictStr
+from pydantic import (
+    BaseModel,
+    StrictFloat as StrictFloat,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+)
 
 class QualerApiModelsEnvironmentToEnvironmentModel(BaseModel):
     room_name: StrictStr | None
@@ -10,13 +15,17 @@ class QualerApiModelsEnvironmentToEnvironmentModel(BaseModel):
     valid_range_max: StrictFloat | StrictInt | None
     unit_of_measure: StrictStr | None
     def factor_id_validate_enum(cls, value): ...
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerApiModelsEnvironmentToEnvironmentModel: ...
+    def from_json(
+        cls, json_str: str
+    ) -> QualerApiModelsEnvironmentToEnvironmentModel: ...
     def to_dict(self): ...
     @classmethod
     def from_dict(cls, obj: dict) -> QualerApiModelsEnvironmentToEnvironmentModel: ...

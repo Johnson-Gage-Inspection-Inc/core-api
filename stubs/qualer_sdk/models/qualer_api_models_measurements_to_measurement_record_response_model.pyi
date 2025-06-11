@@ -1,6 +1,15 @@
 from datetime import datetime
-from pydantic import BaseModel, StrictBool as StrictBool, StrictFloat as StrictFloat, StrictInt as StrictInt, StrictStr as StrictStr, conlist as conlist
-from qualer_sdk.models.qualer_api_models_measurements_to_measurement_record_response_model_measurement_batch_response_model import QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModel as QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModel
+from pydantic import (
+    BaseModel,
+    StrictBool as StrictBool,
+    StrictFloat as StrictFloat,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+    conlist as conlist,
+)
+from qualer_sdk.models.qualer_api_models_measurements_to_measurement_record_response_model_measurement_batch_response_model import (
+    QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModel as QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModel,
+)
 
 class QualerApiModelsMeasurementsToMeasurementRecordResponseModel(BaseModel):
     service_order_id: StrictInt | None
@@ -37,13 +46,19 @@ class QualerApiModelsMeasurementsToMeasurementRecordResponseModel(BaseModel):
     forward_next_service: StrictBool | None
     forward_segment_id: StrictInt | None
     measurement_batches: None | None
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerApiModelsMeasurementsToMeasurementRecordResponseModel: ...
+    def from_json(
+        cls, json_str: str
+    ) -> QualerApiModelsMeasurementsToMeasurementRecordResponseModel: ...
     def to_dict(self): ...
     @classmethod
-    def from_dict(cls, obj: dict) -> QualerApiModelsMeasurementsToMeasurementRecordResponseModel: ...
+    def from_dict(
+        cls, obj: dict
+    ) -> QualerApiModelsMeasurementsToMeasurementRecordResponseModel: ...

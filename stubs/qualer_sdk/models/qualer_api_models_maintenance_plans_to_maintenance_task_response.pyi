@@ -1,4 +1,9 @@
-from pydantic import BaseModel, StrictBool as StrictBool, StrictInt as StrictInt, StrictStr as StrictStr
+from pydantic import (
+    BaseModel,
+    StrictBool as StrictBool,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+)
 
 class QualerApiModelsMaintenancePlansToMaintenanceTaskResponse(BaseModel):
     segment_name: StrictStr | None
@@ -27,13 +32,19 @@ class QualerApiModelsMaintenancePlansToMaintenanceTaskResponse(BaseModel):
     generate_order_automatically: StrictBool | None
     approve_upon_generation: StrictBool | None
     generate_separate: StrictBool | None
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerApiModelsMaintenancePlansToMaintenanceTaskResponse: ...
+    def from_json(
+        cls, json_str: str
+    ) -> QualerApiModelsMaintenancePlansToMaintenanceTaskResponse: ...
     def to_dict(self): ...
     @classmethod
-    def from_dict(cls, obj: dict) -> QualerApiModelsMaintenancePlansToMaintenanceTaskResponse: ...
+    def from_dict(
+        cls, obj: dict
+    ) -> QualerApiModelsMaintenancePlansToMaintenanceTaskResponse: ...

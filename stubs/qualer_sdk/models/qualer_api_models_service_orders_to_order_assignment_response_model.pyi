@@ -1,5 +1,10 @@
 from datetime import datetime
-from pydantic import BaseModel, StrictBool as StrictBool, StrictInt as StrictInt, StrictStr as StrictStr
+from pydantic import (
+    BaseModel,
+    StrictBool as StrictBool,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+)
 
 class QualerApiModelsServiceOrdersToOrderAssignmentResponseModel(BaseModel):
     work_item_id: StrictInt | None
@@ -14,13 +19,19 @@ class QualerApiModelsServiceOrdersToOrderAssignmentResponseModel(BaseModel):
     title: StrictStr | None
     is_deleted: StrictBool | None
     last_seen_date_utc: datetime | None
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerApiModelsServiceOrdersToOrderAssignmentResponseModel: ...
+    def from_json(
+        cls, json_str: str
+    ) -> QualerApiModelsServiceOrdersToOrderAssignmentResponseModel: ...
     def to_dict(self): ...
     @classmethod
-    def from_dict(cls, obj: dict) -> QualerApiModelsServiceOrdersToOrderAssignmentResponseModel: ...
+    def from_dict(
+        cls, obj: dict
+    ) -> QualerApiModelsServiceOrdersToOrderAssignmentResponseModel: ...

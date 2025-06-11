@@ -16,9 +16,11 @@ class QualerApiModelsAddressAddressModel(BaseModel):
     country: StrictStr | None
     state_province: StrictStr | None
     state_province_abbreviation: StrictStr | None
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod

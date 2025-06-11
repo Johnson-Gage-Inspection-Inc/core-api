@@ -1,5 +1,10 @@
 from datetime import datetime
-from pydantic import BaseModel, StrictBool as StrictBool, StrictInt as StrictInt, StrictStr as StrictStr
+from pydantic import (
+    BaseModel,
+    StrictBool as StrictBool,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+)
 
 class QualerApiModelsServiceOrdersToProviderServiceOrderResponseModel(BaseModel):
     service_order_id: StrictInt | None
@@ -28,13 +33,19 @@ class QualerApiModelsServiceOrdersToProviderServiceOrderResponseModel(BaseModel)
     request_to_time: datetime | None
     def order_status_validate_enum(cls, value): ...
     def timeframe_validate_enum(cls, value): ...
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerApiModelsServiceOrdersToProviderServiceOrderResponseModel: ...
+    def from_json(
+        cls, json_str: str
+    ) -> QualerApiModelsServiceOrdersToProviderServiceOrderResponseModel: ...
     def to_dict(self): ...
     @classmethod
-    def from_dict(cls, obj: dict) -> QualerApiModelsServiceOrdersToProviderServiceOrderResponseModel: ...
+    def from_dict(
+        cls, obj: dict
+    ) -> QualerApiModelsServiceOrdersToProviderServiceOrderResponseModel: ...

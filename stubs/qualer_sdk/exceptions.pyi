@@ -8,7 +8,12 @@ class ApiException(OpenApiException):
     http_resp: Incomplete
     body: Incomplete
     headers: Incomplete
-    def __init__(self, status: Incomplete | None = None, reason: Incomplete | None = None, http_resp: Incomplete | None = None) -> None: ...
+    def __init__(
+        self,
+        status: Incomplete | None = None,
+        reason: Incomplete | None = None,
+        http_resp: Incomplete | None = None,
+    ) -> None: ...
 
 class ApiValueError(OpenApiException, ValueError): ...
 class ApiTypeError(OpenApiException, TypeError): ...
@@ -25,4 +30,9 @@ class NotFoundException(ApiException):
     def __init__(self, http_resp: Incomplete | None = None) -> None: ...
 
 class ServiceException(ApiException):
-    def __init__(self, status: Incomplete | None = None, reason: Incomplete | None = None, http_resp: Incomplete | None = None) -> None: ...
+    def __init__(
+        self,
+        status: Incomplete | None = None,
+        reason: Incomplete | None = None,
+        http_resp: Incomplete | None = None,
+    ) -> None: ...

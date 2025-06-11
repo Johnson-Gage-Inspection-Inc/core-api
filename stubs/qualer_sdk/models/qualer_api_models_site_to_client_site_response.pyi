@@ -1,7 +1,17 @@
 from datetime import datetime
-from pydantic import BaseModel, StrictBool as StrictBool, StrictInt as StrictInt, StrictStr as StrictStr, conlist as conlist
-from qualer_sdk.models.qualer_api_models_address_to_address_response_model import QualerApiModelsAddressToAddressResponseModel as QualerApiModelsAddressToAddressResponseModel
-from qualer_sdk.models.qualer_api_models_common_from_attribute_model import QualerApiModelsCommonFromAttributeModel as QualerApiModelsCommonFromAttributeModel
+from pydantic import (
+    BaseModel,
+    StrictBool as StrictBool,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+    conlist as conlist,
+)
+from qualer_sdk.models.qualer_api_models_address_to_address_response_model import (
+    QualerApiModelsAddressToAddressResponseModel as QualerApiModelsAddressToAddressResponseModel,
+)
+from qualer_sdk.models.qualer_api_models_common_from_attribute_model import (
+    QualerApiModelsCommonFromAttributeModel as QualerApiModelsCommonFromAttributeModel,
+)
 
 class QualerApiModelsSiteToClientSiteResponse(BaseModel):
     site_id: StrictInt | None
@@ -23,9 +33,11 @@ class QualerApiModelsSiteToClientSiteResponse(BaseModel):
     time_zone_offset_minutes: StrictInt | None
     updated_on_utc: datetime | None
     attributes: None | None
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod

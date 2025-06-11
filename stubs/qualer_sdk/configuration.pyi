@@ -32,7 +32,20 @@ class Configuration:
     socket_options: Incomplete
     datetime_format: str
     date_format: str
-    def __init__(self, host: Incomplete | None = None, api_key: Incomplete | None = None, api_key_prefix: Incomplete | None = None, username: Incomplete | None = None, password: Incomplete | None = None, access_token: Incomplete | None = None, server_index: Incomplete | None = None, server_variables: Incomplete | None = None, server_operation_index: Incomplete | None = None, server_operation_variables: Incomplete | None = None, ssl_ca_cert: Incomplete | None = None) -> None: ...
+    def __init__(
+        self,
+        host: Incomplete | None = None,
+        api_key: Incomplete | None = None,
+        api_key_prefix: Incomplete | None = None,
+        username: Incomplete | None = None,
+        password: Incomplete | None = None,
+        access_token: Incomplete | None = None,
+        server_index: Incomplete | None = None,
+        server_variables: Incomplete | None = None,
+        server_operation_index: Incomplete | None = None,
+        server_operation_variables: Incomplete | None = None,
+        ssl_ca_cert: Incomplete | None = None,
+    ) -> None: ...
     def __deepcopy__(self, memo): ...
     def __setattr__(self, name, value) -> None: ...
     @classmethod
@@ -59,7 +72,12 @@ class Configuration:
     def auth_settings(self): ...
     def to_debug_report(self): ...
     def get_host_settings(self): ...
-    def get_host_from_settings(self, index, variables: Incomplete | None = None, servers: Incomplete | None = None): ...
+    def get_host_from_settings(
+        self,
+        index,
+        variables: Incomplete | None = None,
+        servers: Incomplete | None = None,
+    ): ...
     @property
     def host(self): ...
     @host.setter

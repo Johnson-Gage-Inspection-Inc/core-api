@@ -1,15 +1,23 @@
 from pydantic import BaseModel, conlist as conlist
-from qualer_sdk.models.qualer_api_models_service_orders_from_charge_update_model_price_model import QualerApiModelsServiceOrdersFromChargeUpdateModelPriceModel as QualerApiModelsServiceOrdersFromChargeUpdateModelPriceModel
+from qualer_sdk.models.qualer_api_models_service_orders_from_charge_update_model_price_model import (
+    QualerApiModelsServiceOrdersFromChargeUpdateModelPriceModel as QualerApiModelsServiceOrdersFromChargeUpdateModelPriceModel,
+)
 
 class QualerApiModelsServiceOrdersFromChargeUpdateModel(BaseModel):
     charges: None | None
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerApiModelsServiceOrdersFromChargeUpdateModel: ...
+    def from_json(
+        cls, json_str: str
+    ) -> QualerApiModelsServiceOrdersFromChargeUpdateModel: ...
     def to_dict(self): ...
     @classmethod
-    def from_dict(cls, obj: dict) -> QualerApiModelsServiceOrdersFromChargeUpdateModel: ...
+    def from_dict(
+        cls, obj: dict
+    ) -> QualerApiModelsServiceOrdersFromChargeUpdateModel: ...

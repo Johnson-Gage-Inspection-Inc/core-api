@@ -1,5 +1,6 @@
 import re
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any, Dict, List, Pattern
 
 from marshmallow import EXCLUDE, Schema, fields, pre_load
@@ -207,51 +208,22 @@ class WireSetCertSchema(Schema):
 
 
 # SharePoint Integration Schemas
-class SharePointFileReferenceSchema(Schema):
-    """Schema for SharePoint file reference responses."""
+@dataclass
+class SharePointFileInfo:
+    """
+    Dataclass representing SharePoint file metadata.
+    This is the actual data structure used throughout the application.
+    """
 
-    id = fields.String(allow_none=True, metadata={"description": "SharePoint file ID"})
-    name = fields.String(allow_none=True, metadata={"description": "File name"})
-    webUrl = fields.String(
-        allow_none=True, metadata={"description": "SharePoint web URL for the file"}
-    )
-    downloadUrl = fields.String(
-        allow_none=True, metadata={"description": "Temporary download URL"}
-    )
-    size = fields.Integer(
-        allow_none=True, metadata={"description": "File size in bytes"}
-    )
-    lastModified = fields.String(
-        allow_none=True, metadata={"description": "Last modified timestamp"}
-    )
-    mimeType = fields.String(
-        allow_none=True, metadata={"description": "MIME type of the file"}
-    )
-    driveId = fields.String(
-        allow_none=True, metadata={"description": "SharePoint drive ID"}
-    )
-    path = fields.String(
-        allow_none=True, metadata={"description": "File path within the drive"}
-    )
-
-
-class SharePointFileSearchQuerySchema(Schema):
-    """Schema for SharePoint file search requests."""
-
-    query = fields.String(
-        required=True,
-        metadata={"description": "Search query for finding files in SharePoint"},
-    )
-
-
-class SharePointFolderContentsQuerySchema(Schema):
-    """Schema for SharePoint folder listing requests."""
-
-    folderPath = fields.String(
-        required=False,
-        load_default="",
-        metadata={"description": "Path to folder within the drive (empty for root)"},
-    )
+    id: str
+    name: str
+    webUrl: str
+    size: int
+    lastModifiedDateTime: str
+    downloadUrl: str
+    mimeType: str
+    driveId: str
+    path: str
 
 
 class SharePointFileInfoSchema(Schema):
@@ -283,3 +255,81 @@ class SharePointFileInfoSchema(Schema):
         data["driveId"] = parent.get("driveId")
         data["path"] = parent.get("path")
         return data
+
+
+class SharePointFileSearchQuerySchema(Schema):
+    """Schema for SharePoint file search requests."""
+
+    query = fields.String(
+        required=True,
+        metadata={"description": "Search query for finding files in SharePoint"},
+    )
+
+
+class SharePointFolderContentsQuerySchema(Schema):
+    """Schema for SharePoint folder listing requests."""
+
+    folderPath = fields.String(
+        required=False,
+        load_default="",
+        metadata={"description": "Path to folder within the drive (empty for root)"},
+    )
+
+
+@dataclass
+class FileCategory:
+    """
+    Represents a file category with its update status and files.
+    """
+
+    has_updates: bool
+    files: List[SharePointFileInfo]
+
+
+@dataclass
+class FileCategoryUpdateResultSet:
+    """
+    Represents the result set of file category updates.
+    """
+
+    wiresetcerts: FileCategory
+    wireoffsets: FileCategory
+    daqbookoffsets: FileCategory
+    last_checked: datetime
+
+
+@dataclass
+class RefreshCategoryResult:
+    """
+    Represents the result of refreshing a single category.
+    """
+
+    status: str
+    message: str = ""
+    files_processed: int = 0
+    skipped: str = ""
+
+
+@dataclass
+class RefreshSummary:
+    """
+    Summary statistics for a unified refresh operation.
+    """
+
+    total_categories: int
+    categories_with_updates: int
+    total_files_processed: int
+
+
+@dataclass
+class UnifiedRefreshResult:
+    """
+    Complete result of a unified refresh operation.
+    """
+
+    categories_checked: List[str]
+    categories_updated: List[str]
+    results: Dict[str, Any]  # Category name -> RefreshCategoryResult or dict
+    summary: RefreshSummary
+    last_checked: datetime
+    summary_line: str = ""

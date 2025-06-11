@@ -1,5 +1,10 @@
 from datetime import datetime
-from pydantic import BaseModel, StrictFloat as StrictFloat, StrictInt as StrictInt, StrictStr as StrictStr
+from pydantic import (
+    BaseModel,
+    StrictFloat as StrictFloat,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+)
 
 class QualerApiModelsClientsFromAssetModel(BaseModel):
     site_id: StrictInt | None
@@ -29,9 +34,11 @@ class QualerApiModelsClientsFromAssetModel(BaseModel):
     retirement_date: datetime | None
     salvage_value: StrictFloat | StrictInt | None
     def asset_status_validate_enum(cls, value): ...
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod

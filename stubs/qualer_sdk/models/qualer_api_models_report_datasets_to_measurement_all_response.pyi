@@ -1,5 +1,11 @@
 from datetime import datetime
-from pydantic import BaseModel, StrictBool as StrictBool, StrictFloat as StrictFloat, StrictInt as StrictInt, StrictStr as StrictStr
+from pydantic import (
+    BaseModel,
+    StrictBool as StrictBool,
+    StrictFloat as StrictFloat,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+)
 
 class QualerApiModelsReportDatasetsToMeasurementAllResponse(BaseModel):
     barcode: StrictStr | None
@@ -623,13 +629,19 @@ class QualerApiModelsReportDatasetsToMeasurementAllResponse(BaseModel):
     def as_left_measurement_type_validate_enum(cls, value): ...
     def as_left_precision_type_validate_enum(cls, value): ...
     def as_left_measurement_not_taken_result_validate_enum(cls, value): ...
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerApiModelsReportDatasetsToMeasurementAllResponse: ...
+    def from_json(
+        cls, json_str: str
+    ) -> QualerApiModelsReportDatasetsToMeasurementAllResponse: ...
     def to_dict(self): ...
     @classmethod
-    def from_dict(cls, obj: dict) -> QualerApiModelsReportDatasetsToMeasurementAllResponse: ...
+    def from_dict(
+        cls, obj: dict
+    ) -> QualerApiModelsReportDatasetsToMeasurementAllResponse: ...

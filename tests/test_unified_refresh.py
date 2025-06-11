@@ -27,9 +27,19 @@ class TestUnifiedRefreshPipeline:
             "lastModifiedDateTime": iso_now,
             "id": "abc123",
         }
+
+        # Create mock objects with .name and .lastModifiedDateTime attributes
+        mock_wire_file = MagicMock()
+        mock_wire_file.name = "072513A.xls"
+        mock_wire_file.lastModifiedDateTime = iso_now
+
+        mock_daqbook_file = MagicMock()
+        mock_daqbook_file.name = "J1_0625.xlsm"
+        mock_daqbook_file.lastModifiedDateTime = iso_now
+
         mock_client.list_files_in_pyro_standards_folder.return_value = [
-            {"name": "072513A.xls", "lastModifiedDateTime": iso_now},  # wire cert
-            {"name": "J1_0625.xlsm", "lastModifiedDateTime": iso_now},  # daqbook
+            mock_wire_file,  # wire cert
+            mock_daqbook_file,  # daqbook
         ]
         mock_client_cls.return_value = mock_client
 
@@ -61,8 +71,14 @@ class TestUnifiedRefreshPipeline:
             },
             "last_checked": now.isoformat(),
         }
-        mock_wiresetcerts.return_value = {"records_processed": 1}
-        mock_daqbook.return_value = {}
+        # Create mock objects with attributes instead of dictionaries
+        mock_wiresetcerts_result = MagicMock()
+        mock_wiresetcerts_result.records_processed = 1
+        mock_wiresetcerts.return_value = mock_wiresetcerts_result
+
+        mock_daqbook_result = MagicMock()
+        mock_daqbook_result.files_processed = 1
+        mock_daqbook.return_value = mock_daqbook_result
 
         result = refresh_all_updated_categories()
 

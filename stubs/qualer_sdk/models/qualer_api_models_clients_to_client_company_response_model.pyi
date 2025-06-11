@@ -1,7 +1,16 @@
 from datetime import datetime
-from pydantic import BaseModel, StrictInt as StrictInt, StrictStr as StrictStr, conlist as conlist
-from qualer_sdk.models.qualer_api_models_address_to_address_response_model import QualerApiModelsAddressToAddressResponseModel as QualerApiModelsAddressToAddressResponseModel
-from qualer_sdk.models.qualer_api_models_attributes_to_attribute_response import QualerApiModelsAttributesToAttributeResponse as QualerApiModelsAttributesToAttributeResponse
+from pydantic import (
+    BaseModel,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+    conlist as conlist,
+)
+from qualer_sdk.models.qualer_api_models_address_to_address_response_model import (
+    QualerApiModelsAddressToAddressResponseModel as QualerApiModelsAddressToAddressResponseModel,
+)
+from qualer_sdk.models.qualer_api_models_attributes_to_attribute_response import (
+    QualerApiModelsAttributesToAttributeResponse as QualerApiModelsAttributesToAttributeResponse,
+)
 
 class QualerApiModelsClientsToClientCompanyResponseModel(BaseModel):
     company_id: StrictInt | None
@@ -21,13 +30,19 @@ class QualerApiModelsClientsToClientCompanyResponseModel(BaseModel):
     billing_address: QualerApiModelsAddressToAddressResponseModel | None
     shipping_address: QualerApiModelsAddressToAddressResponseModel | None
     attributes: None | None
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerApiModelsClientsToClientCompanyResponseModel: ...
+    def from_json(
+        cls, json_str: str
+    ) -> QualerApiModelsClientsToClientCompanyResponseModel: ...
     def to_dict(self): ...
     @classmethod
-    def from_dict(cls, obj: dict) -> QualerApiModelsClientsToClientCompanyResponseModel: ...
+    def from_dict(
+        cls, obj: dict
+    ) -> QualerApiModelsClientsToClientCompanyResponseModel: ...

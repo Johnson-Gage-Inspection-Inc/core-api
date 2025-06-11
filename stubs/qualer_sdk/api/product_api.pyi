@@ -1,13 +1,31 @@
 from _typeshed import Incomplete
-from pydantic import StrictInt as StrictInt, StrictStr as StrictStr, conlist as conlist, validate_arguments
+from pydantic import (
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+    conlist as conlist,
+    validate_arguments,
+)
 from qualer_sdk.api_client import ApiClient as ApiClient
 from qualer_sdk.api_response import ApiResponse as ApiResponse
-from qualer_sdk.exceptions import ApiTypeError as ApiTypeError, ApiValueError as ApiValueError
-from qualer_sdk.models.qualer_api_models_inventory_from_inventory_count_model import QualerApiModelsInventoryFromInventoryCountModel as QualerApiModelsInventoryFromInventoryCountModel
-from qualer_sdk.models.qualer_api_models_inventory_to_inventory_response_model import QualerApiModelsInventoryToInventoryResponseModel as QualerApiModelsInventoryToInventoryResponseModel
-from qualer_sdk.models.qualer_api_models_product_to_manufacturer_response_model import QualerApiModelsProductToManufacturerResponseModel as QualerApiModelsProductToManufacturerResponseModel
-from qualer_sdk.models.qualer_api_models_product_to_product_api_response_model import QualerApiModelsProductToProductApiResponseModel as QualerApiModelsProductToProductApiResponseModel
-from qualer_sdk.models.qualer_web_mvc_areas_api_models_product_from_product_api_edit_model import QualerWebMvcAreasApiModelsProductFromProductApiEditModel as QualerWebMvcAreasApiModelsProductFromProductApiEditModel
+from qualer_sdk.exceptions import (
+    ApiTypeError as ApiTypeError,
+    ApiValueError as ApiValueError,
+)
+from qualer_sdk.models.qualer_api_models_inventory_from_inventory_count_model import (
+    QualerApiModelsInventoryFromInventoryCountModel as QualerApiModelsInventoryFromInventoryCountModel,
+)
+from qualer_sdk.models.qualer_api_models_inventory_to_inventory_response_model import (
+    QualerApiModelsInventoryToInventoryResponseModel as QualerApiModelsInventoryToInventoryResponseModel,
+)
+from qualer_sdk.models.qualer_api_models_product_to_manufacturer_response_model import (
+    QualerApiModelsProductToManufacturerResponseModel as QualerApiModelsProductToManufacturerResponseModel,
+)
+from qualer_sdk.models.qualer_api_models_product_to_product_api_response_model import (
+    QualerApiModelsProductToProductApiResponseModel as QualerApiModelsProductToProductApiResponseModel,
+)
+from qualer_sdk.models.qualer_web_mvc_areas_api_models_product_from_product_api_edit_model import (
+    QualerWebMvcAreasApiModelsProductFromProductApiEditModel as QualerWebMvcAreasApiModelsProductFromProductApiEditModel,
+)
 
 class ProductApi:
     api_client: Incomplete
@@ -15,28 +33,54 @@ class ProductApi:
     @validate_arguments
     def add_manufacturer(self, manufacturer_name: StrictStr, **kwargs) -> object: ...
     @validate_arguments
-    def add_manufacturer_with_http_info(self, manufacturer_name: StrictStr, **kwargs) -> ApiResponse: ...
+    def add_manufacturer_with_http_info(
+        self, manufacturer_name: StrictStr, **kwargs
+    ) -> ApiResponse: ...
     @validate_arguments
-    def add_product(self, model: QualerWebMvcAreasApiModelsProductFromProductApiEditModel, **kwargs) -> object: ...
+    def add_product(
+        self, model: QualerWebMvcAreasApiModelsProductFromProductApiEditModel, **kwargs
+    ) -> object: ...
     @validate_arguments
-    def add_product_with_http_info(self, model: QualerWebMvcAreasApiModelsProductFromProductApiEditModel, **kwargs) -> ApiResponse: ...
+    def add_product_with_http_info(
+        self, model: QualerWebMvcAreasApiModelsProductFromProductApiEditModel, **kwargs
+    ) -> ApiResponse: ...
     @validate_arguments
-    def get_inventory_count(self, **kwargs) -> list[QualerApiModelsInventoryToInventoryResponseModel]: ...
+    def get_inventory_count(
+        self, **kwargs
+    ) -> list[QualerApiModelsInventoryToInventoryResponseModel]: ...
     @validate_arguments
     def get_inventory_count_with_http_info(self, **kwargs) -> ApiResponse: ...
     @validate_arguments
-    def get_manufacturers(self, **kwargs) -> list[QualerApiModelsProductToManufacturerResponseModel]: ...
+    def get_manufacturers(
+        self, **kwargs
+    ) -> list[QualerApiModelsProductToManufacturerResponseModel]: ...
     @validate_arguments
     def get_manufacturers_with_http_info(self, **kwargs) -> ApiResponse: ...
     @validate_arguments
-    def get_product(self, product_id: StrictInt, **kwargs) -> QualerApiModelsProductToProductApiResponseModel: ...
+    def get_product(
+        self, product_id: StrictInt, **kwargs
+    ) -> QualerApiModelsProductToProductApiResponseModel: ...
     @validate_arguments
-    def get_product_with_http_info(self, product_id: StrictInt, **kwargs) -> ApiResponse: ...
+    def get_product_with_http_info(
+        self, product_id: StrictInt, **kwargs
+    ) -> ApiResponse: ...
     @validate_arguments
-    def product(self, product_id: StrictInt, model: QualerWebMvcAreasApiModelsProductFromProductApiEditModel, **kwargs) -> object: ...
+    def product(
+        self,
+        product_id: StrictInt,
+        model: QualerWebMvcAreasApiModelsProductFromProductApiEditModel,
+        **kwargs,
+    ) -> object: ...
     @validate_arguments
-    def product_with_http_info(self, product_id: StrictInt, model: QualerWebMvcAreasApiModelsProductFromProductApiEditModel, **kwargs) -> ApiResponse: ...
+    def product_with_http_info(
+        self,
+        product_id: StrictInt,
+        model: QualerWebMvcAreasApiModelsProductFromProductApiEditModel,
+        **kwargs,
+    ) -> ApiResponse: ...
     @validate_arguments
     def put_inventory_count(self, models: None, **kwargs) -> object: ...
     @validate_arguments
-    def put_inventory_count_with_http_info(self, models: None, **kwargs) -> ApiResponse: ...
+    def put_inventory_count_with_http_info(
+        self, models: None, **kwargs
+    ) -> ApiResponse: ...

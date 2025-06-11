@@ -1,5 +1,12 @@
-from pydantic import BaseModel, StrictBool as StrictBool, StrictInt as StrictInt, StrictStr as StrictStr
-from qualer_sdk.models.qualer_api_models_address_address_model import QualerApiModelsAddressAddressModel as QualerApiModelsAddressAddressModel
+from pydantic import (
+    BaseModel,
+    StrictBool as StrictBool,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+)
+from qualer_sdk.models.qualer_api_models_address_address_model import (
+    QualerApiModelsAddressAddressModel as QualerApiModelsAddressAddressModel,
+)
 
 class QualerApiModelsSiteFromSiteCreateModel(BaseModel):
     site_name: StrictStr | None
@@ -19,9 +26,11 @@ class QualerApiModelsSiteFromSiteCreateModel(BaseModel):
     company_name: StrictStr | None
     billing_address: QualerApiModelsAddressAddressModel | None
     shipping_address: QualerApiModelsAddressAddressModel | None
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod

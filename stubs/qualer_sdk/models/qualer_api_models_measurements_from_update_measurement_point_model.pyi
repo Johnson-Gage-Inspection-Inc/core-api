@@ -1,7 +1,20 @@
-from pydantic import BaseModel, StrictBool as StrictBool, StrictFloat as StrictFloat, StrictInt as StrictInt, StrictStr as StrictStr, conlist as conlist
-from qualer_sdk.models.qualer_api_models_measurements_from_update_measurement_condition_factor_model import QualerApiModelsMeasurementsFromUpdateMeasurementConditionFactorModel as QualerApiModelsMeasurementsFromUpdateMeasurementConditionFactorModel
-from qualer_sdk.models.qualer_api_models_measurements_from_update_measurement_model import QualerApiModelsMeasurementsFromUpdateMeasurementModel as QualerApiModelsMeasurementsFromUpdateMeasurementModel
-from qualer_sdk.models.qualer_api_models_measurements_from_update_measurement_tool_model import QualerApiModelsMeasurementsFromUpdateMeasurementToolModel as QualerApiModelsMeasurementsFromUpdateMeasurementToolModel
+from pydantic import (
+    BaseModel,
+    StrictBool as StrictBool,
+    StrictFloat as StrictFloat,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+    conlist as conlist,
+)
+from qualer_sdk.models.qualer_api_models_measurements_from_update_measurement_condition_factor_model import (
+    QualerApiModelsMeasurementsFromUpdateMeasurementConditionFactorModel as QualerApiModelsMeasurementsFromUpdateMeasurementConditionFactorModel,
+)
+from qualer_sdk.models.qualer_api_models_measurements_from_update_measurement_model import (
+    QualerApiModelsMeasurementsFromUpdateMeasurementModel as QualerApiModelsMeasurementsFromUpdateMeasurementModel,
+)
+from qualer_sdk.models.qualer_api_models_measurements_from_update_measurement_tool_model import (
+    QualerApiModelsMeasurementsFromUpdateMeasurementToolModel as QualerApiModelsMeasurementsFromUpdateMeasurementToolModel,
+)
 
 class QualerApiModelsMeasurementsFromUpdateMeasurementPointModel(BaseModel):
     measurement_point_id: StrictInt | None
@@ -28,8 +41,12 @@ class QualerApiModelsMeasurementsFromUpdateMeasurementPointModel(BaseModel):
     measurements: None | None
     measurement_condition_factors: None | None
     tool_application_mode: StrictStr | None
-    primary_measurement_tool: QualerApiModelsMeasurementsFromUpdateMeasurementToolModel | None
-    secondary_measurement_tool: QualerApiModelsMeasurementsFromUpdateMeasurementToolModel | None
+    primary_measurement_tool: (
+        QualerApiModelsMeasurementsFromUpdateMeasurementToolModel | None
+    )
+    secondary_measurement_tool: (
+        QualerApiModelsMeasurementsFromUpdateMeasurementToolModel | None
+    )
     linked_measurement_point_id: StrictInt | None
     hysteresis_point: StrictStr | None
     influence_parameter1_parameter_id: StrictInt | None
@@ -56,13 +73,19 @@ class QualerApiModelsMeasurementsFromUpdateMeasurementPointModel(BaseModel):
     def tolerance_unit_validate_enum(cls, value): ...
     def tool_application_mode_validate_enum(cls, value): ...
     def hysteresis_point_validate_enum(cls, value): ...
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerApiModelsMeasurementsFromUpdateMeasurementPointModel: ...
+    def from_json(
+        cls, json_str: str
+    ) -> QualerApiModelsMeasurementsFromUpdateMeasurementPointModel: ...
     def to_dict(self): ...
     @classmethod
-    def from_dict(cls, obj: dict) -> QualerApiModelsMeasurementsFromUpdateMeasurementPointModel: ...
+    def from_dict(
+        cls, obj: dict
+    ) -> QualerApiModelsMeasurementsFromUpdateMeasurementPointModel: ...

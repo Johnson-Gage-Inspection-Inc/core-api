@@ -1,4 +1,10 @@
-from pydantic import BaseModel, StrictBool as StrictBool, StrictFloat as StrictFloat, StrictInt as StrictInt, StrictStr as StrictStr
+from pydantic import (
+    BaseModel,
+    StrictBool as StrictBool,
+    StrictFloat as StrictFloat,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+)
 
 class QualerWebMvcAreasApiModelsServicePricesFromServicePriceBulkEditModel(BaseModel):
     service_option_id: StrictInt | None
@@ -18,13 +24,19 @@ class QualerWebMvcAreasApiModelsServicePricesFromServicePriceBulkEditModel(BaseM
     is_hourly: StrictBool | None
     issue: StrictStr | None
     log_error: StrictStr | None
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerWebMvcAreasApiModelsServicePricesFromServicePriceBulkEditModel: ...
+    def from_json(
+        cls, json_str: str
+    ) -> QualerWebMvcAreasApiModelsServicePricesFromServicePriceBulkEditModel: ...
     def to_dict(self): ...
     @classmethod
-    def from_dict(cls, obj: dict) -> QualerWebMvcAreasApiModelsServicePricesFromServicePriceBulkEditModel: ...
+    def from_dict(
+        cls, obj: dict
+    ) -> QualerWebMvcAreasApiModelsServicePricesFromServicePriceBulkEditModel: ...

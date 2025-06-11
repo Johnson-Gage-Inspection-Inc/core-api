@@ -1,6 +1,8 @@
 from pydantic import BaseModel, StrictBool as StrictBool
 
-class QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelDisplayOptions(BaseModel):
+class QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelDisplayOptions(
+    BaseModel
+):
     err: StrictBool | None
     mean: StrictBool | None
     max: StrictBool | None
@@ -14,13 +16,19 @@ class QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatc
     tol: StrictBool | None
     delta: StrictBool | None
     range: StrictBool | None
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelDisplayOptions: ...
+    def from_json(
+        cls, json_str: str
+    ) -> QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelDisplayOptions: ...
     def to_dict(self): ...
     @classmethod
-    def from_dict(cls, obj: dict) -> QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelDisplayOptions: ...
+    def from_dict(
+        cls, obj: dict
+    ) -> QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelDisplayOptions: ...

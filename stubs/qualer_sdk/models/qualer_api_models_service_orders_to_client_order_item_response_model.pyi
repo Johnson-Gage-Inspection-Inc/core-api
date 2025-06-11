@@ -1,6 +1,15 @@
 from datetime import datetime
-from pydantic import BaseModel, StrictBool as StrictBool, StrictFloat as StrictFloat, StrictInt as StrictInt, StrictStr as StrictStr, conlist as conlist
-from qualer_sdk.models.qualer_api_models_service_options_to_service_option_response_model import QualerApiModelsServiceOptionsToServiceOptionResponseModel as QualerApiModelsServiceOptionsToServiceOptionResponseModel
+from pydantic import (
+    BaseModel,
+    StrictBool as StrictBool,
+    StrictFloat as StrictFloat,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+    conlist as conlist,
+)
+from qualer_sdk.models.qualer_api_models_service_options_to_service_option_response_model import (
+    QualerApiModelsServiceOptionsToServiceOptionResponseModel as QualerApiModelsServiceOptionsToServiceOptionResponseModel,
+)
 
 class QualerApiModelsServiceOrdersToClientOrderItemResponseModel(BaseModel):
     work_item_id: StrictInt | None
@@ -84,13 +93,19 @@ class QualerApiModelsServiceOrdersToClientOrderItemResponseModel(BaseModel):
     vendor_tag: StrictStr | None
     legacy_id: StrictStr | None
     asset_ownership: StrictStr | None
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerApiModelsServiceOrdersToClientOrderItemResponseModel: ...
+    def from_json(
+        cls, json_str: str
+    ) -> QualerApiModelsServiceOrdersToClientOrderItemResponseModel: ...
     def to_dict(self): ...
     @classmethod
-    def from_dict(cls, obj: dict) -> QualerApiModelsServiceOrdersToClientOrderItemResponseModel: ...
+    def from_dict(
+        cls, obj: dict
+    ) -> QualerApiModelsServiceOrdersToClientOrderItemResponseModel: ...

@@ -1,6 +1,16 @@
-from pydantic import BaseModel, StrictBool as StrictBool, StrictInt as StrictInt, StrictStr as StrictStr, conlist as conlist
-from qualer_sdk.models.qualer_api_models_measurements_from_update_measurement_field_model import QualerApiModelsMeasurementsFromUpdateMeasurementFieldModel as QualerApiModelsMeasurementsFromUpdateMeasurementFieldModel
-from qualer_sdk.models.qualer_api_models_measurements_from_update_measurement_point_model import QualerApiModelsMeasurementsFromUpdateMeasurementPointModel as QualerApiModelsMeasurementsFromUpdateMeasurementPointModel
+from pydantic import (
+    BaseModel,
+    StrictBool as StrictBool,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+    conlist as conlist,
+)
+from qualer_sdk.models.qualer_api_models_measurements_from_update_measurement_field_model import (
+    QualerApiModelsMeasurementsFromUpdateMeasurementFieldModel as QualerApiModelsMeasurementsFromUpdateMeasurementFieldModel,
+)
+from qualer_sdk.models.qualer_api_models_measurements_from_update_measurement_point_model import (
+    QualerApiModelsMeasurementsFromUpdateMeasurementPointModel as QualerApiModelsMeasurementsFromUpdateMeasurementPointModel,
+)
 
 class QualerApiModelsMeasurementsFromUpdateMeasurementSetModel(BaseModel):
     measurement_set_id: StrictInt | None
@@ -23,13 +33,19 @@ class QualerApiModelsMeasurementsFromUpdateMeasurementSetModel(BaseModel):
     measurement_fields: None | None
     def influence_parameter1_type_validate_enum(cls, value): ...
     def influence_parameter2_type_validate_enum(cls, value): ...
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerApiModelsMeasurementsFromUpdateMeasurementSetModel: ...
+    def from_json(
+        cls, json_str: str
+    ) -> QualerApiModelsMeasurementsFromUpdateMeasurementSetModel: ...
     def to_dict(self): ...
     @classmethod
-    def from_dict(cls, obj: dict) -> QualerApiModelsMeasurementsFromUpdateMeasurementSetModel: ...
+    def from_dict(
+        cls, obj: dict
+    ) -> QualerApiModelsMeasurementsFromUpdateMeasurementSetModel: ...

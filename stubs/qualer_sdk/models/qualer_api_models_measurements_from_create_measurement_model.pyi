@@ -1,5 +1,10 @@
 from datetime import datetime
-from pydantic import BaseModel, StrictFloat as StrictFloat, StrictInt as StrictInt, StrictStr as StrictStr
+from pydantic import (
+    BaseModel,
+    StrictFloat as StrictFloat,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+)
 
 class QualerApiModelsMeasurementsFromCreateMeasurementModel(BaseModel):
     values: StrictStr | None
@@ -18,13 +23,19 @@ class QualerApiModelsMeasurementsFromCreateMeasurementModel(BaseModel):
     result: StrictStr | None
     updated_on: datetime | None
     updated_by: StrictStr | None
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerApiModelsMeasurementsFromCreateMeasurementModel: ...
+    def from_json(
+        cls, json_str: str
+    ) -> QualerApiModelsMeasurementsFromCreateMeasurementModel: ...
     def to_dict(self): ...
     @classmethod
-    def from_dict(cls, obj: dict) -> QualerApiModelsMeasurementsFromCreateMeasurementModel: ...
+    def from_dict(
+        cls, obj: dict
+    ) -> QualerApiModelsMeasurementsFromCreateMeasurementModel: ...

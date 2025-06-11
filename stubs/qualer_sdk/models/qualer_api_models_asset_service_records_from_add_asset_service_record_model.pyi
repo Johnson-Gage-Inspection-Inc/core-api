@@ -1,5 +1,10 @@
 from datetime import datetime
-from pydantic import BaseModel, StrictFloat as StrictFloat, StrictInt as StrictInt, StrictStr as StrictStr
+from pydantic import (
+    BaseModel,
+    StrictFloat as StrictFloat,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+)
 
 class QualerApiModelsAssetServiceRecordsFromAddAssetServiceRecordModel(BaseModel):
     service_order_number: StrictInt | None
@@ -34,13 +39,19 @@ class QualerApiModelsAssetServiceRecordsFromAddAssetServiceRecordModel(BaseModel
     repairs_charge: StrictFloat | StrictInt | None
     segment_name: StrictStr | None
     schedule_name: StrictStr | None
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerApiModelsAssetServiceRecordsFromAddAssetServiceRecordModel: ...
+    def from_json(
+        cls, json_str: str
+    ) -> QualerApiModelsAssetServiceRecordsFromAddAssetServiceRecordModel: ...
     def to_dict(self): ...
     @classmethod
-    def from_dict(cls, obj: dict) -> QualerApiModelsAssetServiceRecordsFromAddAssetServiceRecordModel: ...
+    def from_dict(
+        cls, obj: dict
+    ) -> QualerApiModelsAssetServiceRecordsFromAddAssetServiceRecordModel: ...

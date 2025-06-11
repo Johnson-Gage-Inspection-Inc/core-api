@@ -3,9 +3,11 @@ from pydantic import BaseModel, StrictStr as StrictStr
 class QualerApiModelsAssetFromUpdateRoomModel(BaseModel):
     room: StrictStr | None
     tracking_id: StrictStr | None
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod

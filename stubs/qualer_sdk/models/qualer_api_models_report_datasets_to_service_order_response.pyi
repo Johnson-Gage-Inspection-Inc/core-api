@@ -1,5 +1,13 @@
 from datetime import datetime
-from pydantic import BaseModel, StrictBool as StrictBool, StrictFloat as StrictFloat, StrictInt as StrictInt, StrictStr as StrictStr, conbytes as conbytes, constr as constr
+from pydantic import (
+    BaseModel,
+    StrictBool as StrictBool,
+    StrictFloat as StrictFloat,
+    StrictInt as StrictInt,
+    StrictStr as StrictStr,
+    conbytes as conbytes,
+    constr as constr,
+)
 
 class QualerApiModelsReportDatasetsToServiceOrderResponse(BaseModel):
     guid: StrictStr | None
@@ -179,13 +187,19 @@ class QualerApiModelsReportDatasetsToServiceOrderResponse(BaseModel):
     def qr_code_validate_regular_expression(cls, value): ...
     def bar_code_validate_regular_expression(cls, value): ...
     def process_date_option_validate_enum(cls, value): ...
+
     class Config:
         allow_population_by_field_name: bool
         validate_assignment: bool
+
     def to_str(self) -> str: ...
     def to_json(self) -> str: ...
     @classmethod
-    def from_json(cls, json_str: str) -> QualerApiModelsReportDatasetsToServiceOrderResponse: ...
+    def from_json(
+        cls, json_str: str
+    ) -> QualerApiModelsReportDatasetsToServiceOrderResponse: ...
     def to_dict(self): ...
     @classmethod
-    def from_dict(cls, obj: dict) -> QualerApiModelsReportDatasetsToServiceOrderResponse: ...
+    def from_dict(
+        cls, obj: dict
+    ) -> QualerApiModelsReportDatasetsToServiceOrderResponse: ...
