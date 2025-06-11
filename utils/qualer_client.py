@@ -1,8 +1,9 @@
 # utils/qualer_client.py
 from os import getenv
+from uuid import UUID
 
 import qualer_sdk.models
-from qualer_sdk import ApiClient, Configuration
+from qualer_sdk.client import AuthenticatedClient
 from qualer_sdk.models.qualer_api_models_asset_attributes_to_asset_attributes_response import (
     QualerApiModelsAssetAttributesToAssetAttributesResponse,
 )
@@ -51,9 +52,14 @@ qualer_sdk.models.QualerApiModelsAssetAttributesToAssetAttributesResponse = (
 )
 
 
-def make_qualer_client() -> ApiClient:
-    config = Configuration()
-    config.host = "https://jgiquality.qualer.com"
-    client = ApiClient(configuration=config)
-    client.default_headers["Authorization"] = f'Api-Token {getenv("QUALER_API_KEY")}'
-    return client
+def make_qualer_client() -> AuthenticatedClient:
+    api_token = getenv("QUALER_API_KEY")
+    if not api_token:
+        raise EnvironmentError("QUALER_API_KEY environment variable is not set")
+    try:
+        UUID(api_token)
+    except ValueError:
+        raise ValueError("Invalid API token format")
+    return AuthenticatedClient(
+        base_url="https://jgiquality.qualer.com", token=api_token
+    )

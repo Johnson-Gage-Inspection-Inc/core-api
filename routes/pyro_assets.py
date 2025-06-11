@@ -1,7 +1,9 @@
 # routes/pyro_assets.py
 from flask.views import MethodView
 from flask_smorest import Blueprint
-from qualer_sdk.api import AssetsApi
+from qualer_sdk.api.assets.get_asset_by_asset_pool import (
+    sync_detailed as get_asset_by_asset_pool,
+)
 
 from utils.auth import require_auth
 from utils.qualer_client import make_qualer_client
@@ -39,5 +41,4 @@ class PyroAssets(MethodView):
         **Response**: Array of asset objects from Pyro asset pool (ID: 620646)
         """
         client = make_qualer_client()
-        assets_api = AssetsApi(client)
-        return assets_api.get_asset_by_asset_pool(asset_pool_id=620646)
+        return get_asset_by_asset_pool(asset_pool_id=620646, client=client)

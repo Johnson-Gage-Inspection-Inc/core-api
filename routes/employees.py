@@ -1,7 +1,7 @@
 # routes/employees.py
 from flask.views import MethodView
 from flask_smorest import Blueprint
-from qualer_sdk.api import EmployeesApi
+from qualer_sdk.api.employees.get_employees_get_2 import sync as get_employees
 from qualer_sdk.models.qualer_api_models_clients_to_employee_response_model import (
     QualerApiModelsClientsToEmployeeResponseModel,
 )
@@ -49,15 +49,11 @@ class Employees(MethodView):
 
         **Raises**:
           - **401**: If authentication token is invalid or missing
-          - **500**: If there's an error communicating with the Qualer API        **Example**: GET /employees with Authorization: Bearer <token>
-
-        **Response**:
+          - **500**: If there's an error communicating with the Qualer API        **Example**: GET /employees with Authorization: Bearer <token>        **Response**:
           - Array of employee objects with comprehensive employee information including id, name, contact details, and department assignments
         """
         client = make_qualer_client()
-
-        employees_api = EmployeesApi(client)
-        employees = employees_api.get_employees_get2()
+        employees = get_employees(client=client)
         assert isinstance(employees, list), "Expected a list of employees"
         Employee = QualerApiModelsClientsToEmployeeResponseModel
         assert all(isinstance(e, Employee) for e in employees)

@@ -3,7 +3,7 @@ from typing import List
 
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from qualer_sdk.api import ClientsApi
+from qualer_sdk.api.clients.get_all_get_2 import sync_detailed
 from qualer_sdk.models.qualer_api_models_clients_to_client_company_response_model import (
     QualerApiModelsClientsToClientCompanyResponseModel,
 )
@@ -45,7 +45,10 @@ class Clients(MethodView):
         """
         try:
             client = make_qualer_client()
-            api = ClientsApi(client)
-            return api.get_all_get2()
+            clients = sync_detailed(
+                client=client,
+                _request_timeout=60,  # Set a timeout for the request
+            )
+            return clients
         except Exception as e:
             abort(500, message=f"Error fetching clients: {str(e)}")

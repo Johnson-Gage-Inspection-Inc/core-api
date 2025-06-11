@@ -2,7 +2,7 @@
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from marshmallow import Schema, fields
-from qualer_sdk.api import AssetServiceRecordsApi
+from qualer_sdk.api import asset_service_records
 from qualer_sdk.rest import ApiException
 
 from utils.auth import require_auth
@@ -61,10 +61,12 @@ class AssetServiceRecord(MethodView):
 
         try:
             client = make_qualer_client()
-            api = AssetServiceRecordsApi(client)
+            api = asset_service_records(
+                client
+            )  # TODO: Confirm this is the correct syntax for the updated Qualer SDK
             return api.get_asset_service_records_by_asset(asset_id=assetId)
         except ApiException as e:
-            if e.status == 404:
+            if e.status_code == 404:
                 abort(
                     404,
                     message=f"Asset with ID '{assetId}' not found or has no service records",
