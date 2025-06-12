@@ -4,9 +4,6 @@ from datetime import datetime as dt
 from unittest.mock import MagicMock, patch
 
 import pytest
-from qualer_sdk.models.qualer_api_models_asset_service_records_to_asset_service_record_response_model import (
-    QualerApiModelsAssetServiceRecordsToAssetServiceRecordResponseModel,
-)
 from qualer_sdk.rest import ApiException
 
 
@@ -38,17 +35,14 @@ def test_asset_service_record_endpoint_without_auth(client):
         assert resp.text == "Unauthorized"
 
 
-@patch("routes.asset_service_records.AssetServiceRecordsApi")
+@patch("routes.asset_service_records.get_asset_service_records")
 @patch("utils.qualer_client.make_qualer_client")
 def test_asset_service_record_endpoint_mocked(
-    mock_qualer_client, mock_asset_service_records_api_class, client, auth_token
+    mock_qualer_client, mock_get_asset_service_records, client, auth_token
 ):
     """Test asset service records endpoint with mocked Qualer client for CI environments."""
     # Create a list of mock asset service records that behave like SDK objects
-    mock_asset_service_record1 = MagicMock(
-        QualerApiModelsAssetServiceRecordsToAssetServiceRecordResponseModel
-    )
-
+    mock_asset_service_record1 = MagicMock()
     mock_asset_service_record1.to_dict.return_value = {
         "AssetServiceRecordId": 1001,
         "AssetId": 12345,
@@ -66,9 +60,7 @@ def test_asset_service_record_endpoint_mocked(
         mock_asset_service_record1.to_dict.return_value
     )
 
-    mock_asset_service_record2 = MagicMock(
-        QualerApiModelsAssetServiceRecordsToAssetServiceRecordResponseModel
-    )
+    mock_asset_service_record2 = MagicMock()
     mock_asset_service_record2.to_dict.return_value = {
         "AssetServiceRecordId": 1002,
         "AssetId": 12345,
@@ -91,11 +83,8 @@ def test_asset_service_record_endpoint_mocked(
         mock_asset_service_record2,
     ]
 
-    mock_asset_service_records_api = MagicMock()
-    mock_asset_service_records_api.get_asset_service_records_by_asset.return_value = (
-        mock_asset_service_records
-    )
-    mock_asset_service_records_api_class.return_value = mock_asset_service_records_api
+    # Mock the get_asset_service_records function directly
+    mock_get_asset_service_records.return_value = mock_asset_service_records
 
     mock_client = MagicMock()
     mock_qualer_client.return_value = mock_client
@@ -121,10 +110,10 @@ def test_asset_service_record_endpoint_mocked(
     assert data[1]["AssetId"] == 12345
 
 
-@patch("routes.asset_service_records.AssetServiceRecordsApi")
+@patch("routes.asset_service_records.asset_service_records")
 @patch("utils.qualer_client.make_qualer_client")
 def test_asset_service_record_endpoint_not_found(
-    mock_qualer_client, mock_asset_service_records_api_class, client, auth_token
+    mock_qualer_client, mock_asset_service_records_api, client, auth_token
 ):
     """Test asset service records endpoint when record is not found"""
     # Check if SKIP_AUTH is enabled - in this mode, the mock bindings handle the response
@@ -137,16 +126,15 @@ def test_asset_service_record_endpoint_not_found(
 
         assert response.status_code == 404
         assert "Asset service records not found" in response.get_data(as_text=True)
-    else:  # Normal testing mode with SDK mocks
-        mock_asset_service_records_api = MagicMock()
+    else:
+        # Normal testing mode with SDK mocks
 
-        # Create a mock ApiException that simulates 404
-        mock_asset_service_records_api.get_asset_service_records_by_asset.side_effect = ApiException(
+        # Create a mock API object
+        mock_api = MagicMock()
+        mock_api.get_asset_service_records_by_asset.side_effect = ApiException(
             status=404, reason="Not Found"
         )
-        mock_asset_service_records_api_class.return_value = (
-            mock_asset_service_records_api
-        )
+        mock_asset_service_records_api.return_value = mock_api
 
         mock_client = MagicMock()
         mock_qualer_client.return_value = mock_client
@@ -162,10 +150,10 @@ def test_asset_service_record_endpoint_not_found(
         assert "999999" in data["message"]
 
 
-@patch("routes.asset_service_records.AssetServiceRecordsApi")
+@patch("routes.asset_service_records.get_asset_service_records")
 @patch("utils.qualer_client.make_qualer_client")
 def test_asset_service_record_endpoint_api_error(
-    mock_qualer_client, mock_asset_service_records_api_class, client, auth_token
+    mock_qualer_client, mock_get_asset_service_records, client, auth_token
 ):
     """Test asset service records endpoint when the Qualer API throws an error"""
     # Check if SKIP_AUTH is enabled
@@ -184,15 +172,12 @@ def test_asset_service_record_endpoint_api_error(
             asset_service_record_view = AssetServiceRecord()
             app.view_functions["asset-service-records.AssetServiceRecord"] = (
                 asset_service_record_view.get
-            )  # Now the SDK patches will work
-            mock_asset_service_records_api = MagicMock()
-            mock_asset_service_records_api.get_asset_service_records_by_asset.side_effect = ApiException(
-                status=500, reason="Internal Server Error"
-            )
-            mock_asset_service_records_api_class.return_value = (
-                mock_asset_service_records_api
             )
 
+            # Mock the get_asset_service_records function to raise an exception
+            mock_get_asset_service_records.side_effect = Exception("Qualer API Error")
+
+            mock_client = MagicMock()
             mock_client = MagicMock()
             mock_qualer_client.return_value = mock_client
 
@@ -204,7 +189,7 @@ def test_asset_service_record_endpoint_api_error(
             assert response.status_code == 500
             data = response.get_json()
             assert "message" in data
-            assert "Error fetching asset service records" in data["message"]
+            assert "error fetching asset service records" in data["message"].lower()
 
         finally:
             # Restore the mock function
@@ -212,13 +197,33 @@ def test_asset_service_record_endpoint_api_error(
                 app.view_functions["asset-service-records.AssetServiceRecord"] = (
                     mock_function
                 )
+            else:
+                # Normal testing mode with SDK mocks
+                # Mock the get_asset_service_records function to raise an exception
+                mock_get_asset_service_records.side_effect = Exception(
+                    "Qualer API Error"
+                )
+
+                mock_client = MagicMock()
+                mock_qualer_client.return_value = mock_client
+
+                response = client.get(
+                    "/asset-service-records/12345",
+                    headers={"Authorization": f"Bearer {auth_token}"},
+                )
+
+                assert response.status_code == 500
+                data = response.get_json()
+                assert "message" in data
+                assert "Error fetching asset service records" in data["message"]
+            if mock_function:
+                app.view_functions["asset-service-records.AssetServiceRecord"] = (
+                    mock_function
+                )
     else:  # Normal testing mode
-        mock_asset_service_records_api = MagicMock()
-        mock_asset_service_records_api.get_asset_service_records_by_asset.side_effect = ApiException(
+        mock_api = MagicMock()
+        mock_api.get_asset_service_records_by_asset.side_effect = ApiException(
             status=500, reason="Internal Server Error"
-        )
-        mock_asset_service_records_api_class.return_value = (
-            mock_asset_service_records_api
         )
 
         mock_client = MagicMock()

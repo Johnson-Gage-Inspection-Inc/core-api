@@ -9,22 +9,18 @@ from qualer_sdk.api.client_asset_attributes.get_asset_attributes_get_2 import (
     sync as get_asset_attributes,
 )
 from qualer_sdk.api.client_assets.get_asset_get_2 import sync as get_asset
-from qualer_sdk.api.service_order_items.get_work_item import sync as get_work_item
+from qualer_sdk.api.service_order_items.get_work_items_workitems import (
+    sync as get_work_item,
+)
 from qualer_sdk.api.service_orders.get_work_order import sync as get_work_order
-from qualer_sdk.models.qualer_api_models_asset_attributes_to_asset_attributes_response import (
+from qualer_sdk.models import (
     QualerApiModelsAssetAttributesToAssetAttributesResponse,
-)
-from qualer_sdk.models.qualer_api_models_asset_to_asset_response_model import (
     QualerApiModelsAssetToAssetResponseModel,
-)
-from qualer_sdk.models.qualer_api_models_service_orders_to_client_order_item_response_model import (
-    QualerApiModelsServiceOrdersToClientOrderItemResponseModel,
-)
-from qualer_sdk.models.qualer_api_models_service_orders_to_client_order_response_model import (
     QualerApiModelsServiceOrdersToClientOrderResponseModel,
 )
 
 from utils.auth import require_auth
+from utils.qualer_client import make_qualer_client
 from utils.schemas import (
     WorkItemDetailsQuerySchema,
     WorkItemDetailsSchema,
@@ -35,9 +31,7 @@ blp = Blueprint("work-item-details", __name__, url_prefix="/")
 
 
 def get_work_item_details_for_tus(item_no: WorkItemNumber) -> Dict[str, Any]:
-    work_items: list[QualerApiModelsServiceOrdersToClientOrderItemResponseModel] = (
-        get_work_item(work_item_number=item_no)  # type: ignore
-    )
+    work_items = get_work_item(work_item_number=item_no, client=make_qualer_client())
 
     if len(work_items) == 0:
         raise ValueError("No work items found for the given work item number.")

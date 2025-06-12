@@ -64,35 +64,36 @@ def fake_asset_service_records(assetId):
 
     # For test case "999999", return 404
     if assetId == "999999":
-        return jsonify({"message": "Asset service records not found"}), 404
-
-    # For normal test case, return mock data
+        return (
+            jsonify({"message": "Asset service records not found"}),
+            404,
+        )  # For normal test case, return mock data
     if assetId == "12345":
         return jsonify(
             [
                 {
-                    "asset_service_record_id": 1001,
-                    "asset_id": 12345,
-                    "service_date": "2023-01-01T00:00:00Z",
-                    "result_status": "Pass",
-                    "serial_number": "SN123456",
-                    "asset_name": "Test Asset",
-                    "service_type": "Calibration",
-                    "technician_name": "John Doe",
-                    "created_date_utc": "2023-01-01T00:00:00Z",
-                    "modified_date_utc": "2023-01-01T00:00:00Z",
+                    "AssetServiceRecordId": 1001,
+                    "AssetId": 12345,
+                    "ServiceDate": "2023-01-01T00:00:00Z",
+                    "ResultStatus": "Pass",
+                    "SerialNumber": "SN123456",
+                    "AssetName": "Test Asset",
+                    "ServiceType": "Calibration",
+                    "TechnicianName": "John Doe",
+                    "CreatedDateUtc": "2023-01-01T00:00:00Z",
+                    "ModifiedDateUtc": "2023-01-01T00:00:00Z",
                 },
                 {
-                    "asset_service_record_id": 1002,
-                    "asset_id": 12345,
-                    "service_date": "2023-06-15T09:30:00Z",
-                    "result_status": "Pass",
-                    "serial_number": "SN123456",
-                    "asset_name": "Test Asset",
-                    "service_type": "Inspection",
-                    "technician_name": "Jane Smith",
-                    "created_date_utc": "2023-06-15T09:30:00Z",
-                    "modified_date_utc": "2023-06-15T09:30:00Z",
+                    "AssetServiceRecordId": 1002,
+                    "AssetId": 12345,
+                    "ServiceDate": "2023-06-15T09:30:00Z",
+                    "ResultStatus": "Pass",
+                    "SerialNumber": "SN123456",
+                    "AssetName": "Test Asset",
+                    "ServiceType": "Inspection",
+                    "TechnicianName": "Jane Smith",
+                    "CreatedDateUtc": "2023-06-15T09:30:00Z",
+                    "ModifiedDateUtc": "2023-06-15T09:30:00Z",
                 },
             ]
         )
@@ -200,6 +201,39 @@ def fake_pyro_assets():
     )
 
 
+def fake_clients():
+    """Mock implementation for GET /clients."""
+    # Check authentication
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return jsonify({"message": "Unauthorized"}), 401
+
+    # Return mock client companies
+    return jsonify(
+        [
+            {
+                "CompanyId": 123,
+                "CompanyName": "Test Company Inc.",
+                "AccountNumberText": "ACC-001",
+                "LegacyId": "LEG-123",
+                "UpdatedOnUtc": None,
+                "AccountNumber": None,
+                "CurrencyId": None,
+                "ClientStatus": None,
+                "CompanyDescription": None,
+                "DomainName": None,
+                "CustomClientName": None,
+                "AccountRepresentativeEmployeeId": None,
+                "AccountRepresentativeSiteId": None,
+                "AccountManagerEmployeeId": None,
+                "BillingAddress": None,
+                "ShippingAddress": None,
+                "Attributes": None,
+            }
+        ]
+    )
+
+
 def fake_daqbook_offsets():
     """Mock implementation for GET /daqbook-offsets/."""
     # For no_auth_fails test, ignore auth check
@@ -244,6 +278,7 @@ MOCK_ENDPOINTS = {
     "work-item-details.WorkItemDetails": fake_work_item_details,
     "refresh_excel_data.ExcelRefresh": fake_refresh_excel_data,
     "pyro-assets.PyroAssets": fake_pyro_assets,
+    "clients.Clients": fake_clients,
     "daqbook_offsets.DaqbookOffsets": fake_daqbook_offsets,
     "daqbook_offsets.DaqbookOffsetsByTN": mock_get_daqbook_offsets_by_tn,
 }

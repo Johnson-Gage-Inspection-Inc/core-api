@@ -49,7 +49,9 @@ class Employees(MethodView):
 
         **Raises**:
           - **401**: If authentication token is invalid or missing
-          - **500**: If there's an error communicating with the Qualer API        **Example**: GET /employees with Authorization: Bearer <token>        **Response**:
+          - **500**: If there's an error communicating with the Qualer API
+          **Example**: GET /employees with Authorization: Bearer <token>
+          **Response**:
           - Array of employee objects with comprehensive employee information including id, name, contact details, and department assignments
         """
         client = make_qualer_client()
