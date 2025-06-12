@@ -67,7 +67,7 @@ def test_employees_endpoint_mocked(mock_qualer_client, client, auth_token):
     assert len(data) == 1
     # Debug: Let's see what we actually get
     employee = data[0]
-    print(f"Employee data: {employee}")
+    print(f"Employee data received. EmployeeId: {employee.get('EmployeeId')}, IsDeleted: {employee.get('IsDeleted')}")
     print(
         f"Employee keys: {list(employee.keys()) if isinstance(employee, dict) else 'not a dict'}"
     )
