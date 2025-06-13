@@ -1,6 +1,6 @@
 from _typeshed import Incomplete
+from office365.runtime.compat import get_mime_type as get_mime_type
 from office365.runtime.compat import (
-    get_mime_type as get_mime_type,
     message_as_bytes_or_string as message_as_bytes_or_string,
 )
 from office365.runtime.http.http_method import HttpMethod as HttpMethod

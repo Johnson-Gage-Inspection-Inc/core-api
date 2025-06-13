@@ -1,4 +1,6 @@
 import abc
+from typing import AnyStr, Callable
+
 from _typeshed import Incomplete
 from office365.runtime.client_object import T as T
 from office365.runtime.client_request import ClientRequest as ClientRequest
@@ -11,7 +13,6 @@ from office365.runtime.http.request_options import RequestOptions as RequestOpti
 from office365.runtime.queries.client_query import ClientQuery as ClientQuery
 from office365.runtime.queries.read_entity import ReadEntityQuery as ReadEntityQuery
 from requests import Response
-from typing import AnyStr, Callable
 from typing_extensions import Self
 
 class ClientRuntimeContext(metaclass=abc.ABCMeta):

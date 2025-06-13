@@ -1,3 +1,5 @@
+from typing import IO
+
 from _typeshed import Incomplete
 from office365.runtime.client_result import ClientResult as ClientResult
 from office365.runtime.paths.resource_path import ResourcePath as ResourcePath
@@ -15,7 +17,6 @@ from office365.sharepoint.files.creation_information import (
 from office365.sharepoint.files.file import File as File
 from office365.sharepoint.files.publish.status import FileStatus as FileStatus
 from office365.sharepoint.folders.folder import Folder as Folder
-from typing import IO
 
 class FileCollection(EntityCollection[File]):
     def __init__(

@@ -1,36 +1,48 @@
-from pydantic import BaseModel, StrictInt as StrictInt, StrictStr as StrictStr
+from collections.abc import Mapping
+from typing import Any, TypeVar
+from uuid import UUID
 
-class QualerApiModelsServiceOrderDocumentsToCompanyOrderItemControlledDocumentResponse(
-    BaseModel
-):
-    service_order_id: StrictInt | None
-    service_order_item_id: StrictInt | None
-    guid: StrictStr | None
-    document_name: StrictStr | None
-    file_name: StrictStr | None
-    document_type: StrictStr | None
-    revision_number: StrictInt | None
-    report_type: StrictStr | None
-    download_url: StrictStr | None
-    def document_type_validate_enum(cls, value): ...
-    def report_type_validate_enum(cls, value): ...
+from attrs import define as _attrs_define
+from attrs import field as _attrs_field
 
-    class Config:
-        allow_population_by_field_name: bool
-        validate_assignment: bool
+from ..models.qualer_api_models_service_order_documents_to_company_order_item_controlled_document_response_document_type import (
+    QualerApiModelsServiceOrderDocumentsToCompanyOrderItemControlledDocumentResponseDocumentType as QualerApiModelsServiceOrderDocumentsToCompanyOrderItemControlledDocumentResponseDocumentType,
+)
+from ..models.qualer_api_models_service_order_documents_to_company_order_item_controlled_document_response_report_type import (
+    QualerApiModelsServiceOrderDocumentsToCompanyOrderItemControlledDocumentResponseReportType as QualerApiModelsServiceOrderDocumentsToCompanyOrderItemControlledDocumentResponseReportType,
+)
+from ..types import UNSET as UNSET
+from ..types import Unset as Unset
 
-    def to_str(self) -> str: ...
-    def to_json(self) -> str: ...
+T = TypeVar(
+    "T",
+    bound="QualerApiModelsServiceOrderDocumentsToCompanyOrderItemControlledDocumentResponse",
+)
+
+@_attrs_define
+class QualerApiModelsServiceOrderDocumentsToCompanyOrderItemControlledDocumentResponse:
+    service_order_id: Unset | int = ...
+    service_order_item_id: Unset | int = ...
+    guid: Unset | UUID = ...
+    document_name: Unset | str = ...
+    file_name: Unset | str = ...
+    document_type: (
+        Unset
+        | QualerApiModelsServiceOrderDocumentsToCompanyOrderItemControlledDocumentResponseDocumentType
+    ) = ...
+    revision_number: Unset | int = ...
+    report_type: (
+        Unset
+        | QualerApiModelsServiceOrderDocumentsToCompanyOrderItemControlledDocumentResponseReportType
+    ) = ...
+    download_url: Unset | str = ...
+    additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
+    def to_dict(self) -> dict[str, Any]: ...
     @classmethod
-    def from_json(
-        cls, json_str: str
-    ) -> (
-        QualerApiModelsServiceOrderDocumentsToCompanyOrderItemControlledDocumentResponse
-    ): ...
-    def to_dict(self): ...
-    @classmethod
-    def from_dict(
-        cls, obj: dict
-    ) -> (
-        QualerApiModelsServiceOrderDocumentsToCompanyOrderItemControlledDocumentResponse
-    ): ...
+    def from_dict(cls, src_dict: Mapping[str, Any]) -> T: ...
+    @property
+    def additional_keys(self) -> list[str]: ...
+    def __getitem__(self, key: str) -> Any: ...
+    def __setitem__(self, key: str, value: Any) -> None: ...
+    def __delitem__(self, key: str) -> None: ...
+    def __contains__(self, key: str) -> bool: ...

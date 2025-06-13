@@ -33,7 +33,7 @@ CORS(app)
 app.config["API_TITLE"] = "JGI Quality API"
 app.config["API_VERSION"] = "1.0"
 app.config["OPENAPI_VERSION"] = "3.0.3"
-app.config["OPENAPI_URL_PREFIX"] = "/"
+app.config["OPENAPI_URL_PREFIX"] = ""
 app.config["OPENAPI_SWAGGER_UI_PATH"] = "/docs"
 app.config["OPENAPI_SWAGGER_UI_URL"] = (
     "https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.11.0/"

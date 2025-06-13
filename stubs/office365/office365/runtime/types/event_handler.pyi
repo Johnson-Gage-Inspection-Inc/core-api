@@ -1,4 +1,5 @@
 from typing import Any, Callable, Iterator, TypeVar
+
 from typing_extensions import Self
 
 F = TypeVar("F", bound=Callable[..., None])

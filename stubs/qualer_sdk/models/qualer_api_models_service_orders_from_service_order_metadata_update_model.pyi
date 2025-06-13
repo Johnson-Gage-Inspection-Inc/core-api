@@ -1,27 +1,33 @@
-from pydantic import BaseModel, StrictInt as StrictInt, StrictStr as StrictStr
-from qualer_sdk.models.qualer_core_shared_models_service_order_metadata_service_order_metadata_exhibits import (
+from collections.abc import Mapping
+from typing import Any, TypeVar
+
+from attrs import define as _attrs_define
+from attrs import field as _attrs_field
+
+from ..models.qualer_core_shared_models_service_order_metadata_service_order_metadata_exhibits import (
     QualerCoreSharedModelsServiceOrderMetadataServiceOrderMetadataExhibits as QualerCoreSharedModelsServiceOrderMetadataServiceOrderMetadataExhibits,
 )
+from ..types import UNSET as UNSET
+from ..types import Unset as Unset
 
-class QualerApiModelsServiceOrdersFromServiceOrderMetadataUpdateModel(BaseModel):
-    service_order_metadata_id: StrictInt | None
-    metadata: StrictStr | None
+T = TypeVar(
+    "T", bound="QualerApiModelsServiceOrdersFromServiceOrderMetadataUpdateModel"
+)
+
+@_attrs_define
+class QualerApiModelsServiceOrdersFromServiceOrderMetadataUpdateModel:
+    service_order_metadata_id: Unset | int = ...
+    metadata: Unset | str = ...
     exhibits: (
-        QualerCoreSharedModelsServiceOrderMetadataServiceOrderMetadataExhibits | None
-    )
-
-    class Config:
-        allow_population_by_field_name: bool
-        validate_assignment: bool
-
-    def to_str(self) -> str: ...
-    def to_json(self) -> str: ...
+        Unset | QualerCoreSharedModelsServiceOrderMetadataServiceOrderMetadataExhibits
+    ) = ...
+    additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
+    def to_dict(self) -> dict[str, Any]: ...
     @classmethod
-    def from_json(
-        cls, json_str: str
-    ) -> QualerApiModelsServiceOrdersFromServiceOrderMetadataUpdateModel: ...
-    def to_dict(self): ...
-    @classmethod
-    def from_dict(
-        cls, obj: dict
-    ) -> QualerApiModelsServiceOrdersFromServiceOrderMetadataUpdateModel: ...
+    def from_dict(cls, src_dict: Mapping[str, Any]) -> T: ...
+    @property
+    def additional_keys(self) -> list[str]: ...
+    def __getitem__(self, key: str) -> Any: ...
+    def __setitem__(self, key: str, value: Any) -> None: ...
+    def __delitem__(self, key: str) -> None: ...
+    def __contains__(self, key: str) -> bool: ...

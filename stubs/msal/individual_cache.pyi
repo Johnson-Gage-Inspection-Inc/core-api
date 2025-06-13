@@ -1,5 +1,6 @@
-from _typeshed import Incomplete
 from collections import MutableMapping
+
+from _typeshed import Incomplete
 
 class _ExpiringMapping(MutableMapping):
     def __init__(

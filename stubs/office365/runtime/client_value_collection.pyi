@@ -1,10 +1,11 @@
+from typing import Any, Generic, Iterator, TypeVar
+
 from office365.runtime.client_value import ClientValue as ClientValue
 from office365.runtime.odata.json_format import ODataJsonFormat as ODataJsonFormat
 from office365.runtime.odata.type import ODataType as ODataType
 from office365.runtime.odata.v3.json_light_format import (
     JsonLightFormat as JsonLightFormat,
 )
-from typing import Any, Generic, Iterator, TypeVar
 from typing_extensions import Self
 
 T = TypeVar("T")

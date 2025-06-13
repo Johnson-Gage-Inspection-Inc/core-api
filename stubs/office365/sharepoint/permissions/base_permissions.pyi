@@ -1,7 +1,8 @@
+from typing import Iterator
+
 from _typeshed import Incomplete
 from office365.runtime.client_value import ClientValue as ClientValue
 from office365.sharepoint.permissions.kind import PermissionKind as PermissionKind
-from typing import Iterator
 
 class BasePermissions(ClientValue):
     High: int

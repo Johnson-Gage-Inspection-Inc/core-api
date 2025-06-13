@@ -1,3 +1,5 @@
+from typing import Any, Callable, Generic, TypeVar
+
 from _typeshed import Incomplete
 from office365.runtime.client_object_collection import (
     ClientObjectCollection as ClientObjectCollection,
@@ -18,7 +20,6 @@ from office365.runtime.odata.v3.json_light_format import (
 )
 from office365.runtime.paths.resource_path import ResourcePath as ResourcePath
 from requests import Response
-from typing import Any, Callable, Generic, TypeVar
 from typing_extensions import Self
 
 T = TypeVar("T")

@@ -1,5 +1,6 @@
-from _typeshed import Incomplete
 from datetime import datetime
+
+from _typeshed import Incomplete
 from office365.directory.permissions.identity_set import IdentitySet as IdentitySet
 from office365.entity import Entity as Entity
 from office365.onedrive.listitems.item_reference import ItemReference as ItemReference

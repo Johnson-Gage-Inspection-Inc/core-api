@@ -1,3 +1,5 @@
+from typing import Callable
+
 from office365.azure_env import AzureEnvironment as AzureEnvironment
 from office365.runtime.auth.authentication_context import (
     AuthenticationContext as AuthenticationContext,
@@ -13,7 +15,6 @@ from office365.runtime.odata.v3.json_light_format import (
     JsonLightFormat as JsonLightFormat,
 )
 from requests import Response
-from typing import Callable
 from typing_extensions import Self
 
 class SharePointRequest(ODataRequest):

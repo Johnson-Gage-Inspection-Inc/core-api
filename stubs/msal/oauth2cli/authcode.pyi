@@ -1,6 +1,7 @@
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-from _typeshed import Incomplete
 from urllib import urlencode as urlencode
+
+from _typeshed import Incomplete
+from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 
 logger: Incomplete
 

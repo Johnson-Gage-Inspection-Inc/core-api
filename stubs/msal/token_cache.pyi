@@ -1,11 +1,11 @@
+from collections.abc import Generator
+
+from _typeshed import Incomplete
+
 from .authority import canonicalize as canonicalize
 from .oauth2cli.oauth2 import Client as Client
-from .oauth2cli.oidc import (
-    decode_id_token as decode_id_token,
-    decode_part as decode_part,
-)
-from _typeshed import Incomplete
-from collections.abc import Generator
+from .oauth2cli.oidc import decode_id_token as decode_id_token
+from .oauth2cli.oidc import decode_part as decode_part
 
 logger: Incomplete
 

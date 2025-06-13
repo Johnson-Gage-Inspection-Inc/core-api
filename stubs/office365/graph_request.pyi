@@ -1,3 +1,5 @@
+from typing import Callable
+
 from office365.azure_env import AzureEnvironment as AzureEnvironment
 from office365.runtime.auth.entra.authentication_context import (
     AuthenticationContext as AuthenticationContext,
@@ -5,7 +7,6 @@ from office365.runtime.auth.entra.authentication_context import (
 from office365.runtime.http.request_options import RequestOptions as RequestOptions
 from office365.runtime.odata.request import ODataRequest as ODataRequest
 from office365.runtime.odata.v4.json_format import V4JsonFormat as V4JsonFormat
-from typing import Callable
 
 class GraphRequest(ODataRequest):
     def __init__(

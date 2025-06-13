@@ -1,3 +1,5 @@
+from typing import Callable, Generic, Iterator, TypeVar
+
 from office365.runtime.client_object import ClientObject as ClientObject
 from office365.runtime.client_runtime_context import (
     ClientRuntimeContext as ClientRuntimeContext,
@@ -7,7 +9,6 @@ from office365.runtime.odata.json_format import ODataJsonFormat as ODataJsonForm
 from office365.runtime.paths.resource_path import ResourcePath as ResourcePath
 from office365.runtime.types.event_handler import EventHandler as EventHandler
 from office365.runtime.types.exceptions import NotFoundException as NotFoundException
-from typing import Callable, Generic, Iterator, TypeVar
 from typing_extensions import Self
 
 T = TypeVar("T")

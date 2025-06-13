@@ -7,7 +7,7 @@ flake8
 flask
 flask-cors
 flask-smorest
-git+https://github.com/Johnson-Gage-Inspection-Inc/qualer-sdk-python.git@v3.0b0#egg=qualer_sdk
+git+https://github.com/Johnson-Gage-Inspection-Inc/qualer-sdk-python.git@13a87a64dccfe9cfeab18e57d6b59b7ed0c79335#egg=qualer_sdk
 isort
 marshmallow
 msal

@@ -1,5 +1,6 @@
-from .timemachine import *
 from _typeshed import Incomplete
+
+from .timemachine import *
 
 __all__ = [
     "oBOOL",

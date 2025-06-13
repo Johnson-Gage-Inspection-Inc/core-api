@@ -1,6 +1,7 @@
+from typing import Any
+
 from _typeshed import Incomplete
 from office365.runtime.http.http_method import HttpMethod as HttpMethod
-from typing import Any
 
 class RequestOptions:
     url: Incomplete

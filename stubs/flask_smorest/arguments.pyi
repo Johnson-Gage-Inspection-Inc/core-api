@@ -1,5 +1,6 @@
-from .utils import deepupdate as deepupdate
 from _typeshed import Incomplete
+
+from .utils import deepupdate as deepupdate
 
 class ArgumentsMixin:
     ARGUMENTS_PARSER: Incomplete

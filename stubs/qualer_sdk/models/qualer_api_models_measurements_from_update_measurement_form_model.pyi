@@ -1,23 +1,29 @@
-from pydantic import BaseModel, conlist as conlist
-from qualer_sdk.models.qualer_api_models_measurements_from_update_measurement_batch_model import (
+from collections.abc import Mapping
+from typing import Any, TypeVar
+
+from attrs import define as _attrs_define
+from attrs import field as _attrs_field
+
+from ..models.qualer_api_models_measurements_from_update_measurement_batch_model import (
     QualerApiModelsMeasurementsFromUpdateMeasurementBatchModel as QualerApiModelsMeasurementsFromUpdateMeasurementBatchModel,
 )
+from ..types import UNSET as UNSET
+from ..types import Unset as Unset
 
-class QualerApiModelsMeasurementsFromUpdateMeasurementFormModel(BaseModel):
-    measurement_batches: None | None
+T = TypeVar("T", bound="QualerApiModelsMeasurementsFromUpdateMeasurementFormModel")
 
-    class Config:
-        allow_population_by_field_name: bool
-        validate_assignment: bool
-
-    def to_str(self) -> str: ...
-    def to_json(self) -> str: ...
+@_attrs_define
+class QualerApiModelsMeasurementsFromUpdateMeasurementFormModel:
+    measurement_batches: (
+        Unset | list["QualerApiModelsMeasurementsFromUpdateMeasurementBatchModel"]
+    ) = ...
+    additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
+    def to_dict(self) -> dict[str, Any]: ...
     @classmethod
-    def from_json(
-        cls, json_str: str
-    ) -> QualerApiModelsMeasurementsFromUpdateMeasurementFormModel: ...
-    def to_dict(self): ...
-    @classmethod
-    def from_dict(
-        cls, obj: dict
-    ) -> QualerApiModelsMeasurementsFromUpdateMeasurementFormModel: ...
+    def from_dict(cls, src_dict: Mapping[str, Any]) -> T: ...
+    @property
+    def additional_keys(self) -> list[str]: ...
+    def __getitem__(self, key: str) -> Any: ...
+    def __setitem__(self, key: str, value: Any) -> None: ...
+    def __delitem__(self, key: str) -> None: ...
+    def __contains__(self, key: str) -> bool: ...

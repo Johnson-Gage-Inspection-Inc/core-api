@@ -1,5 +1,6 @@
-from _typeshed import Incomplete
 from abc import ABCMeta
+
+from _typeshed import Incomplete
 
 class ODataJsonFormat:
     metadata_level: Incomplete

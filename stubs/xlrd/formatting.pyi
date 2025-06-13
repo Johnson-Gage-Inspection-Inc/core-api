@@ -1,24 +1,23 @@
-from .timemachine import *
-from .biffh import (
-    BaseObject as BaseObject,
-    FDT as FDT,
-    FGE as FGE,
-    FNU as FNU,
-    FTX as FTX,
-    FUN as FUN,
-    XLRDError as XLRDError,
-    XL_CELL_DATE as XL_CELL_DATE,
-    XL_CELL_NUMBER as XL_CELL_NUMBER,
-    XL_CELL_TEXT as XL_CELL_TEXT,
-    XL_FORMAT as XL_FORMAT,
-    XL_FORMAT2 as XL_FORMAT2,
-    fprintf as fprintf,
-    unpack_string as unpack_string,
-    unpack_unicode as unpack_unicode,
-    upkbits as upkbits,
-    upkbitsL as upkbitsL,
-)
 from _typeshed import Incomplete
+
+from .biffh import FDT as FDT
+from .biffh import FGE as FGE
+from .biffh import FNU as FNU
+from .biffh import FTX as FTX
+from .biffh import FUN as FUN
+from .biffh import XL_CELL_DATE as XL_CELL_DATE
+from .biffh import XL_CELL_NUMBER as XL_CELL_NUMBER
+from .biffh import XL_CELL_TEXT as XL_CELL_TEXT
+from .biffh import XL_FORMAT as XL_FORMAT
+from .biffh import XL_FORMAT2 as XL_FORMAT2
+from .biffh import BaseObject as BaseObject
+from .biffh import XLRDError as XLRDError
+from .biffh import fprintf as fprintf
+from .biffh import unpack_string as unpack_string
+from .biffh import unpack_unicode as unpack_unicode
+from .biffh import upkbits as upkbits
+from .biffh import upkbitsL as upkbitsL
+from .timemachine import *
 
 DEBUG: int
 excel_default_palette_b5: Incomplete

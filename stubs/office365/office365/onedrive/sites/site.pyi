@@ -1,5 +1,6 @@
-from _typeshed import Incomplete
 from datetime import datetime
+
+from _typeshed import Incomplete
 from office365.entity_collection import EntityCollection as EntityCollection
 from office365.onedrive.analytics.item_activity_stat import (
     ItemActivityStat as ItemActivityStat,

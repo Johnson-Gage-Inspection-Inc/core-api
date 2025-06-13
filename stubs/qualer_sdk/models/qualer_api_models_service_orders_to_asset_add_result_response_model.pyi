@@ -1,26 +1,25 @@
-from pydantic import (
-    BaseModel,
-    StrictInt as StrictInt,
-    StrictStr as StrictStr,
-    conlist as conlist,
-)
+from collections.abc import Mapping
+from typing import Any, TypeVar
 
-class QualerApiModelsServiceOrdersToAssetAddResultResponseModel(BaseModel):
-    asset_count: StrictInt | None
-    already_added_asset_serials: None | None
+from attrs import define as _attrs_define
+from attrs import field as _attrs_field
 
-    class Config:
-        allow_population_by_field_name: bool
-        validate_assignment: bool
+from ..types import UNSET as UNSET
+from ..types import Unset as Unset
 
-    def to_str(self) -> str: ...
-    def to_json(self) -> str: ...
+T = TypeVar("T", bound="QualerApiModelsServiceOrdersToAssetAddResultResponseModel")
+
+@_attrs_define
+class QualerApiModelsServiceOrdersToAssetAddResultResponseModel:
+    asset_count: Unset | int = ...
+    already_added_asset_serials: Unset | list[str] = ...
+    additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
+    def to_dict(self) -> dict[str, Any]: ...
     @classmethod
-    def from_json(
-        cls, json_str: str
-    ) -> QualerApiModelsServiceOrdersToAssetAddResultResponseModel: ...
-    def to_dict(self): ...
-    @classmethod
-    def from_dict(
-        cls, obj: dict
-    ) -> QualerApiModelsServiceOrdersToAssetAddResultResponseModel: ...
+    def from_dict(cls, src_dict: Mapping[str, Any]) -> T: ...
+    @property
+    def additional_keys(self) -> list[str]: ...
+    def __getitem__(self, key: str) -> Any: ...
+    def __setitem__(self, key: str, value: Any) -> None: ...
+    def __delitem__(self, key: str) -> None: ...
+    def __contains__(self, key: str) -> bool: ...

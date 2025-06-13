@@ -1,3 +1,5 @@
+from typing import Callable
+
 from office365.runtime.auth.client_credential import (
     ClientCredential as ClientCredential,
 )
@@ -12,7 +14,6 @@ from office365.runtime.queries.update_entity import (
     UpdateEntityQuery as UpdateEntityQuery,
 )
 from office365.sharepoint.client_context import ClientContext as ClientContext
-from typing import Callable
 from typing_extensions import Self
 
 class Entity(ClientObject):

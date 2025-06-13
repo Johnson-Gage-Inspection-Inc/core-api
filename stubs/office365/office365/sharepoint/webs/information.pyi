@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from office365.sharepoint.entity import Entity as Entity
 
 class WebInformation(Entity):

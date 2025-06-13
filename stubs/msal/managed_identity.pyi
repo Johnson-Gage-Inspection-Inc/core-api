@@ -1,10 +1,10 @@
-from .throttled_http_client import (
-    RetryAfterParser as RetryAfterParser,
-    ThrottledHttpClientBase as ThrottledHttpClientBase,
-)
-from .token_cache import TokenCache as TokenCache
-from _typeshed import Incomplete
 from collections import UserDict
+
+from _typeshed import Incomplete
+
+from .throttled_http_client import RetryAfterParser as RetryAfterParser
+from .throttled_http_client import ThrottledHttpClientBase as ThrottledHttpClientBase
+from .token_cache import TokenCache as TokenCache
 
 logger: Incomplete
 

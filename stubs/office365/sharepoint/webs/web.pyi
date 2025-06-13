@@ -1,4 +1,6 @@
 import datetime
+from typing import AnyStr
+
 from _typeshed import Incomplete
 from office365.runtime.client_result import ClientResult as ClientResult
 from office365.runtime.client_value_collection import (
@@ -181,7 +183,6 @@ from office365.sharepoint.webs.template_collection import (
     WebTemplateCollection as WebTemplateCollection,
 )
 from office365.sharepoint.webs.theme_info import ThemeInfo as ThemeInfo
-from typing import AnyStr
 
 class Web(SecurableObject):
     def __init__(self, context, resource_path: Incomplete | None = None) -> None: ...

@@ -1,51 +1,63 @@
-from pydantic import (
-    BaseModel,
-    StrictBool as StrictBool,
-    StrictInt as StrictInt,
-    StrictStr as StrictStr,
-    conlist as conlist,
-)
-from qualer_sdk.models.qualer_api_models_measurements_from_update_measurement_field_model import (
+from collections.abc import Mapping
+from typing import Any, TypeVar
+
+from attrs import define as _attrs_define
+from attrs import field as _attrs_field
+
+from ..models.qualer_api_models_measurements_from_update_measurement_field_model import (
     QualerApiModelsMeasurementsFromUpdateMeasurementFieldModel as QualerApiModelsMeasurementsFromUpdateMeasurementFieldModel,
 )
-from qualer_sdk.models.qualer_api_models_measurements_from_update_measurement_point_model import (
+from ..models.qualer_api_models_measurements_from_update_measurement_point_model import (
     QualerApiModelsMeasurementsFromUpdateMeasurementPointModel as QualerApiModelsMeasurementsFromUpdateMeasurementPointModel,
 )
+from ..models.qualer_api_models_measurements_from_update_measurement_set_model_influence_parameter_1_type import (
+    QualerApiModelsMeasurementsFromUpdateMeasurementSetModelInfluenceParameter1Type as QualerApiModelsMeasurementsFromUpdateMeasurementSetModelInfluenceParameter1Type,
+)
+from ..models.qualer_api_models_measurements_from_update_measurement_set_model_influence_parameter_2_type import (
+    QualerApiModelsMeasurementsFromUpdateMeasurementSetModelInfluenceParameter2Type as QualerApiModelsMeasurementsFromUpdateMeasurementSetModelInfluenceParameter2Type,
+)
+from ..types import UNSET as UNSET
+from ..types import Unset as Unset
 
-class QualerApiModelsMeasurementsFromUpdateMeasurementSetModel(BaseModel):
-    measurement_set_id: StrictInt | None
-    is_accredited: StrictBool | None
-    measurement_name: StrictStr | None
-    use_expected_value: StrictBool | None
-    decimal_places: StrictInt | None
-    significant_figures: StrictInt | None
-    influence_parameter1_type: StrictStr | None
-    influence_parameter1_tool_type_id: StrictInt | None
-    influence_parameter1_parameter_id: StrictInt | None
-    influence_parameter1_source: StrictStr | None
-    influence_parameter1_value: StrictStr | None
-    influence_parameter2_type: StrictStr | None
-    influence_parameter2_tool_type_id: StrictInt | None
-    influence_parameter2_parameter_id: StrictInt | None
-    influence_parameter2_source: StrictStr | None
-    influence_parameter2_value: StrictStr | None
-    measurement_points: None | None
-    measurement_fields: None | None
-    def influence_parameter1_type_validate_enum(cls, value): ...
-    def influence_parameter2_type_validate_enum(cls, value): ...
+T = TypeVar("T", bound="QualerApiModelsMeasurementsFromUpdateMeasurementSetModel")
 
-    class Config:
-        allow_population_by_field_name: bool
-        validate_assignment: bool
-
-    def to_str(self) -> str: ...
-    def to_json(self) -> str: ...
+@_attrs_define
+class QualerApiModelsMeasurementsFromUpdateMeasurementSetModel:
+    measurement_set_id: Unset | int = ...
+    is_accredited: Unset | bool = ...
+    measurement_name: Unset | str = ...
+    use_expected_value: Unset | bool = ...
+    decimal_places: Unset | int = ...
+    significant_figures: Unset | int = ...
+    influence_parameter_1_type: (
+        Unset
+        | QualerApiModelsMeasurementsFromUpdateMeasurementSetModelInfluenceParameter1Type
+    ) = ...
+    influence_parameter_1_tool_type_id: Unset | int = ...
+    influence_parameter_1_parameter_id: Unset | int = ...
+    influence_parameter_1_source: Unset | str = ...
+    influence_parameter_1_value: Unset | str = ...
+    influence_parameter_2_type: (
+        Unset
+        | QualerApiModelsMeasurementsFromUpdateMeasurementSetModelInfluenceParameter2Type
+    ) = ...
+    influence_parameter_2_tool_type_id: Unset | int = ...
+    influence_parameter_2_parameter_id: Unset | int = ...
+    influence_parameter_2_source: Unset | str = ...
+    influence_parameter_2_value: Unset | str = ...
+    measurement_points: (
+        Unset | list["QualerApiModelsMeasurementsFromUpdateMeasurementPointModel"]
+    ) = ...
+    measurement_fields: (
+        Unset | list["QualerApiModelsMeasurementsFromUpdateMeasurementFieldModel"]
+    ) = ...
+    additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
+    def to_dict(self) -> dict[str, Any]: ...
     @classmethod
-    def from_json(
-        cls, json_str: str
-    ) -> QualerApiModelsMeasurementsFromUpdateMeasurementSetModel: ...
-    def to_dict(self): ...
-    @classmethod
-    def from_dict(
-        cls, obj: dict
-    ) -> QualerApiModelsMeasurementsFromUpdateMeasurementSetModel: ...
+    def from_dict(cls, src_dict: Mapping[str, Any]) -> T: ...
+    @property
+    def additional_keys(self) -> list[str]: ...
+    def __getitem__(self, key: str) -> Any: ...
+    def __setitem__(self, key: str, value: Any) -> None: ...
+    def __delitem__(self, key: str) -> None: ...
+    def __contains__(self, key: str) -> bool: ...

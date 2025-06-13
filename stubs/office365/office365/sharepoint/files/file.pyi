@@ -1,4 +1,6 @@
 import datetime
+from typing import AnyStr
+
 from _typeshed import Incomplete
 from office365.runtime.client_result import ClientResult as ClientResult
 from office365.runtime.http.http_method import HttpMethod as HttpMethod
@@ -47,7 +49,6 @@ from office365.sharepoint.webparts.limited_manager import (
 from office365.sharepoint.webparts.personalization_scope import (
     PersonalizationScope as PersonalizationScope,
 )
-from typing import AnyStr
 
 class AbstractFile(Entity):
     def read(self): ...

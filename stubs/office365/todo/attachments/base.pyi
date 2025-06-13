@@ -1,4 +1,5 @@
 import datetime
+
 from office365.entity import Entity as Entity
 
 class AttachmentBase(Entity):

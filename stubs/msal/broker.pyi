@@ -1,5 +1,7 @@
-from .sku import SKU as SKU, __version__ as __version__
 from _typeshed import Incomplete
+
+from .sku import SKU as SKU
+from .sku import __version__ as __version__
 
 logger: Incomplete
 min_ver: Incomplete

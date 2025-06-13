@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from office365.directory.object import DirectoryObject as DirectoryObject
 
 class AppRoleAssignment(DirectoryObject):

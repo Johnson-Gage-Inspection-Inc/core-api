@@ -1,74 +1,97 @@
-from pydantic import (
-    BaseModel,
-    StrictBool as StrictBool,
-    StrictFloat as StrictFloat,
-    StrictInt as StrictInt,
-    StrictStr as StrictStr,
-    conlist as conlist,
-)
-from qualer_sdk.models.qualer_api_models_measurements_to_measurement_record_response_model_measurement_batch_response_model_measurement_set_response_model_measurement_point_response_model_measurement_condition_factor_response_model import (
+from collections.abc import Mapping
+from typing import Any, TypeVar
+
+from attrs import define as _attrs_define
+from attrs import field as _attrs_field
+
+from ..models.qualer_api_models_measurements_to_measurement_record_response_model_measurement_batch_response_model_measurement_set_response_model_measurement_point_response_model_measurement_condition_factor_response_model import (
     QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelMeasurementConditionFactorResponseModel as QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelMeasurementConditionFactorResponseModel,
 )
-from qualer_sdk.models.qualer_api_models_measurements_to_measurement_record_response_model_measurement_batch_response_model_measurement_set_response_model_measurement_point_response_model_measurement_response_model import (
+from ..models.qualer_api_models_measurements_to_measurement_record_response_model_measurement_batch_response_model_measurement_set_response_model_measurement_point_response_model_measurement_response_model import (
     QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelMeasurementResponseModel as QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelMeasurementResponseModel,
 )
-from qualer_sdk.models.qualer_api_models_measurements_to_measurement_record_response_model_measurement_batch_response_model_measurement_set_response_model_measurement_point_response_model_measurement_tool_response_model import (
+from ..models.qualer_api_models_measurements_to_measurement_record_response_model_measurement_batch_response_model_measurement_set_response_model_measurement_point_response_model_measurement_tool_response_model import (
     QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelMeasurementToolResponseModel as QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelMeasurementToolResponseModel,
 )
+from ..models.qualer_api_models_measurements_to_measurement_record_response_model_measurement_batch_response_model_measurement_set_response_model_measurement_point_response_model_specification_mode import (
+    QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelSpecificationMode as QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelSpecificationMode,
+)
+from ..models.qualer_api_models_measurements_to_measurement_record_response_model_measurement_batch_response_model_measurement_set_response_model_measurement_point_response_model_tolerance_mode import (
+    QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelToleranceMode as QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelToleranceMode,
+)
+from ..models.qualer_api_models_measurements_to_measurement_record_response_model_measurement_batch_response_model_measurement_set_response_model_measurement_point_response_model_tolerance_unit import (
+    QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelToleranceUnit as QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelToleranceUnit,
+)
+from ..types import UNSET as UNSET
+from ..types import Unset as Unset
 
-class QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModel(
-    BaseModel
-):
-    specification_name: StrictStr | None
-    measurement_quantity: StrictStr | None
-    unit_of_measure_id: StrictInt | None
-    unit_of_measure: StrictStr | None
-    range_min: StrictFloat | StrictInt | None
-    range_max: StrictFloat | StrictInt | None
-    tolerance_type: StrictStr | None
-    specification_mode: StrictStr | None
-    tolerance_mode: StrictStr | None
-    tolerance_unit: StrictStr | None
-    precision_type: StrictStr | None
-    readings: StrictInt | None
-    channels_type: StrictStr | None
-    channel_count: StrictInt | None
-    precision: StrictFloat | StrictInt | None
-    tolerance_minimum: StrictFloat | StrictInt | None
-    tolerance_maximum: StrictFloat | StrictInt | None
-    resolution: StrictFloat | StrictInt | None
-    resolution_count: StrictFloat | StrictInt | None
-    nominal: StrictFloat | StrictInt | None
-    expected_value: StrictFloat | StrictInt | None
-    base_value: StrictFloat | StrictInt | None
-    test_value: StrictFloat | StrictInt | None
-    is_accredited: StrictBool | None
-    measurements: None | None
-    condition_factors: None | None
+T = TypeVar(
+    "T",
+    bound="QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModel",
+)
+
+@_attrs_define
+class QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModel:
+    specification_name: Unset | str = ...
+    measurement_quantity: Unset | str = ...
+    unit_of_measure_id: Unset | int = ...
+    unit_of_measure: Unset | str = ...
+    range_min: Unset | float = ...
+    range_max: Unset | float = ...
+    tolerance_type: Unset | str = ...
+    specification_mode: (
+        Unset
+        | QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelSpecificationMode
+    ) = ...
+    tolerance_mode: (
+        Unset
+        | QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelToleranceMode
+    ) = ...
+    tolerance_unit: (
+        Unset
+        | QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelToleranceUnit
+    ) = ...
+    precision_type: Unset | str = ...
+    readings: Unset | int = ...
+    channels_type: Unset | str = ...
+    channel_count: Unset | int = ...
+    precision: Unset | float = ...
+    tolerance_minimum: Unset | float = ...
+    tolerance_maximum: Unset | float = ...
+    resolution: Unset | float = ...
+    resolution_count: Unset | float = ...
+    nominal: Unset | float = ...
+    expected_value: Unset | float = ...
+    base_value: Unset | float = ...
+    test_value: Unset | float = ...
+    is_accredited: Unset | bool = ...
+    measurements: (
+        Unset
+        | list[
+            "QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelMeasurementResponseModel"
+        ]
+    ) = ...
+    condition_factors: (
+        Unset
+        | list[
+            "QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelMeasurementConditionFactorResponseModel"
+        ]
+    ) = ...
     primary_measurement_tool: (
-        QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelMeasurementToolResponseModel
-        | None
-    )
+        Unset
+        | QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelMeasurementToolResponseModel
+    ) = ...
     secondary_measurement_tool: (
-        QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelMeasurementToolResponseModel
-        | None
-    )
-    def specification_mode_validate_enum(cls, value): ...
-    def tolerance_mode_validate_enum(cls, value): ...
-    def tolerance_unit_validate_enum(cls, value): ...
-
-    class Config:
-        allow_population_by_field_name: bool
-        validate_assignment: bool
-
-    def to_str(self) -> str: ...
-    def to_json(self) -> str: ...
+        Unset
+        | QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModelMeasurementToolResponseModel
+    ) = ...
+    additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
+    def to_dict(self) -> dict[str, Any]: ...
     @classmethod
-    def from_json(
-        cls, json_str: str
-    ) -> QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModel: ...
-    def to_dict(self): ...
-    @classmethod
-    def from_dict(
-        cls, obj: dict
-    ) -> QualerApiModelsMeasurementsToMeasurementRecordResponseModelMeasurementBatchResponseModelMeasurementSetResponseModelMeasurementPointResponseModel: ...
+    def from_dict(cls, src_dict: Mapping[str, Any]) -> T: ...
+    @property
+    def additional_keys(self) -> list[str]: ...
+    def __getitem__(self, key: str) -> Any: ...
+    def __setitem__(self, key: str, value: Any) -> None: ...
+    def __delitem__(self, key: str) -> None: ...
+    def __contains__(self, key: str) -> bool: ...

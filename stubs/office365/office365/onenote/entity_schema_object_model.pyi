@@ -1,5 +1,6 @@
-from _typeshed import Incomplete
 from datetime import datetime
+
+from _typeshed import Incomplete
 from office365.onenote.entity_base_model import (
     OnenoteEntityBaseModel as OnenoteEntityBaseModel,
 )

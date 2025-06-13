@@ -1,7 +1,8 @@
 import abc
+from abc import abstractmethod
+
 import requests
 from _typeshed import Incomplete
-from abc import abstractmethod
 from office365.runtime.client_request_exception import (
     ClientRequestException as ClientRequestException,
 )

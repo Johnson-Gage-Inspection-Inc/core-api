@@ -4,10 +4,8 @@ from office365.sharepoint.entity import Entity as Entity
 from office365.sharepoint.sites.language_collection import (
     LanguageCollection as LanguageCollection,
 )
-from office365.sharepoint.webs.time_zone import (
-    TimeZone as TimeZone,
-    TimeZoneCollection as TimeZoneCollection,
-)
+from office365.sharepoint.webs.time_zone import TimeZone as TimeZone
+from office365.sharepoint.webs.time_zone import TimeZoneCollection as TimeZoneCollection
 
 class RegionalSettings(Entity):
     @property

@@ -1,5 +1,6 @@
-from _typeshed import Incomplete
 from typing import Generic, Mapping, TypeVar
+
+from _typeshed import Incomplete
 
 T = TypeVar("T")
 

@@ -141,8 +141,19 @@ def _annotation_to_marshmallow_field(annotation: Any) -> fields.Field:
     return fields.Raw(allow_none=True)
 
 
+def _pascal_to_snake(name: str) -> str:
+    """Convert PascalCase to snake_case"""
+    import re
+
+    # Insert an underscore before any uppercase letter that follows a lowercase letter or number
+    s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
+    # Insert an underscore before any uppercase letter that follows a lowercase letter
+    return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
+
+
 def _convert_object(obj) -> Any:
-    """Convert a Pydantic model or test mock to a dictionary"""
+    """Convert a Pydantic model, attrs model, or test mock to a dictionary"""
+    import attr
 
     # Handle MagicMock objects specially
     if isinstance(obj, MagicMock):
@@ -157,9 +168,19 @@ def _convert_object(obj) -> Any:
     elif hasattr(obj, "model_dump") and callable(getattr(obj, "model_dump")):
         # Pydantic v2 model - use by_alias=True to get the original field names that match our schema
         data = obj.model_dump(by_alias=True)
+    elif attr.has(obj.__class__):
+        # attrs model (like Qualer SDK models) - use attr.asdict() which returns snake_case keys
+        data = attr.asdict(obj)
     elif hasattr(obj, "to_dict") and callable(getattr(obj, "to_dict")):
-        # Legacy method or custom to_dict
+        # Fallback for other models with to_dict() - convert PascalCase keys to snake_case to match schema
         data = obj.to_dict()
+        # Convert PascalCase keys to snake_case
+        snake_case_data = {}
+        for key, value in data.items():
+            # Convert PascalCase to snake_case
+            snake_key = _pascal_to_snake(key)
+            snake_case_data[snake_key] = value
+        data = snake_case_data
     else:
         # Assume it's already a dict or handle as-is
         data = obj

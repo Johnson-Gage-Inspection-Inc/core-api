@@ -1,5 +1,6 @@
-from _typeshed import Incomplete
 from datetime import datetime
+
+from _typeshed import Incomplete
 from office365.runtime.client_result import ClientResult as ClientResult
 from office365.runtime.paths.resource_path import ResourcePath as ResourcePath
 from office365.runtime.queries.service_operation import (

@@ -1,51 +1,63 @@
-from pydantic import (
-    BaseModel,
-    StrictBool as StrictBool,
-    StrictInt as StrictInt,
-    StrictStr as StrictStr,
-    conlist as conlist,
-)
-from qualer_sdk.models.qualer_api_models_measurements_to_update_measurement_field_response_model import (
+from collections.abc import Mapping
+from typing import Any, TypeVar
+
+from attrs import define as _attrs_define
+from attrs import field as _attrs_field
+
+from ..models.qualer_api_models_measurements_to_update_measurement_field_response_model import (
     QualerApiModelsMeasurementsToUpdateMeasurementFieldResponseModel as QualerApiModelsMeasurementsToUpdateMeasurementFieldResponseModel,
 )
-from qualer_sdk.models.qualer_api_models_measurements_to_update_measurement_point_response_model import (
+from ..models.qualer_api_models_measurements_to_update_measurement_point_response_model import (
     QualerApiModelsMeasurementsToUpdateMeasurementPointResponseModel as QualerApiModelsMeasurementsToUpdateMeasurementPointResponseModel,
 )
+from ..models.qualer_api_models_measurements_to_update_measurement_set_response_model_influence_parameter_1_type import (
+    QualerApiModelsMeasurementsToUpdateMeasurementSetResponseModelInfluenceParameter1Type as QualerApiModelsMeasurementsToUpdateMeasurementSetResponseModelInfluenceParameter1Type,
+)
+from ..models.qualer_api_models_measurements_to_update_measurement_set_response_model_influence_parameter_2_type import (
+    QualerApiModelsMeasurementsToUpdateMeasurementSetResponseModelInfluenceParameter2Type as QualerApiModelsMeasurementsToUpdateMeasurementSetResponseModelInfluenceParameter2Type,
+)
+from ..types import UNSET as UNSET
+from ..types import Unset as Unset
 
-class QualerApiModelsMeasurementsToUpdateMeasurementSetResponseModel(BaseModel):
-    measurement_set_id: StrictInt | None
-    measurement_name: StrictStr | None
-    is_accredited: StrictBool | None
-    use_expected_value: StrictBool | None
-    decimal_places: StrictInt | None
-    significant_figures: StrictInt | None
-    influence_parameter1_type: StrictStr | None
-    influence_parameter1_tool_type_id: StrictInt | None
-    influence_parameter1_parameter_id: StrictInt | None
-    influence_parameter1_source: StrictStr | None
-    influence_parameter1_value: StrictStr | None
-    influence_parameter2_type: StrictStr | None
-    influence_parameter2_tool_type_id: StrictInt | None
-    influence_parameter2_parameter_id: StrictInt | None
-    influence_parameter2_source: StrictStr | None
-    influence_parameter2_value: StrictStr | None
-    measurement_points: None | None
-    measurement_fields: None | None
-    def influence_parameter1_type_validate_enum(cls, value): ...
-    def influence_parameter2_type_validate_enum(cls, value): ...
+T = TypeVar("T", bound="QualerApiModelsMeasurementsToUpdateMeasurementSetResponseModel")
 
-    class Config:
-        allow_population_by_field_name: bool
-        validate_assignment: bool
-
-    def to_str(self) -> str: ...
-    def to_json(self) -> str: ...
+@_attrs_define
+class QualerApiModelsMeasurementsToUpdateMeasurementSetResponseModel:
+    measurement_set_id: Unset | int = ...
+    measurement_name: Unset | str = ...
+    is_accredited: Unset | bool = ...
+    use_expected_value: Unset | bool = ...
+    decimal_places: Unset | int = ...
+    significant_figures: Unset | int = ...
+    influence_parameter_1_type: (
+        Unset
+        | QualerApiModelsMeasurementsToUpdateMeasurementSetResponseModelInfluenceParameter1Type
+    ) = ...
+    influence_parameter_1_tool_type_id: Unset | int = ...
+    influence_parameter_1_parameter_id: Unset | int = ...
+    influence_parameter_1_source: Unset | str = ...
+    influence_parameter_1_value: Unset | str = ...
+    influence_parameter_2_type: (
+        Unset
+        | QualerApiModelsMeasurementsToUpdateMeasurementSetResponseModelInfluenceParameter2Type
+    ) = ...
+    influence_parameter_2_tool_type_id: Unset | int = ...
+    influence_parameter_2_parameter_id: Unset | int = ...
+    influence_parameter_2_source: Unset | str = ...
+    influence_parameter_2_value: Unset | str = ...
+    measurement_points: (
+        Unset | list["QualerApiModelsMeasurementsToUpdateMeasurementPointResponseModel"]
+    ) = ...
+    measurement_fields: (
+        Unset | list["QualerApiModelsMeasurementsToUpdateMeasurementFieldResponseModel"]
+    ) = ...
+    additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
+    def to_dict(self) -> dict[str, Any]: ...
     @classmethod
-    def from_json(
-        cls, json_str: str
-    ) -> QualerApiModelsMeasurementsToUpdateMeasurementSetResponseModel: ...
-    def to_dict(self): ...
-    @classmethod
-    def from_dict(
-        cls, obj: dict
-    ) -> QualerApiModelsMeasurementsToUpdateMeasurementSetResponseModel: ...
+    def from_dict(cls, src_dict: Mapping[str, Any]) -> T: ...
+    @property
+    def additional_keys(self) -> list[str]: ...
+    def __getitem__(self, key: str) -> Any: ...
+    def __setitem__(self, key: str, value: Any) -> None: ...
+    def __delitem__(self, key: str) -> None: ...
+    def __contains__(self, key: str) -> bool: ...

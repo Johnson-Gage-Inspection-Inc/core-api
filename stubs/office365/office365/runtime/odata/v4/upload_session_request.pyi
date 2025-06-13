@@ -1,12 +1,13 @@
-import requests
 import typing
+from typing import Callable
+
+import requests
 from office365.runtime.client_request import ClientRequest as ClientRequest
 from office365.runtime.http.http_method import HttpMethod as HttpMethod
 from office365.runtime.http.request_options import RequestOptions as RequestOptions
 from office365.runtime.queries.upload_session import (
     UploadSessionQuery as UploadSessionQuery,
 )
-from typing import Callable
 from typing_extensions import Self
 
 class UploadSessionRequest(ClientRequest):

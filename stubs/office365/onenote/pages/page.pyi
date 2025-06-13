@@ -1,3 +1,5 @@
+from typing import AnyStr
+
 from _typeshed import Incomplete
 from office365.onenote.entity_schema_object_model import (
     OnenoteEntitySchemaObjectModel as OnenoteEntitySchemaObjectModel,
@@ -9,7 +11,6 @@ from office365.runtime.client_result import ClientResult as ClientResult
 from office365.runtime.paths.resource_path import ResourcePath as ResourcePath
 from office365.runtime.queries.function import FunctionQuery as FunctionQuery
 from office365.runtime.types.collections import StringCollection as StringCollection
-from typing import AnyStr
 
 class OnenotePage(OnenoteEntitySchemaObjectModel):
     def get_content(self) -> ClientResult[AnyStr]: ...

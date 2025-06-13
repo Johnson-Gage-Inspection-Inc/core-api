@@ -1,14 +1,14 @@
-from .biffh import *
-from .timemachine import *
-from .formatting import Format as Format, nearest_colour_index as nearest_colour_index
-from .formula import (
-    FMLA_TYPE_CELL as FMLA_TYPE_CELL,
-    FMLA_TYPE_SHARED as FMLA_TYPE_SHARED,
-    decompile_formula as decompile_formula,
-    dump_formula as dump_formula,
-    rangename2d as rangename2d,
-)
 from _typeshed import Incomplete
+
+from .biffh import *
+from .formatting import Format as Format
+from .formatting import nearest_colour_index as nearest_colour_index
+from .formula import FMLA_TYPE_CELL as FMLA_TYPE_CELL
+from .formula import FMLA_TYPE_SHARED as FMLA_TYPE_SHARED
+from .formula import decompile_formula as decompile_formula
+from .formula import dump_formula as dump_formula
+from .formula import rangename2d as rangename2d
+from .timemachine import *
 
 DEBUG: int
 OBJ_MSO_DEBUG: int

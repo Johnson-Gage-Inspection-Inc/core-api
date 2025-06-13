@@ -3,9 +3,7 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from qualer_sdk.models.qualer_api_models_clients_to_client_company_response_model import (
-    QualerApiModelsClientsToClientCompanyResponseModel,
-)
+from qualer_sdk.models import QualerApiModelsClientsToClientCompanyResponseModel
 
 
 @pytest.mark.skipif(
@@ -18,10 +16,10 @@ def test_clients_endpoint_basic(client, auth_token):
     assert response.status_code == 200
     data = response.get_json()
     assert isinstance(data, list)
+    assert all(data), "Expected a non-empty list of client companies"
     for client_company in data:
         assert isinstance(client_company, dict)
-        assert client_company != {}  # Check for expected fields based on the API spec
-        assert "CompanyId" in client_company  # Updated to PascalCase for v3.0 SDK
+        assert "company_id" in client_company  # Updated to PascalCase for v3.0 SDK
 
 
 def test_clients_endpoint_without_auth(client):

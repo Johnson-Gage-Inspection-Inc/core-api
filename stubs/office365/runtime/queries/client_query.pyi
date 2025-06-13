@@ -1,10 +1,11 @@
+from typing import AnyStr, Generic, TypeVar
+
 from office365.runtime.client_object import ClientObject as ClientObject
 from office365.runtime.client_result import ClientResult as ClientResult
 from office365.runtime.client_runtime_context import (
     ClientRuntimeContext as ClientRuntimeContext,
 )
 from office365.runtime.client_value import ClientValue as ClientValue
-from typing import AnyStr, Generic, TypeVar
 
 T = TypeVar("T", bound="ClientObject" | "ClientResult")
 

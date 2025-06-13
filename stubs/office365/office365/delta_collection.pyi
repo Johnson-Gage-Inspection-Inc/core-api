@@ -1,9 +1,10 @@
+from typing import TypeVar
+
 from office365.delta_path import DeltaPath as DeltaPath
 from office365.entity import Entity as Entity
 from office365.entity_collection import EntityCollection as EntityCollection
 from office365.graph_client import GraphClient as GraphClient
 from office365.runtime.paths.resource_path import ResourcePath as ResourcePath
-from typing import TypeVar
 
 T = TypeVar("T")
 
