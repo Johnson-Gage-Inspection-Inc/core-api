@@ -1,4 +1,6 @@
 # app.py
+import os
+
 from flask import Flask, request
 from flask_cors import CORS
 from flask_smorest import Api
@@ -92,4 +94,5 @@ def index():
 
 
 if __name__ == "__main__":
-    app.run()
+    debug_mode = os.getenv("DEBUG", "false").lower() == "true"
+    app.run(debug=debug_mode)
