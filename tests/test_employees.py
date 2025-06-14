@@ -26,7 +26,8 @@ def test_employees_endpoint_basic(client, auth_token):
 
 @patch("utils.qualer_client.make_qualer_client")
 def test_employees_endpoint_mocked(mock_qualer_client, client, auth_token):
-    """Test employees endpoint with mocked Qualer client for CI environments."""  # Create a mock that behaves exactly like the SDK object but is easier to control
+    """Test employees endpoint with mocked Qualer client for CI environments."""
+    # Create a mock that behaves exactly like the SDK object but is easier to control
     mock_employee = MagicMock(spec=QualerApiModelsClientsToEmployeeResponseModel)
     mock_employee.is_deleted = False
 
@@ -58,24 +59,9 @@ def test_employees_endpoint_mocked(mock_qualer_client, client, auth_token):
     data = response.get_json()
     assert isinstance(data, list)
     assert len(data) == 1
-    # Debug: Let's see what we actually get
+    assert all(data), "Expected a non-empty list of employees"
+
     employee = data[0]
-    print(
-        f"Employee data received. EmployeeId: {employee.get('EmployeeId')}, IsDeleted: {employee.get('IsDeleted')}"
-    )
-    print(
-        f"Employee keys: {list(employee.keys()) if isinstance(employee, dict) else 'not a dict'}"
-    )
-    print(f"Mock to_dict result: {mock_employee.to_dict()}")
-
-    # Let's also check if the mock has the right attributes
-    print(f"Mock has to_dict: {hasattr(mock_employee, 'to_dict')}")
-    print(f"Mock to_dict callable: {callable(getattr(mock_employee, 'to_dict', None))}")
-
-    # If employee is empty, there's a serialization issue
-    if employee == {}:
-        print("WARNING: Employee data is empty - serialization issue detected")
-        return  # Skip assertions for now to debug
 
     # Test the actual field names returned by to_dict()
     assert employee["EmployeeId"] == 123
