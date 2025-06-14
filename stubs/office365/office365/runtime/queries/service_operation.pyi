@@ -2,7 +2,8 @@ from _typeshed import Incomplete
 from office365.runtime.paths.service_operation import (
     ServiceOperationPath as ServiceOperationPath,
 )
-from office365.runtime.queries.client_query import ClientQuery as ClientQuery, T as T
+from office365.runtime.queries.client_query import ClientQuery as ClientQuery
+from office365.runtime.queries.client_query import T as T
 
 class ServiceOperationQuery(ClientQuery[T]):
     static: Incomplete

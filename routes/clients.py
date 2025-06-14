@@ -1,11 +1,14 @@
 # routes/clients.py
+from typing import Any, List
+
+import attr
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from qualer_sdk import ClientsApi
+from qualer_sdk.api.clients.get_all_get_2 import sync as get_clients
+from qualer_sdk.models import QualerApiModelsClientsToClientCompanyResponseModel
 
 from utils.auth import require_auth
 from utils.qualer_client import make_qualer_client
-from utils.schemas import ClientCompanyResponseSchema
 
 blp = Blueprint("clients", __name__, url_prefix="/")
 
@@ -14,8 +17,8 @@ blp = Blueprint("clients", __name__, url_prefix="/")
 class Clients(MethodView):
     @require_auth
     @blp.doc(security=[{"BearerAuth": []}], tags=["Qualer"])
-    @blp.response(200, ClientCompanyResponseSchema(many=True))
-    def get(self):
+    @blp.response(200)
+    def get(self) -> List[dict[str, Any]]:
         """
         Retrieve all client companies from Qualer.
 
@@ -40,7 +43,22 @@ class Clients(MethodView):
         """
         try:
             client = make_qualer_client()
-            api = ClientsApi(client)
-            return api.get_all()
+            clients: List[QualerApiModelsClientsToClientCompanyResponseModel] = (
+                get_clients(client=client)
+            ) or []
+
+            # Convert attrs models to dictionaries using attr.asdict()
+            result = []
+            for client_obj in clients:
+                client_dict = attr.asdict(client_obj)
+                # Filter out any Unset values that attrs might include
+                filtered_dict = {
+                    k: v
+                    for k, v in client_dict.items()
+                    if not (hasattr(v, "__class__") and "Unset" in str(type(v)))
+                }
+                result.append(filtered_dict)
+
+            return result
         except Exception as e:
             abort(500, message=f"Error fetching clients: {str(e)}")

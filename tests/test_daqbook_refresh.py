@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 import pytest
@@ -7,83 +7,84 @@ from sqlalchemy import text
 
 from db.models import DaqbookOffset as DaqbookOffset
 from utils.daqbook import get_updated_daqbook_files, refresh_daqbook_offsets
-from utils.sharepoint_client import SharePointClient
 
 # from utils.test_models import StupidDaqbookOffset
 
 
 @pytest.fixture
 def mock_last_check():
-    return datetime.utcnow() - timedelta(days=1)
+    return datetime.now(timezone.utc) - timedelta(days=1)
 
 
 def test_list_files_in_pyro_standards_folder():
     """Should return a list of files from SharePoint"""
     if os.getenv("SKIP_AUTH", "false").lower() == "true":
         with patch(
-            "utils.sharepoint_client.SharePointClient.list_files_in_pyro_standards_folder"
+            "integrations.sharepoint.list_pyro_standards_excel_files"
         ) as mock_list:
-            mock_list.return_value = [
-                {
-                    "name": "J1_0101.xlsm",
-                    "lastModifiedDateTime": "2023-01-01T00:00:00Z",
-                },
-                {
-                    "name": "J1_0102.xlsm",
-                    "lastModifiedDateTime": "2023-01-02T00:00:00Z",
-                },
-            ]
-            files = SharePointClient.list_files_in_pyro_standards_folder()
+            # Create mock File objects since the new function returns File objects
+            from datetime import datetime
+            from unittest.mock import MagicMock
+
+            mock_file1 = MagicMock()
+            mock_file1.name = "J1_0101.xlsm"
+            mock_file1.time_last_modified = datetime(2023, 1, 1, 0, 0, 0)
+
+            mock_file2 = MagicMock()
+            mock_file2.name = "J1_0102.xlsm"
+            mock_file2.time_last_modified = datetime(2023, 1, 2, 0, 0, 0)
+
+            mock_list.return_value = [mock_file1, mock_file2]
+
+            from integrations.sharepoint import list_pyro_standards_excel_files
+
+            files = list_pyro_standards_excel_files()
             assert len(files) == 2
-            assert files[0]["name"] == "J1_0101.xlsm"
-            assert files[1]["name"] == "J1_0102.xlsm"
+            assert files[0].name == "J1_0101.xlsm"
+            assert files[1].name == "J1_0102.xlsm"
     else:
-        files = SharePointClient.list_files_in_pyro_standards_folder()
+        from integrations.sharepoint import list_pyro_standards_excel_files
+
+        files = list_pyro_standards_excel_files()
         assert isinstance(files, list)
         assert len(files) > 0
-        print([f["name"] for f in files])  # Print file names for debugging
+        print([f.name for f in files])  # Print file names for debugging
 
 
 def test_returns_only_recent_daqbook_files(mock_last_check):
     """Should return only .xlsm Daqbook files modified after last check"""
-    with patch(
-        "utils.sharepoint_client.SharePointClient.list_files_in_pyro_standards_folder"
-    ) as mock_list:
-        mock_list.return_value = [
-            {
-                "id": "1",
-                "name": "J1_0101.xlsm",
-                "webUrl": "https://example.com/1",
-                "downloadUrl": "https://example.com/download/1",
-                "size": 123456,
-                "lastModifiedDateTime": datetime.utcnow().isoformat(),
-                "mimeType": "application/vnd.ms-excel.sheet.macroEnabled.12",
-                "driveId": "abc",
-                "path": "/drives/abc/root:/Pyro/Pyro_Standards",
-            },
-            {
-                "id": "2",
-                "name": "some-other-file.docx",
-                "webUrl": "https://example.com/2",
-                "downloadUrl": "https://example.com/download/2",
-                "size": 54321,
-                "lastModifiedDateTime": datetime.utcnow().isoformat(),
-                "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                "driveId": "abc",
-                "path": "/drives/abc/root:/Pyro/Pyro_Standards",
-            },
-            {
-                "id": "3",
-                "name": "J1_0102.xlsm",
-                "webUrl": "https://example.com/3",
-                "downloadUrl": "https://example.com/download/3",
-                "size": 65432,
-                "lastModifiedDateTime": "2023-01-01T00:00:00Z",
-                "mimeType": "application/vnd.ms-excel.sheet.macroEnabled.12",
-                "driveId": "abc",
-                "path": "/drives/abc/root:/Pyro/Pyro_Standards",
-            },
-        ]
+    with patch("utils.daqbook.list_pyro_standards_excel_files") as mock_list:
+        # Create mock File objects since the new function returns File objects
+        from unittest.mock import MagicMock
+
+        mock_file1 = MagicMock()
+        mock_file1.name = "J1_0101.xlsm"
+        mock_file1.time_last_modified = datetime.now(timezone.utc)
+        mock_file1.serverRelativeUrl = (
+            "/sites/JGI/Shared Documents/Pyro/Pyro_Standards/J1_0101.xlsm"
+        )
+        mock_file1.unique_id = "1"
+        mock_file1.length = 123456
+
+        mock_file2 = MagicMock()
+        mock_file2.name = "some-other-file.docx"
+        mock_file2.time_last_modified = datetime.now(timezone.utc)
+        mock_file2.serverRelativeUrl = (
+            "/sites/JGI/Shared Documents/Pyro/Pyro_Standards/some-other-file.docx"
+        )
+        mock_file2.unique_id = "2"
+        mock_file2.length = 54321
+
+        mock_file3 = MagicMock()
+        mock_file3.name = "J1_0102.xlsm"
+        mock_file3.time_last_modified = datetime(2023, 1, 1, 0, 0, 0)
+        mock_file3.serverRelativeUrl = (
+            "/sites/JGI/Shared Documents/Pyro/Pyro_Standards/J1_0102.xlsm"
+        )
+        mock_file3.unique_id = "3"
+        mock_file3.length = 65432
+
+        mock_list.return_value = [mock_file1, mock_file2, mock_file3]
 
         files = get_updated_daqbook_files(mock_last_check)
         assert len(files) == 1
@@ -98,17 +99,29 @@ def test_refresh_daqbook_offsets_upserts(monkeypatch, db_session):
         "webUrl": "https://example.com/file",
         "downloadUrl": "https://example.com/download",
         "size": 123456,
-        "lastModifiedDateTime": datetime.utcnow().isoformat(),
+        "lastModifiedDateTime": datetime.now(timezone.utc).isoformat(),
         "mimeType": "application/vnd.ms-excel.sheet.macroEnabled.12",
         "driveId": "fake_drive",
         "path": "/drives/fake_drive/root:/Pyro/Pyro_Standards",
+        "serverRelativeUrl": "/sites/JGI/Shared Documents/Pyro/Pyro_Standards/J1_0624.xlsm",
     }
 
-    monkeypatch.setattr("utils.daqbook.get_updated_daqbook_files", lambda: [dummy_file])
+    monkeypatch.setattr(
+        "utils.daqbook.get_updated_daqbook_files", lambda last_checked: [dummy_file]
+    )
+
+    # Mock the Office365SharePointClient's download_file_content method since that's what the new implementation uses
+    def mock_download_content(self, relative_url):
+        return b"mock file content"
 
     monkeypatch.setattr(
-        "utils.sharepoint_client.SharePointClient.download_file_from_sharepoint",
-        lambda f: "/tmp/J1_0624.xlsm",
+        "integrations.sharepoint.client.Office365SharePointClient.download_file_content",
+        mock_download_content,
+    )
+
+    monkeypatch.setattr(
+        "integrations.sharepoint.client.Office365SharePointClient.download_file_content",
+        mock_download_content,
     )
     monkeypatch.setattr(
         "utils.daqbook.parse_daqbook_offsets_from_excel",
@@ -122,15 +135,23 @@ def test_refresh_daqbook_offsets_upserts(monkeypatch, db_session):
     assert float(stored.reading) == 0.123
 
 
-@pytest.mark.integration
+@pytest.mark.integration  # FIXME: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
 def test_refresh_daqbook_offsets_inserts_multiple_unique_daqbooks(
     monkeypatch, db_session
 ):
     """Ensure that refresh_daqbook_offsets inserts more than one unique DAQbook (tn)"""
 
     dummy_files = [
-        {"name": "J1_0101.xlsm", "id": "file1"},
-        {"name": "K4_0202.xlsm", "id": "file2"},
+        {
+            "name": "J1_0101.xlsm",
+            "id": "file1",
+            "serverRelativeUrl": "/sites/JGI/Shared Documents/Pyro/Pyro_Standards/J1_0101.xlsm",
+        },
+        {
+            "name": "K4_0202.xlsm",
+            "id": "file2",
+            "serverRelativeUrl": "/sites/JGI/Shared Documents/Pyro/Pyro_Standards/K4_0202.xlsm",
+        },
     ]
 
     # Mock parse function to return different data based on file path
@@ -156,9 +177,14 @@ def test_refresh_daqbook_offsets_inserts_multiple_unique_daqbooks(
     monkeypatch.setattr(
         "utils.daqbook.parse_daqbook_offsets_from_excel", mock_parse_excel
     )
+
+    # Mock the Office365SharePointClient's download_file_content method since that's what the new implementation uses
+    def mock_download_content(self, relative_url):
+        return b"mock file content"
+
     monkeypatch.setattr(
-        "utils.daqbook.SharePointClient.download_file_from_sharepoint",
-        lambda file: f"/tmp/{file['name']}",
+        "integrations.sharepoint.client.Office365SharePointClient.download_file_content",
+        mock_download_content,
     )
 
     # Clear existing data for clean test
@@ -214,7 +240,7 @@ def test_refresh_daqbook_offsets_with_real_excel_format(db_session):
             "webUrl": "https://example.com/file1",
             "downloadUrl": "https://example.com/download1",
             "size": 123456,
-            "lastModifiedDateTime": datetime.utcnow().isoformat(),
+            "lastModifiedDateTime": datetime.now(timezone.utc).isoformat(),
             "mimeType": "application/vnd.ms-excel.sheet.macroEnabled.12",
             "driveId": "test_drive",
             "path": "/drives/test_drive/root:/Pyro/Pyro_Standards",
@@ -225,7 +251,7 @@ def test_refresh_daqbook_offsets_with_real_excel_format(db_session):
             "webUrl": "https://example.com/file2",
             "downloadUrl": "https://example.com/download2",
             "size": 234567,
-            "lastModifiedDateTime": datetime.utcnow().isoformat(),
+            "lastModifiedDateTime": datetime.now(timezone.utc).isoformat(),
             "mimeType": "application/vnd.ms-excel.sheet.macroEnabled.12",
             "driveId": "test_drive",
             "path": "/drives/test_drive/root:/Pyro/Pyro_Standards",
@@ -255,18 +281,15 @@ def test_refresh_daqbook_offsets_with_real_excel_format(db_session):
     # Clear existing data
     db_session.query(DaqbookOffset).delete()
     db_session.commit()
-
     with patch("utils.daqbook.get_updated_daqbook_files") as mock_get_files:
         with patch(
-            "utils.sharepoint_client.SharePointClient.download_file_from_sharepoint"
+            "integrations.sharepoint.client.Office365SharePointClient.download_file_content"
         ) as mock_download:
-            with patch("utils.daqbook.parse_daqbook_offsets_from_excel") as mock_parse:
-
-                # Configure mocks
+            with patch(
+                "utils.daqbook.parse_daqbook_offsets_from_excel"
+            ) as mock_parse:  # Configure mocks
                 mock_get_files.return_value = mock_files
-                mock_download.side_effect = (
-                    lambda file_info: f"/tmp/{file_info['name']}"
-                )
+                mock_download.return_value = b"mock file content"
                 mock_parse.side_effect = mock_parse_excel_real_format
 
                 # Execute the function under test

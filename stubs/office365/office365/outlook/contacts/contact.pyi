@@ -1,6 +1,8 @@
 from _typeshed import Incomplete
 from office365.directory.extensions.extended_property import (
     MultiValueLegacyExtendedProperty as MultiValueLegacyExtendedProperty,
+)
+from office365.directory.extensions.extended_property import (
     SingleValueLegacyExtendedProperty as SingleValueLegacyExtendedProperty,
 )
 from office365.directory.extensions.extension import Extension as Extension

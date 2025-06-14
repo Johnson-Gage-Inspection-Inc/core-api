@@ -1,3 +1,5 @@
+from typing import Any, TypeVar
+
 from office365.entity import Entity as Entity
 from office365.graph_client import GraphClient as GraphClient
 from office365.runtime.client_object_collection import (
@@ -9,7 +11,6 @@ from office365.runtime.paths.v4.entity import EntityPath as EntityPath
 from office365.runtime.queries.create_entity import (
     CreateEntityQuery as CreateEntityQuery,
 )
-from typing import Any, TypeVar
 from typing_extensions import Self
 
 T = TypeVar("T")

@@ -1,3 +1,5 @@
+from typing import Callable, Generic, TypeVar
+
 from _typeshed import Incomplete
 from office365.runtime.client_request_exception import (
     ClientRequestException as ClientRequestException,
@@ -7,7 +9,6 @@ from office365.runtime.client_runtime_context import (
 )
 from office365.runtime.client_value import ClientValue as ClientValue
 from office365.runtime.http.request_options import RequestOptions as RequestOptions
-from typing import Callable, Generic, TypeVar
 from typing_extensions import Self
 
 T = TypeVar("T")

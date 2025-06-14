@@ -15,9 +15,9 @@ from marshmallow import ValidationError
 from sqlalchemy.orm import Session
 
 from db.models import WireSetCert
+from integrations.sharepoint.client import download_wiresetcerts_content
 from utils.database import SessionLocal
 from utils.schemas import WireSetCertResult, WireSetCertSchema
-from utils.sharepoint_client import SharePointClient
 
 
 class WireSetCertRefresher:
@@ -122,20 +122,8 @@ class WireSetCertRefresher:
             File content as bytes, or None if download failed
         """
         try:
-            # Use the existing SharePoint client to get file content
-            sharepoint_client = SharePointClient()
-
-            # Get the file reference first
-            file_ref = sharepoint_client.get_wiresetcerts_file()
-
-            if not file_ref.get("id"):
-                self.logger.error("WireSetCerts.xlsx file not found in SharePoint")
-                return None
-
-            # Download the file content as bytes
-            file_content = sharepoint_client.download_file_content(
-                file_ref["id"], sharepoint_client.drive_id
-            )
+            # Download the file content as bytes directly
+            file_content = download_wiresetcerts_content()
 
             self.logger.info(
                 f"Successfully downloaded WireSetCerts.xlsx ({len(file_content)} bytes)"

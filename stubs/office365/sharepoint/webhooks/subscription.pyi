@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from office365.runtime.paths.service_operation import (
     ServiceOperationPath as ServiceOperationPath,
 )

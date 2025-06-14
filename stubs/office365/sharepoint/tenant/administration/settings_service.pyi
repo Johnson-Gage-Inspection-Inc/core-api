@@ -14,8 +14,14 @@ from office365.sharepoint.tenant.administration.smtp_server import (
 )
 from office365.sharepoint.tenant.administration.types import (
     AutoQuotaEnabled as AutoQuotaEnabled,
+)
+from office365.sharepoint.tenant.administration.types import (
     DisableGroupify as DisableGroupify,
+)
+from office365.sharepoint.tenant.administration.types import (
     DisableSelfServiceSiteCreation as DisableSelfServiceSiteCreation,
+)
+from office365.sharepoint.tenant.administration.types import (
     EnableAutoNewsDigest as EnableAutoNewsDigest,
 )
 

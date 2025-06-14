@@ -1,10 +1,8 @@
 from _typeshed import Incomplete
 from office365.runtime.client_value import ClientValue as ClientValue
-from office365.runtime.compat import (
-    get_absolute_url as get_absolute_url,
-    is_absolute_url as is_absolute_url,
-    urlparse as urlparse,
-)
+from office365.runtime.compat import get_absolute_url as get_absolute_url
+from office365.runtime.compat import is_absolute_url as is_absolute_url
+from office365.runtime.compat import urlparse as urlparse
 
 class ResourcePath(ClientValue):
     DecodedUrl: Incomplete

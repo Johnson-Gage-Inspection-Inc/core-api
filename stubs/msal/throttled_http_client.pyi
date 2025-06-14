@@ -1,6 +1,7 @@
+from _typeshed import Incomplete
+
 from .exceptions import MsalServiceError as MsalServiceError
 from .oauth2cli.http import Response as Response
-from _typeshed import Incomplete
 
 DEVICE_AUTH_GRANT: str
 

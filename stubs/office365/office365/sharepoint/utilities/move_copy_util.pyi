@@ -1,3 +1,5 @@
+from typing import IO, Callable
+
 from _typeshed import Incomplete
 from office365.runtime.client_result import ClientResult as ClientResult
 from office365.runtime.queries.service_operation import (
@@ -6,7 +8,6 @@ from office365.runtime.queries.service_operation import (
 from office365.sharepoint.entity import Entity as Entity
 from office365.sharepoint.files.file import File as File
 from office365.sharepoint.folders.folder import Folder as Folder
-from typing import Callable, IO
 
 class MoveCopyUtil(Entity):
     @staticmethod

@@ -21,13 +21,12 @@ def mock_session():
 
 @pytest.fixture
 def mock_sharepoint_client():
-    """Create a mock SharePoint client."""
-    with patch("utils.wire_set_cert_refresher.SharePointClient") as mock_client:
-        client_instance = mock_client.return_value
-        client_instance.get_wiresetcerts_file.return_value = {"id": "file123"}
-        client_instance.download_file_content.return_value = b"mock excel data"
-        client_instance.drive_id = "drive123"
-        yield client_instance
+    """Create a mock for the native SDK SharePoint client."""
+    with patch(
+        "utils.wire_set_cert_refresher.download_wiresetcerts_content"
+    ) as mock_download:
+        mock_download.return_value = b"mock excel data"
+        yield mock_download
 
 
 @pytest.fixture
@@ -92,8 +91,12 @@ class TestWireSetCertRefresher:
             refresher = WireSetCertRefresher()
             assert refresher.session == mock_session
 
-    def test_download_wiresetcerts_file_success(self, mock_sharepoint_client):
+    @patch("utils.wire_set_cert_refresher.download_wiresetcerts_content")
+    def test_download_wiresetcerts_file_success(self, mock_download_wiresetcerts):
         """Test successful download of WireSetCerts.xlsx file."""
+        # Mock the download function
+        mock_download_wiresetcerts.return_value = b"mock excel data"
+
         refresher = WireSetCertRefresher(MagicMock())
 
         # Call the method
@@ -101,19 +104,17 @@ class TestWireSetCertRefresher:
 
         # Verify the result
         assert result == b"mock excel data"
-        mock_sharepoint_client.get_wiresetcerts_file.assert_called_once()
-        mock_sharepoint_client.download_file_content.assert_called_once_with(
-            "file123", mock_sharepoint_client.drive_id
-        )
+        mock_download_wiresetcerts.assert_called_once()
 
     def test_download_wiresetcerts_file_not_found(self):
         """Test handling when WireSetCerts.xlsx file is not found."""
         refresher = WireSetCertRefresher(MagicMock())
 
-        with patch("utils.wire_set_cert_refresher.SharePointClient") as mock_client:
-            client_instance = mock_client.return_value
-            # Simulate file not found
-            client_instance.get_wiresetcerts_file.return_value = {}
+        with patch(
+            "utils.wire_set_cert_refresher.download_wiresetcerts_content"
+        ) as mock_download:
+            # Simulate file not found - raise an exception that would be typical for file not found
+            mock_download.side_effect = FileNotFoundError("WireSetCerts.xlsx not found")
 
             # Call the method
             result = refresher._download_wiresetcerts_file()
@@ -125,12 +126,11 @@ class TestWireSetCertRefresher:
         """Test error handling during file download."""
         refresher = WireSetCertRefresher(MagicMock())
 
-        with patch("utils.wire_set_cert_refresher.SharePointClient") as mock_client:
-            client_instance = mock_client.return_value
+        with patch(
+            "utils.wire_set_cert_refresher.download_wiresetcerts_content"
+        ) as mock_download:
             # Simulate exception during download
-            client_instance.get_wiresetcerts_file.side_effect = Exception(
-                "Connection error"
-            )
+            mock_download.side_effect = Exception("Connection error")
 
             # Call the method
             result = refresher._download_wiresetcerts_file()

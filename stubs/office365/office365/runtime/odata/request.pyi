@@ -1,3 +1,5 @@
+from typing import Any
+
 import requests
 from office365.runtime.client_object import ClientObject as ClientObject
 from office365.runtime.client_request import ClientRequest as ClientRequest
@@ -23,7 +25,6 @@ from office365.runtime.queries.service_operation import (
 from office365.runtime.queries.update_entity import (
     UpdateEntityQuery as UpdateEntityQuery,
 )
-from typing import Any
 
 class ODataRequest(ClientRequest):
     def __init__(self, json_format: ODataJsonFormat) -> None: ...

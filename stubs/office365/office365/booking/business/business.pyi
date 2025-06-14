@@ -1,5 +1,6 @@
-from _typeshed import Incomplete
 from datetime import datetime
+
+from _typeshed import Incomplete
 from office365.booking.appointment import BookingAppointment as BookingAppointment
 from office365.booking.custom_question import (
     BookingCustomQuestion as BookingCustomQuestion,

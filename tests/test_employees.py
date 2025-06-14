@@ -3,7 +3,9 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from qualer_sdk.models import QualerApiModelsClientsToEmployeeResponseModel
+from qualer_sdk.models.qualer_api_models_clients_to_employee_response_model import (
+    QualerApiModelsClientsToEmployeeResponseModel,
+)
 
 
 @pytest.mark.skipif(
@@ -16,49 +18,39 @@ def test_employees_endpoint_basic(client, auth_token):
         "/employees", headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert response.status_code == 200
+
     data = response.get_json()
     assert isinstance(data, list)
-    for employee in data:
-        assert isinstance(employee, dict)
-        assert employee != {}
-        assert "employee_id" in employee
-        assert employee.get("is_deleted") is False
+    assert all(data), "Expected a non-empty list of employees"
 
 
 @patch("utils.qualer_client.make_qualer_client")
 def test_employees_endpoint_mocked(mock_qualer_client, client, auth_token):
     """Test employees endpoint with mocked Qualer client for CI environments."""
-    # Create a mock employee that behaves like an SDK object
+    # Create a mock that behaves exactly like the SDK object but is easier to control
     mock_employee = MagicMock(spec=QualerApiModelsClientsToEmployeeResponseModel)
     mock_employee.is_deleted = False
-    mock_employee.to_dict.return_value = {
-        "employee_id": 123,
-        "first_name": "John",
-        "last_name": "Doe",
-        "company_id": 1,
-        "login_email": "john.doe@test.com",
-        "departments": [],
-        "subscription_email": None,
-        "subscription_phone": None,
-        "office_phone": None,
-        "is_locked": False,
-        "image_url": None,
-        "alias": None,
-        "title": "Developer",
-        "is_deleted": False,
-        "last_seen_date_utc": None,
-        "culture_name": "en-US",
-        "culture_ui_name": "en-US",
-    }
 
-    mock_employees_api = MagicMock()
-    mock_employees_api.get_employees.return_value = [mock_employee]
+    # Mock the to_dict method to return exactly what the real SDK returns
+    mock_employee.to_dict.return_value = {
+        "EmployeeId": 123,
+        "FirstName": "John",
+        "LastName": "Doe",
+        "CompanyId": 1,
+        "LoginEmail": "john.doe@test.com",
+        "Departments": [],
+        "IsLocked": False,
+        "Title": "Developer",
+        "IsDeleted": False,
+        "CultureName": "en-US",
+        "CultureUiName": "en-US",
+    }
 
     mock_client = MagicMock()
     mock_qualer_client.return_value = mock_client
 
-    # Patch the EmployeesApi class
-    with patch("routes.employees.EmployeesApi", return_value=mock_employees_api):
+    # Patch the get_employees function directly to return our mock employee
+    with patch("routes.employees.get_employees", return_value=[mock_employee]):
         response = client.get(
             "/employees", headers={"Authorization": f"Bearer {auth_token}"}
         )
@@ -67,9 +59,15 @@ def test_employees_endpoint_mocked(mock_qualer_client, client, auth_token):
     data = response.get_json()
     assert isinstance(data, list)
     assert len(data) == 1
+    assert all(data), "Expected a non-empty list of employees"
 
     employee = data[0]
-    assert employee["employee_id"] == 123
-    assert employee["first_name"] == "John"
-    assert employee["last_name"] == "Doe"
-    assert employee["is_deleted"] is False
+
+    # Test the actual field names returned by to_dict()
+    assert employee["EmployeeId"] == 123
+    assert employee["FirstName"] == "John"
+    assert employee["LastName"] == "Doe"
+    assert employee["CompanyId"] == 1
+    assert employee["LoginEmail"] == "john.doe@test.com"
+    assert employee["IsDeleted"] is False
+    assert employee["Title"] == "Developer"

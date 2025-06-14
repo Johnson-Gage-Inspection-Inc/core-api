@@ -1,3 +1,5 @@
+from typing import IO, AnyStr, Callable
+
 from _typeshed import Incomplete
 from office365.runtime.client_result import ClientResult as ClientResult
 from office365.runtime.client_value_collection import (
@@ -91,7 +93,6 @@ from office365.sharepoint.views.view import View as View
 from office365.sharepoint.webhooks.subscription_collection import (
     SubscriptionCollection as SubscriptionCollection,
 )
-from typing import AnyStr, Callable, IO
 from typing_extensions import Self
 
 class List(SecurableObject):

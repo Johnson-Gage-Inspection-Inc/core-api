@@ -7,7 +7,7 @@ Uses app-only authentication for headless operation.
 import sys
 
 import config  # noqa: F401  # Load environment variables from .env
-from utils.sharepoint_client import get_wiresetcerts_content
+from integrations.sharepoint import get_wiresetcerts_content
 
 
 def main():

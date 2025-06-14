@@ -1,4 +1,6 @@
 # app.py
+import os
+
 from flask import Flask, request
 from flask_cors import CORS
 from flask_smorest import Api
@@ -21,7 +23,7 @@ from routes import (
 
 app = Flask(__name__)
 
-app.wsgi_app = ProxyFix(
+app.wsgi_app = ProxyFix(  # type: ignore[method-assign]
     app.wsgi_app,
     x_for=1,
     x_proto=1,
@@ -33,7 +35,7 @@ CORS(app)
 app.config["API_TITLE"] = "JGI Quality API"
 app.config["API_VERSION"] = "1.0"
 app.config["OPENAPI_VERSION"] = "3.0.3"
-app.config["OPENAPI_URL_PREFIX"] = "/"
+app.config["OPENAPI_URL_PREFIX"] = ""
 app.config["OPENAPI_SWAGGER_UI_PATH"] = "/docs"
 app.config["OPENAPI_SWAGGER_UI_URL"] = (
     "https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.11.0/"
@@ -92,4 +94,5 @@ def index():
 
 
 if __name__ == "__main__":
-    app.run()
+    debug_mode = os.getenv("DEBUG", "false").lower() == "true"
+    app.run(debug=debug_mode)

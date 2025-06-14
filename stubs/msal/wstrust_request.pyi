@@ -1,6 +1,7 @@
+from _typeshed import Incomplete
+
 from .mex import Mex as Mex
 from .wstrust_response import parse_response as parse_response
-from _typeshed import Incomplete
 
 logger: Incomplete
 

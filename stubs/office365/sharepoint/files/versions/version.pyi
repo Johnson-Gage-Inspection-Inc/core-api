@@ -1,5 +1,7 @@
-from _typeshed import Incomplete
 from datetime import datetime
+from typing import IO, AnyStr
+
+from _typeshed import Incomplete
 from office365.runtime.client_result import ClientResult as ClientResult
 from office365.runtime.paths.resource_path import ResourcePath as ResourcePath
 from office365.runtime.paths.v3.entity import EntityPath as EntityPath
@@ -7,7 +9,6 @@ from office365.runtime.queries.service_operation import (
     ServiceOperationQuery as ServiceOperationQuery,
 )
 from office365.sharepoint.entity import Entity as Entity
-from typing import AnyStr, IO
 from typing_extensions import Self
 
 class FileVersion(Entity):

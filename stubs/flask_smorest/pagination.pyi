@@ -1,6 +1,7 @@
 import marshmallow as ma
-from .utils import unpack_tuple_response as unpack_tuple_response
 from _typeshed import Incomplete
+
+from .utils import unpack_tuple_response as unpack_tuple_response
 
 class PaginationParameters:
     page: Incomplete

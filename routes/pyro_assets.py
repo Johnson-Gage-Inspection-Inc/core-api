@@ -1,11 +1,13 @@
 # routes/pyro_assets.py
+import attr
 from flask.views import MethodView
 from flask_smorest import Blueprint
-from qualer_sdk import AssetsApi
+from qualer_sdk.api.assets.get_asset_by_asset_pool import (
+    sync as get_asset_by_asset_pool,
+)
 
 from utils.auth import require_auth
 from utils.qualer_client import make_qualer_client
-from utils.schemas import AssetToAssetSchema
 
 blp = Blueprint("pyro-assets", __name__, url_prefix="/")
 
@@ -14,7 +16,7 @@ blp = Blueprint("pyro-assets", __name__, url_prefix="/")
 class PyroAssets(MethodView):
     @require_auth
     @blp.doc(security=[{"BearerAuth": []}], tags=["Pyro"])
-    @blp.response(200, AssetToAssetSchema(many=True))
+    @blp.response(200)
     def get(self):
         """
         Retrieve assets from the Pyro asset pool in Qualer.
@@ -39,5 +41,23 @@ class PyroAssets(MethodView):
         **Response**: Array of asset objects from Pyro asset pool (ID: 620646)
         """
         client = make_qualer_client()
-        assets_api = AssetsApi(client)
-        return assets_api.get_asset_by_asset_pool(asset_pool_id=620646)
+        assets = get_asset_by_asset_pool(asset_pool_id=620646, client=client) or []
+
+        # Convert attrs objects to dictionaries
+        result = []
+        for asset in assets:
+            if attr.has(asset.__class__):
+                # Convert attrs object to dict
+                asset_dict = attr.asdict(asset)
+                # Filter out Unset values
+                filtered_dict = {
+                    k: v
+                    for k, v in asset_dict.items()
+                    if not (hasattr(v, "__class__") and "Unset" in v.__class__.__name__)
+                }
+                result.append(filtered_dict)
+            else:
+                # Fallback to the object as-is
+                result.append(asset)
+
+        return result

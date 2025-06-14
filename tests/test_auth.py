@@ -27,12 +27,12 @@ def client(app):
     return app.test_client()
 
 
-def test_get_azure_config():
-    """Test that get_azure_config returns expected structure"""
-    config = auth.get_azure_config()
-    assert "tenant_id" in config
-    assert "audience" in config
-    assert "required_scope" in config
+def test_AzureConfig_from_env():
+    """Test that AzureConfig.from_env() returns expected structure"""
+    config = auth.AzureConfig.from_env()
+    assert config.tenant_id is not None
+    assert config.audience is not None
+    assert config.required_scope is not None
 
 
 def test_require_auth_no_auth_header(client):

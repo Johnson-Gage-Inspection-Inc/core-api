@@ -1,12 +1,12 @@
 # routes/employees.py
+import attr
 from flask.views import MethodView
 from flask_smorest import Blueprint
-from qualer_sdk import EmployeesApi
+from qualer_sdk.api.employees.get_employees_get_2 import sync as get_employees
 from qualer_sdk.models import QualerApiModelsClientsToEmployeeResponseModel
 
 from utils.auth import require_auth
 from utils.qualer_client import make_qualer_client
-from utils.schemas import EmployeeResponseSchema
 
 blp = Blueprint("employees", __name__, url_prefix="/")
 
@@ -15,7 +15,7 @@ blp = Blueprint("employees", __name__, url_prefix="/")
 class Employees(MethodView):
     @require_auth
     @blp.doc(security=[{"BearerAuth": []}], tags=["Qualer"])
-    @blp.response(200, EmployeeResponseSchema(many=True))
+    @blp.response(200)
     def get(self):
         """
         Retrieve all active employees from Qualer.
@@ -47,18 +47,29 @@ class Employees(MethodView):
 
         **Raises**:
           - **401**: If authentication token is invalid or missing
-          - **500**: If there's an error communicating with the Qualer API        **Example**: GET /employees with Authorization: Bearer <token>
-
-        **Response**:
+          - **500**: If there's an error communicating with the Qualer API
+          **Example**: GET /employees with Authorization: Bearer <token>
+          **Response**:
           - Array of employee objects with comprehensive employee information including id, name, contact details, and department assignments
         """
         client = make_qualer_client()
-
-        employees_api = EmployeesApi(client)
-        employees = employees_api.get_employees()
+        employees = get_employees(client=client)
         assert isinstance(employees, list), "Expected a list of employees"
         Employee = QualerApiModelsClientsToEmployeeResponseModel
         assert all(isinstance(e, Employee) for e in employees)
 
-        # Return active employees (raw SDK objects)
-        return [e for e in employees if not e.is_deleted]
+        # Filter active employees and convert to dictionaries
+        active_employees = [e for e in employees if not e.is_deleted]
+
+        result = []
+        for employee in active_employees:
+            employee_dict = attr.asdict(employee)
+            # Filter out any Unset values that attrs might include
+            filtered_dict = {
+                k: v
+                for k, v in employee_dict.items()
+                if not (hasattr(v, "__class__") and "Unset" in str(type(v)))
+            }
+            result.append(filtered_dict)
+
+        return result

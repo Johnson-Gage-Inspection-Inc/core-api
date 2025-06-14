@@ -1,4 +1,5 @@
 import datetime
+
 from _typeshed import Incomplete
 from office365.directory.permissions.identity_set import IdentitySet as IdentitySet
 from office365.onedrive.documentsets.version_item import (

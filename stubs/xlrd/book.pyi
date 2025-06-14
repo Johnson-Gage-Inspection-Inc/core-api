@@ -1,8 +1,11 @@
+from _typeshed import Incomplete
+
+from . import compdoc as compdoc
+from . import formatting as formatting
+from . import sheet as sheet
 from .biffh import *
 from .formula import *
 from .timemachine import *
-from . import compdoc as compdoc, formatting as formatting, sheet as sheet
-from _typeshed import Incomplete
 
 empty_cell: Incomplete
 DEBUG: int

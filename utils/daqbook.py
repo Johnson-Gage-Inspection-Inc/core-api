@@ -4,16 +4,17 @@ DAQbook offset refresh pipeline.
 Handles downloading updated DAQbook files from SharePoint and updating the database.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
 from db.models import DaqbookOffset
+from integrations.sharepoint import list_pyro_standards_excel_files
+from integrations.sharepoint.client import Office365SharePointClient
 from utils.constants import daqbook_filename_pattern
 from utils.database import SessionLocal
 from utils.excel_parser import parse_daqbook_offsets_from_excel
-from utils.sharepoint_client import SharePointClient
 
 
 def get_updated_daqbook_files(last_checked: datetime) -> List[Dict[str, Any]]:
@@ -27,26 +28,18 @@ def get_updated_daqbook_files(last_checked: datetime) -> List[Dict[str, Any]]:
         List of file metadata dictionaries for updated DAQbook files
     """
 
-    all_files = SharePointClient.list_files_in_pyro_standards_folder()
+    all_files = list_pyro_standards_excel_files()
     updated_files = []
 
     print(
         f"Checking {len(all_files)} files from SharePoint against last_checked: {last_checked}"
     )
+    for file_obj in all_files:
+        # file_obj is now a native Office365 File object
+        filename = file_obj.name or ""
 
-    for file_info in all_files:
-        # Handle both dictionary and object formats
-        if isinstance(file_info, dict):
-            filename = file_info.get("name", "")
-            # list_pyro_standards_excel_files returns 'last_modified' instead of 'lastModifiedDateTime'
-            last_modified_str = file_info.get("last_modified", "") or file_info.get(
-                "lastModifiedDateTime", ""
-            )
-        else:
-            filename = getattr(file_info, "name", "")
-            last_modified_str = getattr(file_info, "last_modified", "") or getattr(
-                file_info, "lastModifiedDateTime", ""
-            )
+        # Get the last modified datetime
+        last_modified_datetime = file_obj.time_last_modified
 
         # Filter for DAQbook files with patterns: J1_*, J2_*, J3_*, K4_*, K5_*, K6_*, N2_*.xlsm
         # Check if it's a DAQbook file
@@ -54,31 +47,36 @@ def get_updated_daqbook_files(last_checked: datetime) -> List[Dict[str, Any]]:
             print(f"Skipping non-DAQbook file: {filename}")
             continue
 
-        print(f"Found DAQbook file: {filename}, last modified: {last_modified_str}")
+        print(
+            f"Found DAQbook file: {filename}, last modified: {last_modified_datetime}"
+        )
 
-        # Parse the modification date
-        try:
-            if last_modified_str.endswith("Z"):
-                # ISO format with Z suffix
-                last_modified = datetime.fromisoformat(
-                    last_modified_str.replace("Z", "+00:00")
-                )
-            else:
-                # Try parsing as ISO format
-                last_modified = datetime.fromisoformat(last_modified_str)
-
-            # Convert to UTC if timezone-aware
-            if last_modified.tzinfo is not None:
-                last_modified = last_modified.replace(tzinfo=None)
-
-        except (ValueError, AttributeError):
-            # Skip files with unparseable dates
+        # Check if we have a valid last modified datetime
+        if not last_modified_datetime:
+            print(f"Skipping file {filename} - no modification date available")
             continue
+
+        # Convert to datetime if needed and remove timezone info for comparison
+        if last_modified_datetime.tzinfo is not None:
+            last_modified = last_modified_datetime.replace(tzinfo=None)
+        else:
+            last_modified = last_modified_datetime
+
         # Check if file was modified after last check
         if last_modified > last_checked:
             print(
                 f"File {filename} is updated (modified: {last_modified}, checking since: {last_checked})"
             )
+            # Convert File object to dictionary format for backward compatibility
+            file_info = {
+                "name": file_obj.name,
+                "serverRelativeUrl": file_obj.serverRelativeUrl,
+                "lastModifiedDateTime": (
+                    last_modified_datetime.isoformat() if last_modified_datetime else ""
+                ),
+                "size": file_obj.length or 0,
+                "id": file_obj.unique_id or "",
+            }
             updated_files.append(file_info)
         else:
             print(
@@ -104,7 +102,7 @@ def refresh_daqbook_offsets(session: Optional[Session] = None):
     Args:
         session: Optional database session (for testing)
     """  # Default to checking files updated in the last day
-    last_checked = datetime.utcnow() - timedelta(days=500)
+    last_checked = datetime.now(timezone.utc) - timedelta(days=500)
     print(f"Refreshing DAQbook offsets, checking files modified since: {last_checked}")
 
     # Get updated files - this may be monkeypatched during testing
@@ -113,7 +111,9 @@ def refresh_daqbook_offsets(session: Optional[Session] = None):
         updated_files = get_updated_daqbook_files(last_checked)
     except TypeError:
         # Handle case where function was monkeypatched to take no arguments (testing)
-        updated_files = get_updated_daqbook_files()
+        # Pass a default last_checked value for testing
+        test_last_checked = datetime.now(timezone.utc) - timedelta(days=1)
+        updated_files = get_updated_daqbook_files(test_last_checked)
 
     if not updated_files:
         print("No updated files found, exiting")
@@ -125,6 +125,9 @@ def refresh_daqbook_offsets(session: Optional[Session] = None):
     use_provided_session = session is not None
     if not use_provided_session:
         session = SessionLocal()
+
+    assert session is not None  # Help type checker understand session is not None
+
     try:
         total_records_processed = 0
         files_processed = 0
@@ -138,13 +141,24 @@ def refresh_daqbook_offsets(session: Optional[Session] = None):
             daqbook_id = filename.split(".")[0]
             print(f"Processing file: {filename}, extracted daqbook_id: {daqbook_id}")
 
-            try:
-                # Download the file
-                file_path = SharePointClient.download_file_from_sharepoint(file_info)
-                print(f"Downloaded file to: {file_path}")
+            try:  # Download the file using SharePoint client
+                client = Office365SharePointClient()
+                content = client.download_file_content(file_info["serverRelativeUrl"])
+
+                # Save to temporary file
+                import os
+                import tempfile
+
+                temp_dir = tempfile.gettempdir()
+                temp_file_path = os.path.join(temp_dir, file_info["name"])
+
+                with open(temp_file_path, "wb") as temp_file:
+                    temp_file.write(content)
+
+                print(f"Downloaded file to: {temp_file_path}")
 
                 # Parse offset data from the Excel file
-                offset_data = parse_daqbook_offsets_from_excel(file_path)
+                offset_data = parse_daqbook_offsets_from_excel(temp_file_path)
                 print(f"Parsed {len(offset_data)} offset records from {filename}")
 
                 if not offset_data:

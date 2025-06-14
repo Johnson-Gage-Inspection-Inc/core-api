@@ -1,4 +1,5 @@
 import datetime
+
 from _typeshed import Incomplete
 from office365.runtime.odata.type import ODataType as ODataType
 from office365.sharepoint.changes.token import ChangeToken as ChangeToken

@@ -5,16 +5,17 @@ from typing import Any, Dict
 
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from qualer_sdk.api import (
-    ClientAssetAttributesApi,
-    ClientAssetsApi,
-    ServiceOrderItemsApi,
-    ServiceOrdersApi,
+from qualer_sdk.api.client_asset_attributes.get_asset_attributes_get_2 import (
+    sync as get_asset_attributes,
 )
+from qualer_sdk.api.client_assets.get_asset_get_2 import sync as get_asset
+from qualer_sdk.api.service_order_items.get_work_items_workitems import (
+    sync as get_work_item,
+)
+from qualer_sdk.api.service_orders.get_work_order import sync as get_work_order
 from qualer_sdk.models import (
     QualerApiModelsAssetAttributesToAssetAttributesResponse,
     QualerApiModelsAssetToAssetResponseModel,
-    QualerApiModelsServiceOrdersToClientOrderItemResponseModel,
     QualerApiModelsServiceOrdersToClientOrderResponseModel,
 )
 
@@ -30,13 +31,7 @@ blp = Blueprint("work-item-details", __name__, url_prefix="/")
 
 
 def get_work_item_details_for_tus(item_no: WorkItemNumber) -> Dict[str, Any]:
-
-    client = make_qualer_client()
-
-    soi_api = ServiceOrderItemsApi(client)  # type: ignore
-    work_items: list[QualerApiModelsServiceOrdersToClientOrderItemResponseModel] = (
-        soi_api.get_work_items_0(work_item_number=item_no)  # type: ignore
-    )
+    work_items = get_work_item(work_item_number=item_no, client=make_qualer_client())
 
     if len(work_items) == 0:
         raise ValueError("No work items found for the given work item number.")
@@ -54,15 +49,15 @@ def get_work_item_details_for_tus(item_no: WorkItemNumber) -> Dict[str, Any]:
 
     with ThreadPoolExecutor() as executor:
         future_client_asset = executor.submit(
-            ClientAssetsApi(client).get_asset,  # type: ignore
+            get_asset,
             asset_id=asset_id,
         )
         future_attributes = executor.submit(
-            ClientAssetAttributesApi(client).get_asset_attributes,  # type: ignore
+            get_asset_attributes,
             asset_id=asset_id,
         )
         future_service_order = executor.submit(
-            ServiceOrdersApi(client).get_work_order,  # type: ignore
+            get_work_order,
             service_order_id=service_order_id,
         )
 

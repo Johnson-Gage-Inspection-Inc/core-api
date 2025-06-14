@@ -1,4 +1,5 @@
 import datetime
+
 from office365.runtime.client_value_collection import (
     ClientValueCollection as ClientValueCollection,
 )

@@ -5,7 +5,7 @@ This script demonstrates the SharePoint integration functionality with app-only 
 """
 
 import config  # noqa: F401  # Load environment variables from .env
-from utils.sharepoint_client import (
+from integrations.sharepoint import (
     get_wiresetcerts_content,
     get_wiresetcerts_file_reference,
 )

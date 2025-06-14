@@ -50,23 +50,43 @@ class TestWireOffsetsInitialization:
         ]
 
         with patch(
-            "utils.sharepoint_client.list_pyro_standards_excel_files"
+            "integrations.sharepoint.list_pyro_standards_excel_files"
         ) as mock_list_files:
-            mock_list_files.return_value = mock_files
+            # Create mock File objects since the new function returns File objects
+            from unittest.mock import MagicMock
 
-            result = get_all_wire_certificate_files()
+            mock_file1 = MagicMock()
+            mock_file1.name = "Wire_Cert_001.xlsx"
 
-            # Should only return Excel files (3 files, excluding the PDF)
+            mock_file2 = MagicMock()
+            mock_file2.name = "Wire_Cert_002.xls"
+
+            mock_file3 = MagicMock()
+            mock_file3.name = "Wire_Cert_003.XLSX"
+
+            mock_file4 = MagicMock()
+            mock_file4.name = "Other_File.pdf"
+
+            mock_list_files.return_value = [
+                mock_file1,
+                mock_file2,
+                mock_file3,
+                mock_file4,
+            ]
+
+            result = (
+                get_all_wire_certificate_files()
+            )  # Should only return Excel files (3 files, excluding the PDF)
             assert len(result) == 3
-            assert any(f["name"] == "Wire_Cert_001.xlsx" for f in result)
-            assert any(f["name"] == "Wire_Cert_002.xls" for f in result)
-            assert any(f["name"] == "Wire_Cert_003.XLSX" for f in result)
-            assert not any(f["name"] == "Other_File.pdf" for f in result)
+            assert any(f.name == "Wire_Cert_001.xlsx" for f in result)
+            assert any(f.name == "Wire_Cert_002.xls" for f in result)
+            assert any(f.name == "Wire_Cert_003.XLSX" for f in result)
+            assert not any(f.name == "Other_File.pdf" for f in result)
 
     def test_get_all_wire_certificate_files_sharepoint_error(self):
         """Test handling of SharePoint connection errors."""
         with patch(
-            "utils.sharepoint_client.list_pyro_standards_excel_files"
+            "integrations.sharepoint.list_pyro_standards_excel_files"
         ) as mock_list_files:
             mock_list_files.side_effect = Exception("SharePoint connection failed")
 

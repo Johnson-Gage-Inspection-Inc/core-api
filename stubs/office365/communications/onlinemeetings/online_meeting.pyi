@@ -1,5 +1,7 @@
-from _typeshed import Incomplete
 from datetime import datetime
+from typing import AnyStr
+
+from _typeshed import Incomplete
 from office365.communications.onlinemeetings.participants import (
     MeetingParticipants as MeetingParticipants,
 )
@@ -13,7 +15,6 @@ from office365.runtime.client_result import ClientResult as ClientResult
 from office365.runtime.paths.resource_path import ResourcePath as ResourcePath
 from office365.runtime.queries.function import FunctionQuery as FunctionQuery
 from office365.runtime.types.collections import StringCollection as StringCollection
-from typing import AnyStr
 
 class OnlineMeeting(Entity):
     def get_virtual_appointment_join_web_url(self): ...

@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from office365.entity import Entity as Entity
 from office365.search.identity_set import IdentitySet as IdentitySet
 

@@ -1,6 +1,10 @@
+from typing import IO, AnyStr
+
 from _typeshed import Incomplete
 from office365.directory.extensions.extended_property import (
     MultiValueLegacyExtendedProperty as MultiValueLegacyExtendedProperty,
+)
+from office365.directory.extensions.extended_property import (
     SingleValueLegacyExtendedProperty as SingleValueLegacyExtendedProperty,
 )
 from office365.directory.extensions.extension import Extension as Extension
@@ -24,7 +28,6 @@ from office365.runtime.queries.function import FunctionQuery as FunctionQuery
 from office365.runtime.queries.service_operation import (
     ServiceOperationQuery as ServiceOperationQuery,
 )
-from typing import AnyStr, IO
 from typing_extensions import Self
 
 class Message(OutlookItem):

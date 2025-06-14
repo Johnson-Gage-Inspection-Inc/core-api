@@ -1,5 +1,7 @@
-from _typeshed import Incomplete
 from datetime import datetime
+from typing import IO, AnyStr, Callable, TypeVar
+
+from _typeshed import Incomplete
 from office365.delta_path import DeltaPath as DeltaPath
 from office365.entity_collection import EntityCollection as EntityCollection
 from office365.onedrive.analytics.item_activity_stat import (
@@ -74,7 +76,6 @@ from office365.runtime.queries.upload_session import (
 from office365.subscriptions.collection import (
     SubscriptionCollection as SubscriptionCollection,
 )
-from typing import AnyStr, Callable, IO, TypeVar
 from typing_extensions import Self
 
 P_T = TypeVar("P_T")

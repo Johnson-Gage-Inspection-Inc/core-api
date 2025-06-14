@@ -1,12 +1,15 @@
 # routes/asset_service_records.py
+import attr
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from marshmallow import Schema, fields
-from qualer_sdk import AssetServiceRecordsApi
+from qualer_sdk.api.asset_service_records.get_asset_service_records_by_asset import (
+    sync as get_asset_service_records,
+)
+from qualer_sdk.rest import ApiException
 
 from utils.auth import require_auth
 from utils.qualer_client import make_qualer_client
-from utils.schemas import AssetServiceRecordResponseSchema
 
 blp = Blueprint("asset-service-records", __name__, url_prefix="/")
 
@@ -22,7 +25,7 @@ class AssetServiceRecordQuerySchema(Schema):
 class AssetServiceRecord(MethodView):
     @require_auth
     @blp.doc(security=[{"BearerAuth": []}], tags=["Qualer"])
-    @blp.response(200, AssetServiceRecordResponseSchema(many=True))
+    @blp.response(200)
     def get(self, assetId):
         """
         Retrieve all asset service records for a specific asset from Qualer.
@@ -60,14 +63,38 @@ class AssetServiceRecord(MethodView):
 
         try:
             client = make_qualer_client()
-            api = AssetServiceRecordsApi(client)
-            return api.get_asset_service_records_by_asset(asset_id=assetId)
-        except Exception as e:
-            # Check if it's a 404 error (asset not found)
-            if hasattr(e, "status") and e.status == 404:
+            records = get_asset_service_records(asset_id=assetId, client=client)
+
+            # Convert attrs objects to dictionaries
+            result = []
+            for record in records:
+                if attr.has(record.__class__):
+                    # Convert attrs object to dict
+                    record_dict = attr.asdict(record)
+                    # Filter out Unset values
+                    filtered_dict = {
+                        k: v
+                        for k, v in record_dict.items()
+                        if not (
+                            hasattr(v, "__class__") and "Unset" in v.__class__.__name__
+                        )
+                    }
+                    result.append(filtered_dict)
+                else:
+                    # Fallback to the object as-is
+                    result.append(record)
+
+            return result
+        except ApiException as e:
+            if e.status_code == 404:
                 abort(
                     404,
                     message=f"Asset with ID '{assetId}' not found or has no service records",
                 )
             else:
                 abort(500, message=f"Error fetching asset service records: {str(e)}")
+        except Exception as e:
+            abort(
+                500,
+                message=f"Unexpected error fetching asset service records: {str(e)}",
+            )

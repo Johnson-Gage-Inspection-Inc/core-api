@@ -1,3 +1,5 @@
+from typing import Callable
+
 from office365.runtime.auth.authentication_context import (
     AuthenticationContext as AuthenticationContext,
 )
@@ -11,10 +13,8 @@ from office365.runtime.client_result import ClientResult as ClientResult
 from office365.runtime.client_runtime_context import (
     ClientRuntimeContext as ClientRuntimeContext,
 )
-from office365.runtime.compat import (
-    get_absolute_url as get_absolute_url,
-    urlparse as urlparse,
-)
+from office365.runtime.compat import get_absolute_url as get_absolute_url
+from office365.runtime.compat import urlparse as urlparse
 from office365.runtime.http.http_method import HttpMethod as HttpMethod
 from office365.runtime.http.request_options import RequestOptions as RequestOptions
 from office365.runtime.odata.request import ODataRequest as ODataRequest
@@ -55,7 +55,6 @@ from office365.sharepoint.webs.context_web_information import (
     ContextWebInformation as ContextWebInformation,
 )
 from office365.sharepoint.webs.web import Web as Web
-from typing import Callable
 from typing_extensions import Self
 
 class ClientContext(ClientRuntimeContext):

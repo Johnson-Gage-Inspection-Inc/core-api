@@ -1,5 +1,6 @@
 from office365.azure_env import AzureEnvironment as AzureEnvironment
-from office365.runtime.compat import timezone as timezone, urlparse as urlparse
+from office365.runtime.compat import timezone as timezone
+from office365.runtime.compat import urlparse as urlparse
 
 class STSProfile:
     def __init__(self, site_url: str, environment: str = None) -> None: ...

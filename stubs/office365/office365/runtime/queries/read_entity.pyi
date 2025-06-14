@@ -1,5 +1,6 @@
 from office365.runtime.odata.query_options import QueryOptions as QueryOptions
-from office365.runtime.queries.client_query import ClientQuery as ClientQuery, T as T
+from office365.runtime.queries.client_query import ClientQuery as ClientQuery
+from office365.runtime.queries.client_query import T as T
 
 class ReadEntityQuery(ClientQuery[T]):
     def __init__(

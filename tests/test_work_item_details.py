@@ -6,7 +6,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from flask.testing import FlaskClient
 
-from routes.work_item_details import get_work_item_details_for_tus
+from app import app
+from routes.work_item_details import WorkItemDetails, get_work_item_details_for_tus
 from utils.schemas import WorkItemNumber
 
 
@@ -74,24 +75,21 @@ def test_work_item_details_route_validation_errors(
 # Function-level unit tests with mocks
 @pytest.fixture
 def mock_apis() -> Generator[Dict[str, Any], None, None]:
-    """Fixture providing mocked API objects"""
+    """Fixture providing mocked API functions"""
     with (
-        patch("routes.work_item_details.make_qualer_client") as mock_make_client,
-        patch("routes.work_item_details.ServiceOrderItemsApi") as mock_soi_api,
-        patch("routes.work_item_details.ClientAssetsApi") as mock_assets_api,
-        patch("routes.work_item_details.ClientAssetAttributesApi") as mock_attr_api,
-        patch("routes.work_item_details.ServiceOrdersApi") as mock_orders_api,
+        patch("routes.work_item_details.get_work_item") as mock_get_work_item,
+        patch("routes.work_item_details.get_asset") as mock_get_asset,
+        patch(
+            "routes.work_item_details.get_asset_attributes"
+        ) as mock_get_asset_attributes,
+        patch("routes.work_item_details.get_work_order") as mock_get_work_order,
     ):
 
-        mock_client = MagicMock()
-        mock_make_client.return_value = mock_client
-
         yield {
-            "client": mock_client,
-            "soi_api": mock_soi_api,
-            "assets_api": mock_assets_api,
-            "attr_api": mock_attr_api,
-            "orders_api": mock_orders_api,
+            "get_work_item": mock_get_work_item,
+            "get_asset": mock_get_asset,
+            "get_asset_attributes": mock_get_asset_attributes,
+            "get_work_order": mock_get_work_order,
         }
 
 
@@ -136,17 +134,15 @@ def test_get_work_item_details_success(mock_apis: Dict[str, Any]) -> None:
     """Test successful retrieval of work item details"""
     # Setup mocks
     work_item = _create_mock_work_item()
-    mock_apis["soi_api"].return_value.get_work_items_0.return_value = [work_item]
+    mock_apis["get_work_item"].return_value = [work_item]
 
     asset = _create_mock_asset()
-    mock_apis["assets_api"].return_value.get_asset.return_value = asset
+    mock_apis["get_asset"].return_value = asset
 
-    mock_apis["attr_api"].return_value.get_asset_attributes.return_value = {
-        "key": "value"
-    }
+    mock_apis["get_asset_attributes"].return_value = {"key": "value"}
 
     order = _create_mock_order()
-    mock_apis["orders_api"].return_value.get_work_order.return_value = order
+    mock_apis["get_work_order"].return_value = order
 
     # Execute
     wo_number = WorkItemNumber("56561-000001-01")
@@ -161,25 +157,27 @@ def test_get_work_item_details_success(mock_apis: Dict[str, Any]) -> None:
 
 def test_get_work_item_details_auto_prefix(mock_apis: Dict[str, Any]) -> None:
     """Test that work item numbers are automatically prefixed with '56561-'"""
+
     # Setup mocks
     work_item = _create_mock_work_item()
-    mock_apis["soi_api"].return_value.get_work_items_0.return_value = [work_item]
+    mock_apis["get_work_item"].return_value = [work_item]
 
     asset = _create_mock_asset()
-    mock_apis["assets_api"].return_value.get_asset.return_value = asset
+    mock_apis["get_asset"].return_value = asset
 
-    mock_apis["attr_api"].return_value.get_asset_attributes.return_value = {}
+    mock_apis["get_asset_attributes"].return_value = {}
 
     order = _create_mock_order()
-    mock_apis["orders_api"].return_value.get_work_order.return_value = order
+    mock_apis["get_work_order"].return_value = order
 
     # Execute with unprefixed work item number
     wo_number = WorkItemNumber("000001-01")
     get_work_item_details_for_tus(wo_number)
 
     # Verify the API was called with the prefixed version
-    mock_apis["soi_api"].return_value.get_work_items_0.assert_called_with(
-        work_item_number=WorkItemNumber("56561-000001-01")
+    mock_apis["get_work_item"].assert_called_with(
+        work_item_number=WorkItemNumber("56561-000001-01"),
+        client=mock_apis["get_work_item"].call_args.kwargs["client"],
     )
 
 
@@ -198,7 +196,7 @@ def test_get_work_item_details_error_conditions(
     mock_apis: Dict[str, Any], work_items: List[MagicMock], expected_error: str
 ) -> None:
     """Test various error conditions in work item retrieval"""
-    mock_apis["soi_api"].return_value.get_work_items_0.return_value = work_items
+    mock_apis["get_work_item"].return_value = work_items
 
     with pytest.raises(ValueError, match=expected_error):
         wo_number = WorkItemNumber("56561-000001-01")
@@ -209,24 +207,20 @@ def test_work_item_details_sdk_validation_error(
     client: FlaskClient, auth_token: str
 ) -> None:
     """Test that SDK validation errors are handled gracefully"""
-    import os
-
-    from app import app
 
     # If SKIP_AUTH=true, temporarily restore real view function to test error handling
     skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
     original_view_func = None
 
     if skip_auth:
-        from routes.work_item_details import WorkItemDetails
 
         original_view_func = app.view_functions.get("work-item-details.WorkItemDetails")
         app.view_functions["work-item-details.WorkItemDetails"] = WorkItemDetails().get
 
     try:
-        with patch("routes.work_item_details.ServiceOrderItemsApi") as mock_soi_api:
+        with patch("routes.work_item_details.get_work_item") as mock_get_work_item:
             # Simulate SDK validation error for asset_status field
-            mock_soi_api.return_value.get_work_items_0.side_effect = ValueError(
+            mock_get_work_item.side_effect = ValueError(
                 "Invalid value for `asset_status` (Active), must be one of ['0', '1', '2', '3', '4']"
             )
 
@@ -248,24 +242,19 @@ def test_work_item_details_generic_validation_error(
     client: FlaskClient, auth_token: str
 ) -> None:
     """Test that other SDK validation errors are handled with details"""
-    import os
-
-    from app import app
 
     # If SKIP_AUTH=true, temporarily restore real view function to test error handling
     skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
     original_view_func = None
 
     if skip_auth:
-        from routes.work_item_details import WorkItemDetails
 
         original_view_func = app.view_functions.get("work-item-details.WorkItemDetails")
         app.view_functions["work-item-details.WorkItemDetails"] = WorkItemDetails().get
-
     try:
-        with patch("routes.work_item_details.ServiceOrderItemsApi") as mock_soi_api:
+        with patch("routes.work_item_details.get_work_item") as mock_get_work_item:
             # Simulate different SDK validation error
-            mock_soi_api.return_value.get_work_items_0.side_effect = ValueError(
+            mock_get_work_item.side_effect = ValueError(
                 "Invalid value for `category_status` (Inactive), must be one of ['active', 'inactive']"
             )
 
@@ -287,32 +276,28 @@ def test_work_item_details_asset_api_validation_error(
     client: FlaskClient, auth_token: str
 ) -> None:
     """Test that SDK validation errors from ClientAssetsApi are handled gracefully"""
-    import os
-
-    from app import app
 
     # If SKIP_AUTH=true, temporarily restore real view function to test error handling
     skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
     original_view_func = None
 
     if skip_auth:
-        from routes.work_item_details import WorkItemDetails
 
         original_view_func = app.view_functions.get("work-item-details.WorkItemDetails")
         app.view_functions["work-item-details.WorkItemDetails"] = WorkItemDetails().get
 
     try:
         with (
-            patch("routes.work_item_details.ServiceOrderItemsApi") as mock_soi_api,
-            patch("routes.work_item_details.ClientAssetsApi") as mock_assets_api,
+            patch("routes.work_item_details.get_work_item") as mock_get_work_item,
+            patch("routes.work_item_details.get_asset") as mock_get_asset,
         ):
 
             # Mock successful work item retrieval
             work_item = _create_mock_work_item()
-            mock_soi_api.return_value.get_work_items_0.return_value = [work_item]
+            mock_get_work_item.return_value = [work_item]
 
             # Simulate SDK validation error when getting asset details
-            mock_assets_api.return_value.get_asset.side_effect = ValueError(
+            mock_get_asset.side_effect = ValueError(
                 "Invalid value for `asset_status` (Active), must be one of ['0', '1', '2', '3', '4']"
             )
 
@@ -334,39 +319,36 @@ def test_work_item_details_service_order_api_validation_error(
     client: FlaskClient, auth_token: str
 ) -> None:
     """Test that SDK validation errors from ServiceOrdersApi are handled gracefully"""
-    import os
-
-    from app import app
-
     # If SKIP_AUTH=true, temporarily restore real view function to test error handling
     skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
     original_view_func = None
 
     if skip_auth:
-        from routes.work_item_details import WorkItemDetails
 
         original_view_func = app.view_functions.get("work-item-details.WorkItemDetails")
         app.view_functions["work-item-details.WorkItemDetails"] = WorkItemDetails().get
 
     try:
         with (
-            patch("routes.work_item_details.ServiceOrderItemsApi") as mock_soi_api,
-            patch("routes.work_item_details.ClientAssetsApi") as mock_assets_api,
-            patch("routes.work_item_details.ServiceOrdersApi") as mock_orders_api,
-            patch("routes.work_item_details.ClientAssetAttributesApi") as mock_attr_api,
+            patch("routes.work_item_details.get_work_item") as mock_get_work_item,
+            patch("routes.work_item_details.get_asset") as mock_get_asset,
+            patch("routes.work_item_details.get_work_order") as mock_get_work_order,
+            patch(
+                "routes.work_item_details.get_asset_attributes"
+            ) as mock_get_asset_attributes,
         ):
 
             # Mock successful work item and asset retrieval
             work_item = _create_mock_work_item()
-            mock_soi_api.return_value.get_work_items_0.return_value = [work_item]
+            mock_get_work_item.return_value = [work_item]
 
             asset = _create_mock_asset()
-            mock_assets_api.return_value.get_asset.return_value = asset
+            mock_get_asset.return_value = asset
 
-            mock_attr_api.return_value.get_asset_attributes.return_value = {}
+            mock_get_asset_attributes.return_value = {}
 
             # Simulate SDK validation error when getting service order details
-            mock_orders_api.return_value.get_work_order.side_effect = ValueError(
+            mock_get_work_order.side_effect = ValueError(
                 "Invalid value for `asset_status` (PENDING), must be one of ['ACTIVE', 'INACTIVE', 'RETIRED']"
             )
 
@@ -388,38 +370,37 @@ def test_work_item_details_asset_attributes_api_validation_error(
     client: FlaskClient, auth_token: str
 ) -> None:
     """Test that SDK validation errors from ClientAssetAttributesApi are handled gracefully"""
-    import os
-
-    from app import app
 
     # If SKIP_AUTH=true, temporarily restore real view function to test error handling
     skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
     original_view_func = None
 
     if skip_auth:
-        from routes.work_item_details import WorkItemDetails
 
         original_view_func = app.view_functions.get("work-item-details.WorkItemDetails")
         app.view_functions["work-item-details.WorkItemDetails"] = WorkItemDetails().get
 
     try:
         with (
-            patch("routes.work_item_details.ServiceOrderItemsApi") as mock_soi_api,
-            patch("routes.work_item_details.ClientAssetsApi") as mock_assets_api,
-            patch("routes.work_item_details.ServiceOrdersApi") as mock_orders_api,
-            patch("routes.work_item_details.ClientAssetAttributesApi") as mock_attr_api,
-        ):  # Mock successful work item, asset, and service order retrieval
+            patch("routes.work_item_details.get_work_item") as mock_get_work_item,
+            patch("routes.work_item_details.get_asset") as mock_get_asset,
+            patch("routes.work_item_details.get_work_order") as mock_get_work_order,
+            patch(
+                "routes.work_item_details.get_asset_attributes"
+            ) as mock_get_asset_attributes,
+        ):
+            # Mock successful work item, asset, and service order retrieval
             work_item = _create_mock_work_item()
-            mock_soi_api.return_value.get_work_items_0.return_value = [work_item]
+            mock_get_work_item.return_value = [work_item]
 
             asset = _create_mock_asset()
-            mock_assets_api.return_value.get_asset.return_value = asset
+            mock_get_asset.return_value = asset
 
             order = _create_mock_order()
-            mock_orders_api.return_value.get_work_order.return_value = order
+            mock_get_work_order.return_value = order
 
             # Simulate SDK validation error when getting asset attributes
-            mock_attr_api.return_value.get_asset_attributes.side_effect = ValueError(
+            mock_get_asset_attributes.side_effect = ValueError(
                 "Invalid value for `asset_status` (2), must be one of ['0', '1', '3', '4', '5']"
             )
 
@@ -441,16 +422,12 @@ def test_work_item_details_comprehensive_validation_scenarios(
     client: FlaskClient, auth_token: str
 ) -> None:
     """Test various realistic SDK validation error scenarios that could occur in production"""
-    import os
-
-    from app import app
 
     # If SKIP_AUTH=true, temporarily restore real view function to test error handling
     skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
     original_view_func = None
 
     if skip_auth:
-        from routes.work_item_details import WorkItemDetails
 
         original_view_func = app.view_functions.get("work-item-details.WorkItemDetails")
         app.view_functions["work-item-details.WorkItemDetails"] = WorkItemDetails().get
@@ -477,11 +454,9 @@ def test_work_item_details_comprehensive_validation_scenarios(
 
     try:
         for i, test_case in enumerate(test_cases):
-            with patch("routes.work_item_details.ServiceOrderItemsApi") as mock_soi_api:
+            with patch("routes.work_item_details.get_work_item") as mock_get_work_item:
                 # Simulate the validation error
-                mock_soi_api.return_value.get_work_items_0.side_effect = ValueError(
-                    test_case["error"]
-                )
+                mock_get_work_item.side_effect = ValueError(test_case["error"])
 
                 response = client.get(
                     f"/work-item-details?workItemNumber=56561-067667-{i:02d}",
@@ -500,41 +475,39 @@ def test_work_item_details_threadpool_validation_error(
     client: FlaskClient, auth_token: str
 ) -> None:
     """Test SDK validation errors that occur during ThreadPoolExecutor execution"""
-    import os
-
-    from app import app
 
     # If SKIP_AUTH=true, temporarily restore real view function to test error handling
     skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
     original_view_func = None
 
     if skip_auth:
-        from routes.work_item_details import WorkItemDetails
 
         original_view_func = app.view_functions.get("work-item-details.WorkItemDetails")
         app.view_functions["work-item-details.WorkItemDetails"] = WorkItemDetails().get
 
     try:
         with (
-            patch("routes.work_item_details.ServiceOrderItemsApi") as mock_soi_api,
-            patch("routes.work_item_details.ClientAssetsApi") as mock_assets_api,
-            patch("routes.work_item_details.ServiceOrdersApi") as mock_orders_api,
-            patch("routes.work_item_details.ClientAssetAttributesApi") as mock_attr_api,
+            patch("routes.work_item_details.get_work_item") as mock_get_work_item,
+            patch("routes.work_item_details.get_asset") as mock_get_asset,
+            patch("routes.work_item_details.get_work_order") as mock_get_work_order,
+            patch(
+                "routes.work_item_details.get_asset_attributes"
+            ) as mock_get_asset_attributes,
         ):
 
             # Mock successful work item retrieval
             work_item = _create_mock_work_item()
-            mock_soi_api.return_value.get_work_items_0.return_value = [work_item]
+            mock_get_work_item.return_value = [work_item]
 
             # Mock successful asset and order retrieval
             asset = _create_mock_asset()
-            mock_assets_api.return_value.get_asset.return_value = asset
+            mock_get_asset.return_value = asset
 
             order = _create_mock_order()
-            mock_orders_api.return_value.get_work_order.return_value = order
+            mock_get_work_order.return_value = order
 
             # Mock asset attributes API to raise the validation error that bubbles up
-            mock_attr_api.return_value.get_asset_attributes.side_effect = ValueError(
+            mock_get_asset_attributes.side_effect = ValueError(
                 "Invalid value for `asset_status` (Active), must be one of ['0', '1', '2', '3', '4']"
             )
 
@@ -556,16 +529,12 @@ def test_work_item_details_realistic_production_errors(
     client: FlaskClient, auth_token: str
 ) -> None:
     """Test realistic production scenarios where asset status values from Qualer don't match SDK expectations"""
-    import os
-
-    from app import app
 
     # If SKIP_AUTH=true, temporarily restore real view function to test error handling
     skip_auth = os.getenv("SKIP_AUTH", "false").lower() == "true"
     original_view_func = None
 
     if skip_auth:
-        from routes.work_item_details import WorkItemDetails
 
         original_view_func = app.view_functions.get("work-item-details.WorkItemDetails")
         app.view_functions["work-item-details.WorkItemDetails"] = WorkItemDetails().get
@@ -596,19 +565,15 @@ def test_work_item_details_realistic_production_errors(
 
     try:
         for i, scenario in enumerate(production_scenarios):
-            with patch("routes.work_item_details.ServiceOrderItemsApi") as mock_soi_api:
+            with patch("routes.work_item_details.get_work_item") as mock_get_work_item:
                 # Mock successful work item retrieval
                 work_item = _create_mock_work_item()
-                mock_soi_api.return_value.get_work_items_0.return_value = [work_item]
+                mock_get_work_item.return_value = [work_item]
 
                 # Simulate the validation error based on the scenario API
                 if scenario["api"] == "assets":
-                    with patch(
-                        "routes.work_item_details.ClientAssetsApi"
-                    ) as mock_assets_api:
-                        mock_assets_api.return_value.get_asset.side_effect = ValueError(
-                            scenario["error"]
-                        )
+                    with patch("routes.work_item_details.get_asset") as mock_get_asset:
+                        mock_get_asset.side_effect = ValueError(scenario["error"])
 
                         response = client.get(
                             f"/work-item-details?workItemNumber=56561-067667-{i:02d}",
@@ -616,28 +581,22 @@ def test_work_item_details_realistic_production_errors(
                         )
                 elif scenario["api"] == "service_orders":
                     with (
+                        patch("routes.work_item_details.get_asset") as mock_get_asset,
                         patch(
-                            "routes.work_item_details.ClientAssetsApi"
-                        ) as mock_assets_api,
+                            "routes.work_item_details.get_work_order"
+                        ) as mock_get_work_order,
                         patch(
-                            "routes.work_item_details.ServiceOrdersApi"
-                        ) as mock_orders_api,
-                        patch(
-                            "routes.work_item_details.ClientAssetAttributesApi"
-                        ) as mock_attr_api,
+                            "routes.work_item_details.get_asset_attributes"
+                        ) as mock_get_asset_attributes,
                     ):
 
                         # Mock successful asset and attributes
                         asset = _create_mock_asset()
-                        mock_assets_api.return_value.get_asset.return_value = asset
-                        mock_attr_api.return_value.get_asset_attributes.return_value = (
-                            {}
-                        )
+                        mock_get_asset.return_value = asset
+                        mock_get_asset_attributes.return_value = {}
 
                         # Error in service order API
-                        mock_orders_api.return_value.get_work_order.side_effect = (
-                            ValueError(scenario["error"])
-                        )
+                        mock_get_work_order.side_effect = ValueError(scenario["error"])
 
                         response = client.get(
                             f"/work-item-details?workItemNumber=56561-067667-{i:02d}",
@@ -645,26 +604,24 @@ def test_work_item_details_realistic_production_errors(
                         )
                 elif scenario["api"] == "attributes":
                     with (
+                        patch("routes.work_item_details.get_asset") as mock_get_asset,
                         patch(
-                            "routes.work_item_details.ClientAssetsApi"
-                        ) as mock_assets_api,
+                            "routes.work_item_details.get_work_order"
+                        ) as mock_get_work_order,
                         patch(
-                            "routes.work_item_details.ServiceOrdersApi"
-                        ) as mock_orders_api,
-                        patch(
-                            "routes.work_item_details.ClientAssetAttributesApi"
-                        ) as mock_attr_api,
+                            "routes.work_item_details.get_asset_attributes"
+                        ) as mock_get_asset_attributes,
                     ):
 
                         # Mock successful asset and service order
                         asset = _create_mock_asset()
-                        mock_assets_api.return_value.get_asset.return_value = asset
+                        mock_get_asset.return_value = asset
                         order = _create_mock_order()
-                        mock_orders_api.return_value.get_work_order.return_value = order
+                        mock_get_work_order.return_value = order
 
                         # Error in attributes API
-                        mock_attr_api.return_value.get_asset_attributes.side_effect = (
-                            ValueError(scenario["error"])
+                        mock_get_asset_attributes.side_effect = ValueError(
+                            scenario["error"]
                         )
 
                         response = client.get(

@@ -26,7 +26,7 @@ class TestDaqbookDataPopulator:
 
     @patch("utils.populate_daqbook_data.create_engine")
     @patch("utils.populate_daqbook_data.sessionmaker")
-    @patch("utils.populate_daqbook_data.SharePointClient")
+    @patch("utils.populate_daqbook_data.Office365SharePointClient")
     @patch.dict(os.environ, {"DATABASE_URL": "sqlite:///:memory:"})
     def test_init_success(self, mock_sharepoint, mock_sessionmaker, mock_create_engine):
         """Test successful initialization."""
@@ -41,7 +41,7 @@ class TestDaqbookDataPopulator:
         mock_sharepoint.assert_called_once()
         assert len(populator.daqbook_patterns) == 7
 
-    @patch("utils.populate_daqbook_data.SharePointClient")
+    @patch("utils.populate_daqbook_data.Office365SharePointClient")
     def test_init_no_database_url(self, mock_sharepoint):
         """Test initialization fails without DATABASE_URL."""
         with patch.dict(os.environ, {}, clear=True):
@@ -55,7 +55,7 @@ class TestDaqbookDataPopulator:
         with (
             patch("utils.populate_daqbook_data.create_engine"),
             patch("utils.populate_daqbook_data.sessionmaker"),
-            patch("utils.populate_daqbook_data.SharePointClient"),
+            patch("utils.populate_daqbook_data.Office365SharePointClient"),
             patch.dict(os.environ, {"DATABASE_URL": "sqlite:///:memory:"}),
         ):
 
@@ -77,7 +77,7 @@ class TestDaqbookDataPopulator:
         with (
             patch("utils.populate_daqbook_data.create_engine"),
             patch("utils.populate_daqbook_data.sessionmaker"),
-            patch("utils.populate_daqbook_data.SharePointClient"),
+            patch("utils.populate_daqbook_data.Office365SharePointClient"),
             patch.dict(os.environ, {"DATABASE_URL": "sqlite:///:memory:"}),
         ):
 
@@ -97,7 +97,7 @@ class TestDaqbookDataPopulator:
 
     @patch("utils.populate_daqbook_data.create_engine")
     @patch("utils.populate_daqbook_data.sessionmaker")
-    @patch("utils.populate_daqbook_data.SharePointClient")
+    @patch("utils.populate_daqbook_data.Office365SharePointClient")
     @patch.dict(os.environ, {"DATABASE_URL": "sqlite:///:memory:"})
     def test_search_daqbook_files_success(
         self, mock_sharepoint_class, mock_sessionmaker, mock_create_engine
@@ -123,7 +123,7 @@ class TestDaqbookDataPopulator:
 
     @patch("utils.populate_daqbook_data.create_engine")
     @patch("utils.populate_daqbook_data.sessionmaker")
-    @patch("utils.populate_daqbook_data.SharePointClient")
+    @patch("utils.populate_daqbook_data.Office365SharePointClient")
     @patch.dict(os.environ, {"DATABASE_URL": "sqlite:///:memory:"})
     def test_search_daqbook_files_with_errors(
         self, mock_sharepoint_class, mock_sessionmaker, mock_create_engine
@@ -154,7 +154,7 @@ class TestDaqbookDataPopulator:
         with (
             patch("utils.populate_daqbook_data.create_engine"),
             patch("utils.populate_daqbook_data.sessionmaker"),
-            patch("utils.populate_daqbook_data.SharePointClient"),
+            patch("utils.populate_daqbook_data.Office365SharePointClient"),
             patch.dict(os.environ, {"DATABASE_URL": "sqlite:///:memory:"}),
         ):
 
@@ -189,7 +189,7 @@ class TestDaqbookDataPopulator:
         with (
             patch("utils.populate_daqbook_data.create_engine"),
             patch("utils.populate_daqbook_data.sessionmaker"),
-            patch("utils.populate_daqbook_data.SharePointClient"),
+            patch("utils.populate_daqbook_data.Office365SharePointClient"),
             patch.dict(os.environ, {"DATABASE_URL": "sqlite:///:memory:"}),
         ):
 
@@ -204,7 +204,7 @@ class TestDaqbookDataPopulator:
 
     @patch("utils.populate_daqbook_data.create_engine")
     @patch("utils.populate_daqbook_data.sessionmaker")
-    @patch("utils.populate_daqbook_data.SharePointClient")
+    @patch("utils.populate_daqbook_data.Office365SharePointClient")
     @patch("utils.populate_daqbook_data.DaqbookOffset")
     @patch.dict(os.environ, {"DATABASE_URL": "sqlite:///:memory:"})
     def test_save_offset_data_new_records(
@@ -233,7 +233,7 @@ class TestDaqbookDataPopulator:
 
     @patch("utils.populate_daqbook_data.create_engine")
     @patch("utils.populate_daqbook_data.sessionmaker")
-    @patch("utils.populate_daqbook_data.SharePointClient")
+    @patch("utils.populate_daqbook_data.Office365SharePointClient")
     @patch.dict(os.environ, {"DATABASE_URL": "sqlite:///:memory:"})
     def test_save_offset_data_update_existing(
         self, mock_sharepoint, mock_sessionmaker, mock_create_engine
@@ -264,7 +264,7 @@ class TestDaqbookDataPopulator:
 
     @patch("utils.populate_daqbook_data.create_engine")
     @patch("utils.populate_daqbook_data.sessionmaker")
-    @patch("utils.populate_daqbook_data.SharePointClient")
+    @patch("utils.populate_daqbook_data.Office365SharePointClient")
     @patch.dict(os.environ, {"DATABASE_URL": "sqlite:///:memory:"})
     def test_save_offset_data_commit_error(
         self, mock_sharepoint, mock_sessionmaker, mock_create_engine
@@ -292,7 +292,7 @@ class TestDaqbookDataPopulator:
         with (
             patch("utils.populate_daqbook_data.create_engine"),
             patch("utils.populate_daqbook_data.sessionmaker"),
-            patch("utils.populate_daqbook_data.SharePointClient"),
+            patch("utils.populate_daqbook_data.Office365SharePointClient"),
             patch.dict(os.environ, {"DATABASE_URL": "sqlite:///:memory:"}),
         ):
 
@@ -302,7 +302,7 @@ class TestDaqbookDataPopulator:
 
     @patch("utils.populate_daqbook_data.create_engine")
     @patch("utils.populate_daqbook_data.sessionmaker")
-    @patch("utils.populate_daqbook_data.SharePointClient")
+    @patch("utils.populate_daqbook_data.Office365SharePointClient")
     @patch.dict(os.environ, {"DATABASE_URL": "sqlite:///:memory:"})
     def test_process_daqbook_file_success(
         self, mock_sharepoint_class, mock_sessionmaker, mock_create_engine
@@ -336,7 +336,7 @@ class TestDaqbookDataPopulator:
 
     @patch("utils.populate_daqbook_data.create_engine")
     @patch("utils.populate_daqbook_data.sessionmaker")
-    @patch("utils.populate_daqbook_data.SharePointClient")
+    @patch("utils.populate_daqbook_data.Office365SharePointClient")
     @patch.dict(os.environ, {"DATABASE_URL": "sqlite:///:memory:"})
     def test_process_daqbook_file_invalid_filename(
         self, mock_sharepoint_class, mock_sessionmaker, mock_create_engine
@@ -353,7 +353,7 @@ class TestDaqbookDataPopulator:
 
     @patch("utils.populate_daqbook_data.create_engine")
     @patch("utils.populate_daqbook_data.sessionmaker")
-    @patch("utils.populate_daqbook_data.SharePointClient")
+    @patch("utils.populate_daqbook_data.Office365SharePointClient")
     @patch.dict(os.environ, {"DATABASE_URL": "sqlite:///:memory:"})
     def test_process_daqbook_file_download_error(
         self, mock_sharepoint_class, mock_sessionmaker, mock_create_engine
@@ -374,7 +374,7 @@ class TestDaqbookDataPopulator:
 
     @patch("utils.populate_daqbook_data.create_engine")
     @patch("utils.populate_daqbook_data.sessionmaker")
-    @patch("utils.populate_daqbook_data.SharePointClient")
+    @patch("utils.populate_daqbook_data.Office365SharePointClient")
     @patch.dict(os.environ, {"DATABASE_URL": "sqlite:///:memory:"})
     def test_populate_all_daqbook_data_success(
         self, mock_sharepoint_class, mock_sessionmaker, mock_create_engine
@@ -401,7 +401,7 @@ class TestDaqbookDataPopulator:
 
     @patch("utils.populate_daqbook_data.create_engine")
     @patch("utils.populate_daqbook_data.sessionmaker")
-    @patch("utils.populate_daqbook_data.SharePointClient")
+    @patch("utils.populate_daqbook_data.Office365SharePointClient")
     @patch.dict(os.environ, {"DATABASE_URL": "sqlite:///:memory:"})
     def test_populate_all_daqbook_data_no_files(
         self, mock_sharepoint_class, mock_sessionmaker, mock_create_engine
@@ -423,7 +423,7 @@ class TestDaqbookDataPopulator:
 
     @patch("utils.populate_daqbook_data.create_engine")
     @patch("utils.populate_daqbook_data.sessionmaker")
-    @patch("utils.populate_daqbook_data.SharePointClient")
+    @patch("utils.populate_daqbook_data.Office365SharePointClient")
     @patch.dict(os.environ, {"DATABASE_URL": "sqlite:///:memory:"})
     def test_populate_all_daqbook_data_processing_errors(
         self, mock_sharepoint_class, mock_sessionmaker, mock_create_engine
@@ -453,7 +453,7 @@ class TestDaqbookDataPopulator:
         with (
             patch("utils.populate_daqbook_data.create_engine"),
             patch("utils.populate_daqbook_data.sessionmaker") as mock_sessionmaker,
-            patch("utils.populate_daqbook_data.SharePointClient"),
+            patch("utils.populate_daqbook_data.Office365SharePointClient"),
             patch.dict(os.environ, {"DATABASE_URL": "sqlite:///:memory:"}),
         ):
 

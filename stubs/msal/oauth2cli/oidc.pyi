@@ -1,5 +1,6 @@
-from . import oauth2 as oauth2
 from _typeshed import Incomplete
+
+from . import oauth2 as oauth2
 
 logger: Incomplete
 

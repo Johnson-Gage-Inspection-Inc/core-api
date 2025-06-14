@@ -1,3 +1,5 @@
+from typing import AnyStr
+
 from _typeshed import Incomplete
 from office365.runtime.client_result import ClientResult as ClientResult
 from office365.runtime.client_value_collection import (
@@ -53,6 +55,8 @@ from office365.sharepoint.tenant.administration.policies.definition import (
 )
 from office365.sharepoint.tenant.administration.policies.file_version_types import (
     SPOFileVersionBatchDeleteJobProgress as SPOFileVersionBatchDeleteJobProgress,
+)
+from office365.sharepoint.tenant.administration.policies.file_version_types import (
     SPOFileVersionPolicySettings as SPOFileVersionPolicySettings,
 )
 from office365.sharepoint.tenant.administration.powerapps.environment import (
@@ -101,7 +105,6 @@ from office365.sharepoint.tenant.administration.webs.templates.collection import
     SPOTenantWebTemplateCollection as SPOTenantWebTemplateCollection,
 )
 from office365.sharepoint.tenant.settings import TenantSettings as TenantSettings
-from typing import AnyStr
 from typing_extensions import Self
 
 class Tenant(Entity):

@@ -9,7 +9,7 @@ import sys
 
 # Import config to load environment variables
 import config  # noqa: F401
-from utils.sharepoint_client import SharePointClient
+from integrations.sharepoint import Office365SharePointClient
 
 # Add the parent directory to Python path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -21,7 +21,7 @@ def search_daqbook_files():
     print("🔍 Searching SharePoint for DAQbook calibration files...")
 
     # Initialize SharePoint client
-    sharepoint = SharePointClient()
+    sharepoint = Office365SharePointClient()
 
     # Use the main drive ID for searching
     drive_id = sharepoint.drive_id

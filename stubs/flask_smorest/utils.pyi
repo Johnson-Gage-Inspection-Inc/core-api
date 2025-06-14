@@ -1,5 +1,6 @@
-from _typeshed import Incomplete
 from collections import abc
+
+from _typeshed import Incomplete
 
 def deepupdate(original, update): ...
 def remove_none(mapping): ...

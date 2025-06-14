@@ -1,13 +1,12 @@
+from _typeshed import Incomplete
+from flask import Blueprint as FlaskBlueprint
+
 from .arguments import ArgumentsMixin as ArgumentsMixin
 from .etag import EtagMixin as EtagMixin
 from .pagination import PaginationMixin as PaginationMixin
 from .response import ResponseMixin as ResponseMixin
-from .utils import (
-    deepupdate as deepupdate,
-    load_info_from_docstring as load_info_from_docstring,
-)
-from _typeshed import Incomplete
-from flask import Blueprint as FlaskBlueprint
+from .utils import deepupdate as deepupdate
+from .utils import load_info_from_docstring as load_info_from_docstring
 
 class Blueprint(
     FlaskBlueprint, ArgumentsMixin, ResponseMixin, PaginationMixin, EtagMixin

@@ -7,11 +7,11 @@ flake8
 flask
 flask-cors
 flask-smorest
-git+https://github.com/Johnson-Gage-Inspection-Inc/qualer-sdk-python.git@1f6eee8865a3ffe23f9a622509d3b92e9a591b28#egg=qualer_sdk
+git+https://github.com/Johnson-Gage-Inspection-Inc/qualer-sdk-python.git@13a87a64dccfe9cfeab18e57d6b59b7ed0c79335#egg=qualer_sdk
 isort
 marshmallow
 msal
-office365
+Office365-REST-Python-Client==2.6.2
 openpyxl
 pandas
 pre-commit

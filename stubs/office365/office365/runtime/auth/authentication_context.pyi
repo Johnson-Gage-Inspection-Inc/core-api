@@ -1,3 +1,5 @@
+from typing import Callable
+
 from _typeshed import Incomplete
 from office365.azure_env import AzureEnvironment as AzureEnvironment
 from office365.runtime.auth.client_credential import (
@@ -13,7 +15,6 @@ from office365.runtime.auth.token_response import TokenResponse as TokenResponse
 from office365.runtime.auth.user_credential import UserCredential as UserCredential
 from office365.runtime.compat import get_absolute_url as get_absolute_url
 from office365.runtime.http.request_options import RequestOptions as RequestOptions
-from typing import Callable
 from typing_extensions import Required, Self, TypedDict
 
 class JSONToken(TypedDict):

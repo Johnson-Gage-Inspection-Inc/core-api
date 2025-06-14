@@ -1,5 +1,6 @@
-from _typeshed import Incomplete
 from datetime import timezone as timezone
+
+from _typeshed import Incomplete
 
 is_py2: Incomplete
 is_py3: Incomplete

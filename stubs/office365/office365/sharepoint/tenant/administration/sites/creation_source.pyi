@@ -1,5 +1,6 @@
-from _typeshed import Incomplete
 from datetime import datetime
+
+from _typeshed import Incomplete
 from office365.runtime.client_value import ClientValue as ClientValue
 from office365.runtime.client_value_collection import (
     ClientValueCollection as ClientValueCollection,

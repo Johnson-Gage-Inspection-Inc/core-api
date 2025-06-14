@@ -1,13 +1,12 @@
-from .field_converters import uploadfield2properties as uploadfield2properties
-from .plugins import FlaskPlugin as FlaskPlugin
 from _typeshed import Incomplete
 from flask_smorest.exceptions import (
     MissingAPIParameterError as MissingAPIParameterError,
 )
-from flask_smorest.utils import (
-    normalize_config_prefix as normalize_config_prefix,
-    prepare_response as prepare_response,
-)
+from flask_smorest.utils import normalize_config_prefix as normalize_config_prefix
+from flask_smorest.utils import prepare_response as prepare_response
+
+from .field_converters import uploadfield2properties as uploadfield2properties
+from .plugins import FlaskPlugin as FlaskPlugin
 
 HAS_PYYAML: bool
 

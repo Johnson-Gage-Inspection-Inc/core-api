@@ -20,7 +20,7 @@ from sqlalchemy.orm import sessionmaker
 # Import config to load environment variables
 import config  # noqa: F401
 from db.models import DaqbookOffset
-from utils.sharepoint_client import SharePointClient
+from integrations.sharepoint import Office365SharePointClient
 
 
 class DaqbookDataPopulator:
@@ -37,7 +37,7 @@ class DaqbookDataPopulator:
         self.session = Session()
 
         # Initialize SharePoint client
-        self.sharepoint = SharePointClient()
+        self.sharepoint = Office365SharePointClient()
 
         # DAQbook file patterns
         self.daqbook_patterns = [
@@ -135,11 +135,13 @@ class DaqbookDataPopulator:
             print(f"   Temperature columns found: {temp_columns}")
 
             # Extract data for each temperature point
-            for i, row in df.iterrows():
+
+            point_num = 0
+            for _, row in df.iterrows():
                 if pd.isna(row.iloc[0]):  # Skip empty rows
                     continue
 
-                point_num = i + 1  # Use row index as point number
+                point_num += 1
 
                 for temp_col in temp_columns:
                     temp_value = (

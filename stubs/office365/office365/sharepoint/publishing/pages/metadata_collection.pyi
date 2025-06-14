@@ -1,3 +1,5 @@
+from typing import TypeVar
+
 from office365.runtime.paths.service_operation import (
     ServiceOperationPath as ServiceOperationPath,
 )
@@ -5,7 +7,6 @@ from office365.sharepoint.entity_collection import EntityCollection as EntityCol
 from office365.sharepoint.publishing.pages.metadata import (
     SitePageMetadata as SitePageMetadata,
 )
-from typing import TypeVar
 
 T = TypeVar("T")
 

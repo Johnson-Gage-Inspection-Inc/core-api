@@ -1,3 +1,5 @@
+from typing import IO, AnyStr, Callable
+
 from _typeshed import Incomplete
 from office365.runtime.client_result import ClientResult as ClientResult
 from office365.runtime.paths.service_operation import (
@@ -11,7 +13,6 @@ from office365.sharepoint.attachments.creation_information import (
     AttachmentCreationInformation as AttachmentCreationInformation,
 )
 from office365.sharepoint.entity_collection import EntityCollection as EntityCollection
-from typing import AnyStr, Callable, IO
 from typing_extensions import Self
 
 class AttachmentCollection(EntityCollection[Attachment]):

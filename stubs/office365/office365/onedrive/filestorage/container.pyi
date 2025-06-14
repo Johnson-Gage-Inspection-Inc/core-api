@@ -1,5 +1,6 @@
-from _typeshed import Incomplete
 from datetime import datetime
+
+from _typeshed import Incomplete
 from office365.entity import Entity as Entity
 
 class FileStorageContainer(Entity):

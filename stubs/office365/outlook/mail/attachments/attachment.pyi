@@ -1,9 +1,10 @@
 import datetime
+from typing import IO, AnyStr
+
 from _typeshed import Incomplete
 from office365.entity import Entity as Entity
 from office365.runtime.client_result import ClientResult as ClientResult
 from office365.runtime.queries.function import FunctionQuery as FunctionQuery
-from typing import AnyStr, IO
 from typing_extensions import Self
 
 class Attachment(Entity):

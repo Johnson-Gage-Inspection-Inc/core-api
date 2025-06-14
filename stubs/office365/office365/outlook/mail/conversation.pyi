@@ -1,4 +1,5 @@
 import datetime
+
 from _typeshed import Incomplete
 from office365.entity import Entity as Entity
 from office365.entity_collection import EntityCollection as EntityCollection

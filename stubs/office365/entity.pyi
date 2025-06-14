@@ -1,3 +1,5 @@
+from typing import TypeVar
+
 from office365.graph_client import GraphClient as GraphClient
 from office365.runtime.client_object import ClientObject as ClientObject
 from office365.runtime.paths.resource_path import ResourcePath as ResourcePath
@@ -8,7 +10,6 @@ from office365.runtime.queries.delete_entity import (
 from office365.runtime.queries.update_entity import (
     UpdateEntityQuery as UpdateEntityQuery,
 )
-from typing import TypeVar
 from typing_extensions import Self
 
 T = TypeVar("T")

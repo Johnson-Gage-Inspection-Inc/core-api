@@ -1,3 +1,5 @@
+from typing import Any
+
 from _typeshed import Incomplete
 from office365.runtime.client_result import ClientResult as ClientResult
 from office365.runtime.client_value_collection import (
@@ -26,7 +28,6 @@ from office365.sharepoint.search.query.tenant_custom_query_suggestions import (
 )
 from office365.sharepoint.search.request import SearchRequest as SearchRequest
 from office365.sharepoint.search.result import SearchResult as SearchResult
-from typing import Any
 
 class SearchService(Entity):
     def __init__(self, context) -> None: ...

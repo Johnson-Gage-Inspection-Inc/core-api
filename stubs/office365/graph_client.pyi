@@ -1,3 +1,5 @@
+from typing import Any, Callable
+
 from _typeshed import Incomplete
 from office365.admin.admin import Admin as Admin
 from office365.azure_env import AzureEnvironment as AzureEnvironment
@@ -118,7 +120,6 @@ from office365.teams.template import TeamsTemplate as TeamsTemplate
 from office365.teams.viva.employee_experience import (
     EmployeeExperience as EmployeeExperience,
 )
-from typing import Any, Callable
 
 class GraphClient(ClientRuntimeContext):
     def __init__(
